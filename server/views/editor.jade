@@ -1,0 +1,38 @@
+extends _layout.jade
+
+block head-content
+
+  meta(name="viewport", content="width=1024, initial-scale=1")
+
+  script(src="/lib/badsender-lib-editor.js")
+  //- script(src="/mosaico.min.js?v=0.13")
+  script(src="/badsender.js")
+
+  script.
+    $(function() {
+      if (!Badsender.isCompatible()) {
+        alert('Update your browser!');
+        return;
+      }
+      // var basePath = window.location.href.substr(0, window.location.href.lastIndexOf('/')).substr(window.location.href.indexOf('/','https://'.length));
+      var basePath = window.location.href.substr(0, window.location.href.lastIndexOf('/'));
+      var plugins;
+      // A basic plugin that expose the "viewModel" object as a global variable.
+      // plugins = [function(vm) {window.viewModel = vm;}];
+      var ok = Badsender.init({
+        imgProcessorBackend: basePath+'/img/',
+        emailProcessorBackend: basePath+'/dl/',
+        titleToken: "MOSAICO Responsive Email Designer",
+        fileuploadConfig: {
+          url: basePath+'/upload/',
+          // messages??
+        }
+      }, plugins);
+      if (!ok) {
+        console.log("Missing initialization hash, redirecting to main entrypoint");
+        document.location = ".";
+      }
+    });
+
+block content
+  body.mo-standalone
