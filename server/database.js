@@ -62,6 +62,8 @@ UserSchema.virtual('isReseted').get(function () {
   return false
 })
 
+
+// TODO: take care of good email send
 UserSchema.methods.resetPassword = function resetPassword() {
   // don't use callback param
   // we want to use promise
