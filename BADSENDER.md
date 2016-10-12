@@ -19,8 +19,11 @@
   - [Build and start a *production* server](#build-and-start-a-production-server)
   - [Build and start a *development* server](#build-and-start-a-development-server)
   - [Make a release](#make-a-release)
-    - [syncing the *stage DB* with the *prod DB*](#syncing-the-stage-db-with-the-prod-db)
   - [Generating templates preview images](#generating-templates-preview-images)
+  - [Databases scripts](#databases-scripts)
+    - [sync-db](#sync-db)
+    - [backup-db](#backup-db)
+    - [local-db](#local-db)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -135,6 +138,7 @@ then replace `YOURBUCKETNAME` by your real bucket name
 - [NodeJS 5](https://nodejs.org/en/)
 - [MongoDB](https://www.mongodb.com/)
 - [Imagemagick](http://www.imagemagick.org/script/index.php)
+- a SMTP server. [mailcatcher can help](https://mailcatcher.me/) 
 
 You need to have:
 
@@ -145,8 +149,8 @@ You need to have:
 
 ## Updating the code
 
-Configuration can be made by creating a `.badsenderc` at the root of the project  
-See `.badsenderrc-example` for config detail.
+It should have a default config for dev already setup.  
+If you want to change some, create `.badsenderc` at the root of the project then fill with the values you want to overrride as described in the `.badsenderrc-example`
 
 those are the main developper commands:
 
@@ -156,7 +160,7 @@ those are the main developper commands:
 npm run build
 ```
 
-### Start a server configured for *production* 
+### Start a server configured for *production*
 
 ```
 npm start
@@ -188,18 +192,39 @@ on your current branch
 npm run release
 ```
 
-The release will be pushed in the branch you have chosen (dev/stage/prod)  
-Automatic deploy is configured in heroku. So **pushing to dev or prod branch will automatically been deployed to heroku**
+The release will be pushed in the branch you have chosen (dev/stage)  
+Automatic deploy is configured in heroku. So **pushing to any branch will automatically been deployed to heroku**
 
+### Generating templates preview images
 
-#### syncing DBs
+see README.md
+
+### Databases scripts
+
+`.badsenderrc` should be provided with *dbConfigs* infos. See `.badsenderrc-example` for more informations
+
+#### sync-db
+
+- can copy one DB into another
+- can also copy a snapshot saved in `images.tmpDir` (see below) into another
 
 ```
 npm run sync-db
 ```
 
-`.badsenderrc` should be provided with *dbConfigs* infos. See `.badsenderrc-example` for more informations
+#### backup-db
 
-### Generating templates preview images
+- will save a snapshot of the specified DB in the folder defined by `images.tmpDir` config
 
-see README.md
+```
+npm run backup-db
+```
+
+#### local-db
+
+- save a *local db* snapshot
+- restore it later
+
+```
+npm run local-db
+```

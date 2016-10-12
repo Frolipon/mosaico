@@ -112,13 +112,12 @@ module.exports = function () {
   var wireframes  = require('./wireframes')
   var creations   = require('./creations')
   var filemanager = require('./filemanager')
-  // var homeUser    = require('./home-user')
   var guard       = session.guard
 
   //----- EXPOSE DATAS TO VIEWS
 
   app.locals._config  = config
-  app.locals.printJS = function (data) {
+  app.locals.printJS  = function (data) {
     return JSON.stringify(data, null, '  ')
   }
   app.locals.formatDate = function formatDate(data) {
@@ -127,13 +126,13 @@ module.exports = function () {
   }
 
   app.use(function exposeDataToViews(req, res, next) {
-    app.locals._path    = req.path
-    app.locals._user    = req.user ? req.user : {}
+    res.locals._path    = req.path
+    res.locals._user    = req.user ? req.user : {}
     if (config.isDev) {
-      app.locals._debug = JSON.stringify({
-        _user:    app.locals._user,
+      res.locals._debug = JSON.stringify({
+        _user:    res.locals._user,
         messages: req.session && req.session.flash,
-        _config:  config,
+        _config:  app.locals._config,
       }, null, '  ')
     }
     next()

@@ -7,19 +7,38 @@ var _         = require('lodash')
 var denodeify = require('denodeify')
 var mkdirp    = denodeify(require('fs-extra').mkdirs)
 
+// default config is made for easy use on local dev
 var config  = rc('badsender', {
-  debug: false,
+  debug:          false,
+  host:           'localhost:3000',
+  database:       'mongodb://localhost/badsender',
+  emailTransport: {
+    host:         'localhost',
+    port:         1025,
+  },
+  emailOptions: {
+    from:         'Badsender local test <info@badsender-local-test.name>',
+  },
   storage: {
-    type: 'local',
+    type:         'local',
   },
   images: {
-    uploadDir:  'uploads',
-    tmpDir:     'tmp',
+    uploadDir:    'uploads',
+    tmpDir:       'tmp',
   },
   admin: {
-    id:         '576b90a441ceadc005124896',
-    username:   'badsender-admin',
-  }
+    id:           '576b90a441ceadc005124896',
+    username:     'badsender-admin',
+    password:     'admin',
+  },
+  // this is really optional.
+  // It's just to be able to backup/restore DB with scripts
+  dbConfigs: {
+    local: {
+      host:   'localhost:27017',
+      folder: 'badsender',
+    },
+  },
 })
 
 config.NODE_ENV       = config.NODE_ENV || process.env.NODE_ENV || 'development'
