@@ -304,7 +304,7 @@ var CreationSchema    = Schema({
   _company: {
     type:     ObjectId,
     ref:      'Company',
-    // Can;t be required: admin doesn't have a _company
+    // Can't be required: admin doesn't have a _company
     // required:   true,
   },
   // http://mongoosejs.com/docs/schematypes.html#mixed
