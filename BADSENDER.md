@@ -135,17 +135,16 @@ then replace `YOURBUCKETNAME` by your real bucket name
 
 ## Dev prerequisite
 
-- [NodeJS 5](https://nodejs.org/en/)
-- [MongoDB](https://www.mongodb.com/)
+- [NodeJS 6](https://nodejs.org/en/)
+- [MongoDB v3.2.7](https://www.mongodb.com/) (if installed locally `mongod` to start)
 - [Imagemagick](http://www.imagemagick.org/script/index.php)
-- a SMTP server. [mailcatcher can help](https://mailcatcher.me/) 
+- a SMTP server. [mailcatcher can help for local dev](https://mailcatcher.me/) 
 
 You need to have:
 
 - clone/fork the project
 - in your terminal, go in the folder
 - run `npm install` in the root folder
-
 
 ## Updating the code
 
