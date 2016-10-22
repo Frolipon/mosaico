@@ -12,6 +12,7 @@ var slugFilename  = require('../../../shared/slug-filename.js')
 
 var serverStorage = require('./badsender-server-storage')
 var editTitle     = require('./badsender-edit-title')
+var textEditor    = require('./badsender-text-editor')
 
 function setEditorIcon(viewModel) {
   viewModel.logoPath  = '/media/editor-icon.png'
@@ -23,36 +24,6 @@ function extendViewModel(opts, customExtensions) {
   customExtensions.push(serverStorage)
   customExtensions.push(setEditorIcon)
   customExtensions.push(editTitle)
-}
-
-// OPTIONS
-
-var tinymceConfigFull = {
-  toolbar1: 'bold italic forecolor backcolor hr fontsizeselect styleselect removeformat | link unlink | pastetext code',
-  //- font-size select
-  //- https://www.tinymce.com/docs/configure/content-formatting/#fontsize_formats
-  fontsize_formats: '8px 10px 12px 14px 18px 24px 36px',
-  //- add colorpicker
-  //- https://www.tinymce.com/docs/plugins/colorpicker/
-  plugins: ["link hr paste lists textcolor colorpicker code"],
-  //- https://www.tinymce.com/docs/configure/content-formatting/#style_formats
-  style_formats: [
-    {title: 'Inline', items: [
-      {title: 'Bold'         , icon: "bold"         , inline: 'strong'},
-      {title: 'Italic'       , icon: "italic"       , inline: 'em'},
-      {title: 'Underline'    , icon: "underline"    , inline: 'span', styles: {'text-decoration' : 'underline'}},
-      {title: 'Strikethrough', icon: "strikethrough", inline: 'span', styles: {'text-decoration' : 'line-through'}},
-      {title: 'Superscript'  , icon: "superscript"  , inline: 'sup'},
-      {title: 'Subscript'    , icon: "subscript"    , inline: 'sub'},
-      {title: 'Code'         , icon: "code"         , inline: 'code'},
-    ]},
-    {title: 'Alignment', items: [
-      {title: 'Left'   , icon: "alignleft"   , block: 'div', styles: {'text-align' : 'left'}},
-      {title: 'Center' , icon: "aligncenter" , block: 'div', styles: {'text-align' : 'center'}},
-      {title: 'Right'  , icon: "alignright"  , block: 'div', styles: {'text-align' : 'right'}},
-      {title: 'Justify', icon: "alignjustify", block: 'div', styles: {'text-align' : 'justify'}},
-    ]},
-  ],
 }
 
 //////
@@ -95,7 +66,7 @@ function templateUrlConverter(opts) {
 function extendKnockout(opts) {
 
   // Change tinyMCE full editor options
-  ko.bindingHandlers.wysiwyg.fullOptions = tinymceConfigFull
+  ko.bindingHandlers.wysiwyg.fullOptions = textEditor
 
   // This is not used by knockout per se.
   // Store this function in KO global object so it can be accessed by template-loader.js#templateLoader
