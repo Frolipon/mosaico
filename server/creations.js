@@ -37,22 +37,30 @@ function customerList(req, res, next) {
   // admin doesn't have a company
   const filter  = { _company: isAdmin ? { $exists: false } : req.user._company }
 
-  // pagination and limit
-  var pagination  = {
+  // PAGINATION
+  const pagination  = {
     page:   query.page ? ~~query.page - 1 : 0,
     limit:  query.limit ? ~~query.limit : perpage,
   }
-  pagination.start = pagination.page * pagination.limit
+  pagination.start  = pagination.page * pagination.limit
 
-  // sorting
-  // .sort({ updatedAt: -1 })
+  // SORTING
+  const sorting     = {
+    sort: query.sort  ? query.sort  : 'updatedAt',
+    dir:  query.dir   ? query.dir   : 'desc',
+  }
+  const sort          = {}
+  sort[sorting.sort]  = sorting.dir === 'desc' ? -1 : 1
 
-  // filtering
-  console.log(util.inspect(pagination))
+  // FILTERING
+  // console.log(util.inspect(pagination))
+  // console.log(util.inspect(sorting))
+  // console.log(util.inspect(sort))
   const creationsPaginate  = Creations
   .find( filter )
   .skip( pagination.page * pagination.limit )
   .limit( pagination.limit )
+  .sort( sort )
   .populate('_wireframe')
   .populate('_user')
 
@@ -72,6 +80,7 @@ function customerList(req, res, next) {
     console.log(util.inspect(pagination))
     res.render('customer-home', {
       data: {
+        sorting:    sorting,
         pagination: pagination,
         creations:  paginated,
       }

@@ -1,5 +1,6 @@
 'use strict'
 
+const qs            = require('qs')
 const path          = require('path')
 const chalk         = require('chalk')
 const express       = require('express')
@@ -11,6 +12,7 @@ const cookieParser  = require('cookie-parser')
 const i18n          = require('i18n')
 const moment        = require('moment')
 const util          = require('util')
+const {merge}       = require('lodash')
 
 module.exports = function () {
 
@@ -119,15 +121,40 @@ module.exports = function () {
   //----- EXPOSE DATAS TO VIEWS
 
   app.locals._config  = config
+
   app.locals.printJS  = function (data) {
     return JSON.stringify(data, null, '  ')
   }
+
   app.locals.formatDate = function formatDate(data) {
     var formatedDate = moment(data).format('DD/MM/YYYY HH:mm')
     return formatedDate === 'Invalid date' ? '' : formatedDate
   }
 
+  app.locals.mergeQueries = function mergeQueries(route, _query, params = {}) {
+    params  = merge({}, _query, params)
+    params  = qs.stringify(params, { skipNulls: true })
+    return `${route}?${params}`
+  }
+
+  app.locals.getSorting = function getSorting(key, currentSorting) {
+    const sorting = {
+      sort: key,
+      dir:  'desc',
+    }
+    if (key !== currentSorting.sort) return sorting
+    if (currentSorting.dir === 'asc' ) return {
+      sort: null,
+      dir:  null,
+    }
+    sorting.dir = 'asc'
+    return sorting
+  }
+
+  // those datas need to be refreshed on every request
+  // and also not exposed to `app` but to `res` ^^
   app.use(function exposeDataToViews(req, res, next) {
+    res.locals._query   = req.query
     res.locals._path    = req.path
     res.locals._user    = req.user ? req.user : {}
     if (config.isDev) {
