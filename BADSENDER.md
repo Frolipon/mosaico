@@ -138,7 +138,7 @@ then replace `YOURBUCKETNAME` by your real bucket name
 - [NodeJS 6](https://nodejs.org/en/)
 - [MongoDB v3.2.7](https://www.mongodb.com/) (if installed locally `mongod` to start)
 - [Imagemagick](http://www.imagemagick.org/script/index.php)
-- a SMTP server. [mailcatcher can help for local dev](https://mailcatcher.me/) 
+- a SMTP server. [mailcatcher can help for local dev ](https://mailcatcher.me/) (`mailcatcher` to start)
 
 You need to have:
 

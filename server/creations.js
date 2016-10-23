@@ -1,37 +1,79 @@
 'use strict'
 
-const _           = require('lodash')
-const chalk       = require('chalk')
-const util        = require('util')
-const createError = require('http-errors')
+const _             = require('lodash')
+const chalk         = require('chalk')
+const util          = require('util')
+const createError   = require('http-errors')
 
-var config        = require('./config')
-var DB            = require('./database')
-var filemanager   = require('./filemanager')
-var Wireframes    = DB.Wireframes
-var Creations     = DB.Creations
-var isFromCompany = DB.isFromCompany
-
-var translations = {
-  en: JSON.stringify(_.assign({}, require('../res/lang/mosaico-en.json'), require('../res/lang/badsender-en'))),
-  fr: JSON.stringify(_.assign({}, require('../res/lang/mosaico-fr.json'), require('../res/lang/badsender-fr'))),
+const config        = require('./config')
+const DB            = require('./database')
+const filemanager   = require('./filemanager')
+const Wireframes    = DB.Wireframes
+const Creations     = DB.Creations
+const isFromCompany = DB.isFromCompany
+const translations  = {
+  en: JSON.stringify(_.assign(
+    {},
+    require('../res/lang/mosaico-en.json'),
+    require('../res/lang/badsender-en')
+  )),
+  fr: JSON.stringify(_.assign(
+    {},
+    require('../res/lang/mosaico-fr.json'),
+    require('../res/lang/badsender-fr')
+  )),
 }
 
+const perpage = 10
+
+//
+// http://stackoverflow.com/questions/5539955/how-to-paginate-with-mongoose-in-node-js/23640287#23640287
+
 function customerList(req, res, next) {
+  const { query } = req
+  console.log('Customer list')
+  console.log(util.inspect(query))
   const isAdmin = req.user.isAdmin
   // admin doesn't have a company
   const filter  = { _company: isAdmin ? { $exists: false } : req.user._company }
-  const creationsRequest  = Creations
+
+  // pagination and limit
+  var pagination  = {
+    page:   query.page ? ~~query.page - 1 : 0,
+    limit:  query.limit ? ~~query.limit : perpage,
+  }
+  pagination.start = pagination.page * pagination.limit
+
+  // sorting
+  // .sort({ updatedAt: -1 })
+
+  // filtering
+  console.log(util.inspect(pagination))
+  const creationsPaginate  = Creations
   .find( filter )
+  .skip( pagination.page * pagination.limit )
+  .limit( pagination.limit )
   .populate('_wireframe')
   .populate('_user')
 
-  creationsRequest
-  .sort({ updatedAt: -1 })
-  .then( (creations) => {
+  const creationsTotal = Creations
+  .find( filter )
+  .lean()
+
+  Promise.all([creationsPaginate, creationsTotal])
+  .then( ([paginated, filtered]) => {
+    const total         = filtered.length
+    const isFirst       = pagination.start === 0
+    const isLast        = pagination.page >= Math.trunc(total / perpage)
+    pagination.total    = total
+    pagination.current  = `${pagination.start + 1}-${pagination.start + perpage}`
+    pagination.prev     = isFirst ? false : pagination.page
+    pagination.next     = isLast ? false : pagination.page + 2
+    console.log(util.inspect(pagination))
     res.render('customer-home', {
       data: {
-        creations:  creations,
+        pagination: pagination,
+        creations:  paginated,
       }
     })
   })

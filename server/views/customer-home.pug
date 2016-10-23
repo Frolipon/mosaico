@@ -4,16 +4,45 @@ block vars
   - var pageClass = 'customer-home';
 
 block create
-  header.home-badsender-header
-    div: img(src="/media/logo_badsender_154x118.png")
-    .ribbon: span Badsender Email Builder
+  if !_config.pagination
+    header.home-badsender-header
+      div: img(src="/media/logo_badsender_154x118.png")
+      .ribbon: span Badsender Email Builder
 
 block list
-  - var isAdmin = _user.isAdmin
+  - var isAdmin           = _user.isAdmin
+  - const { pagination }  = data
   if data.creations.length
+
     h4.home-subtitle= __('home.saved.caption')
+    if _config.pagination
+      div
+        h5 pagination
+        p
+          span lignes par pages
+          |  &nbsp;
+          span= pagination.limit
+          | &nbsp;—&nbsp;
+          span= pagination.current
+          | &nbsp;
+          span sur
+          | &nbsp;
+          span= pagination.total
+          | &nbsp;—&nbsp;
+          if !pagination.prev
+            span prev
+          else
+            a(href=`/?page=${pagination.prev}`) prev
+          | &nbsp;
+          if !pagination.next
+            span next
+          else
+            a(href=`/?page=${pagination.next}`) next
+
     table#savedTable.mdl-data-table.mdl-js-data-table.mdl-shadow--2dp
       thead: tr
+        if _config.pagination
+          th.mdl-data-table__cell Index
         if _config.debug
           th.mdl-data-table__cell--non-numeric Id
         th.mdl-data-table__cell--non-numeric= __('home.saved.name')
@@ -28,8 +57,11 @@ block list
         th.mdl-data-table__cell--action= __('home.saved.delete')
 
       tbody(data-bind="foreach: edits")
-        each creation in data.creations
+        each creation, index in data.creations
           tr
+            if _config.pagination
+              td.mdl-data-table__cell
+                span= index + 1 + pagination.start
             if _config.debug
               td.mdl-data-table__cell--non-numeric
                 a(href=creation.url.update)= creation._id
