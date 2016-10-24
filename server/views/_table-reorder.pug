@@ -1,0 +1,8 @@
+
+//- we can use safeky _query as it is exposed globally
+mixin reorder(route, key, translateKey)
+  a(href=mergeQueries(route, _query, getSorting(key, _query) ))
+    if (_query.sort === key)
+      i.material-icons=  _query.dir === 'desc' ? 'arrow_downward' : 'arrow_upward'
+      | &nbsp;
+    | #{__(translateKey)}

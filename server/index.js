@@ -1,18 +1,18 @@
 'use strict'
 
-const qs            = require('qs')
-const path          = require('path')
-const chalk         = require('chalk')
-const express       = require('express')
-const bodyParser    = require('body-parser')
-const compression   = require('compression')
-const morgan        = require('morgan')
-const favicon       = require('serve-favicon')
-const cookieParser  = require('cookie-parser')
-const i18n          = require('i18n')
-const moment        = require('moment')
-const util          = require('util')
-const {merge}       = require('lodash')
+const qs              = require('qs')
+const path            = require('path')
+const chalk           = require('chalk')
+const express         = require('express')
+const bodyParser      = require('body-parser')
+const compression     = require('compression')
+const morgan          = require('morgan')
+const favicon         = require('serve-favicon')
+const cookieParser    = require('cookie-parser')
+const i18n            = require('i18n')
+const moment          = require('moment')
+const util            = require('util')
+const { merge, omit } = require('lodash')
 
 module.exports = function () {
 
@@ -121,7 +121,7 @@ module.exports = function () {
 
   //----- EXPOSE DATAS TO VIEWS
 
-  app.locals._config  = config
+  app.locals._config  = omit(config, ['_', 'configs', 'config'])
 
   app.locals.printJS  = function (data) {
     return JSON.stringify(data, null, '  ')
@@ -163,6 +163,7 @@ module.exports = function () {
         _user:    res.locals._user,
         messages: req.session && req.session.flash,
         _config:  app.locals._config,
+        _query:   res.locals._query,
       }, null, '  ')
     }
     next()

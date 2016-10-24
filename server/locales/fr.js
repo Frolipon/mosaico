@@ -15,7 +15,7 @@
 			"noname": "sans titre",
 			"duplicate": "dupliquer",
 			"wireframe-name": "modèle utilisé",
-			"created-by": "créé par"
+			"created-by": "auteur"
 		},
 		"more-info": "en savoir plus à propos de l'éditeur",
 		"footer": {

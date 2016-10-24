@@ -1,4 +1,5 @@
 extends _layout-customer.pug
+include _table-reorder.pug
 
 block vars
   - var pageClass = 'customer-home';
@@ -49,21 +50,16 @@ block list
           if _config.debug
             th.mdl-data-table__cell--non-numeric Id
           th.mdl-data-table__cell--non-numeric
-            a( href=mergeQueries('/', _query,getSorting('name', sorting) )
-            )= __('home.saved.name')
+            +reorder('/', 'name', 'home.saved.name')
           th.mdl-data-table__cell--non-numeric
-            a( href=mergeQueries('/', _query,getSorting('_wireframe.name', sorting) )
-            )= __('home.saved.wireframe-name')
+            +reorder('/', 'wireframe', 'home.saved.wireframe-name')
           if (!isAdmin)
             th.mdl-data-table__cell--non-numeric
-              a( href=mergeQueries('/', _query,getSorting('_user.name', sorting) )
-            )= __('home.saved.created-by')
+              +reorder('/', 'author', 'home.saved.created-by')
           th.mdl-data-table__cell--non-numeric
-            a( href=mergeQueries('/', _query,getSorting('createdAt', sorting) )
-            )= __('home.saved.created')
+            +reorder('/', 'createdAt', 'home.saved.created')
           th.mdl-data-table__cell--non-numeric
-            a( href=mergeQueries('/', _query,getSorting('updatedAt', sorting) )
-            )= __('home.saved.last-change')
+            +reorder('/', 'updatedAt', 'home.saved.last-change')
           th.mdl-data-table__cell--action= __('home.saved.rename')
           th.mdl-data-table__cell--action= __('home.saved.edit')
           th.mdl-data-table__cell--action= __('home.saved.duplicate')
@@ -94,9 +90,9 @@ block list
                 a(href=creation.url.update)= creation._id
             td.mdl-data-table__cell--non-numeric
               a(href=creation.url.update).js-name= creation.name || __('home.saved.noname')
-            td.mdl-data-table__cell--non-numeric: span= creation._wireframe.name
+            td.mdl-data-table__cell--non-numeric: span= creation.wireframe
             if (!isAdmin)
-              td.mdl-data-table__cell--non-numeric: span= creation._user.safename
+              td.mdl-data-table__cell--non-numeric: span= creation.author
             td.mdl-data-table__cell--non-numeric: span= formatDate(creation.createdAt)
             td.mdl-data-table__cell--non-numeric: span= formatDate(creation.updatedAt)
             td.mdl-data-table__cell--action

@@ -62,8 +62,6 @@ function customerList(req, res, next) {
   // console.log(util.inspect(sort))
   const creationsPaginate  = Creations
   .find( filter )
-  .populate('_wireframe')
-  .populate('_user')
   .sort( sort )
   .skip( pagination.page * pagination.limit )
   .limit( pagination.limit )

@@ -8,6 +8,7 @@ const { UserModel, WireframeModel, CompanyModel } = require('./names')
 const CreationSchema  = Schema({
   name: {
     type: String,
+    set: name => name.trim().toLowerCase(),
   },
   // _user can't be required: admin doesn't set a _user
   _user: {

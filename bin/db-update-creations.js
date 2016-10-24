@@ -37,8 +37,8 @@ selectDb
 
 function getCreations() {
   Creations
-  .find({}, '_user _wireframe')
-  .populate('_user', 'name')
+  .find({}, 'name _user _wireframe')
+  .populate('_user', 'name lang')
   .populate('_wireframe', 'name')
   .then(showCreations)
   .catch(logErrorAndExit)
@@ -50,6 +50,13 @@ function showCreations(creations) {
     if (creation._user) {
       creation.author   = creation._user.name
     }
+
+    if (!creation.name) {
+      let lang = creation._user ? creation._user.lang : 'en'
+      creation.name = lang === 'en' ? 'untitled' : 'sans titre'
+    }
+
+    creation.name = creation.name.trim().toLowerCase()
     creation.wireframe  = creation._wireframe.name
     return creation.save()
   })
