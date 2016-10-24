@@ -4,9 +4,9 @@ const util      = require('util')
 const chalk     = require('chalk')
 const mongoose  = require('mongoose')
 
-const config        = require('../config')
+// const config        = require('../config')
 mongoose.Promise    = global.Promise // Use native promises
-const connection    = mongoose.connect(config.database)
+let connection
 
 mongoose.connection.on('error', console.error.bind(console, chalk.red('[DB] connection error:')))
 mongoose.connection.once('open', e =>  {
@@ -56,6 +56,11 @@ function formatErrors(err, req, res, next) {
   .catch(next)
 }
 
+function connectDB(dbConfig) {
+  connection    = mongoose.connect(dbConfig)
+  return connection
+}
+
 //////
 // EXPORTS
 //////
@@ -66,6 +71,7 @@ const Creations   = mongoose.model(CreationModel, CreationSchema)
 const Companies   = mongoose.model(CompanyModel, CompanySchema)
 
 module.exports    = {
+  connectDB:        connectDB,
   connection:       mongoose.connection,
   formatErrors:     formatErrors,
   // Compiled schema

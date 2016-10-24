@@ -18,6 +18,7 @@ module.exports = function () {
 
   var config        = require('./config')
   var session       = require('./session')
+  require('./models').connectDB(config.database)
 
   //////
   // SERVER CONFIG

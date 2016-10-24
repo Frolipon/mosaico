@@ -1,5 +1,7 @@
 'use strict'
 
+const c = require('chalk')
+
 function setDbParams(dbParams) {
   let params  = `--host ${dbParams.host} --db ${dbParams.folder}`
   if (dbParams.user == null) return params

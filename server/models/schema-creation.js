@@ -9,25 +9,24 @@ const CreationSchema  = Schema({
   name: {
     type: String,
   },
+  // _user can't be required: admin doesn't set a _user
   _user: {
     type:     ObjectId,
     ref:      UserModel,
   },
-  // Should replicate user name
-  // author: {
-  //   type:       String,
-  // },
-  // should use populate
-  // http://mongoosejs.com/docs/populate.html
+  // replicate user name for ordering purpose
+  author: {
+    type:       String,
+  },
   _wireframe: {
     type:     ObjectId,
     required: true,
     ref:      WireframeModel,
   },
-  // Should replicate wireframe name
-  // wireframe: {
-  //   type:       String,
-  // },
+  // replicate wireframe name for ordering purpose
+  wireframe: {
+    type:       String,
+  },
   // _company can't be required: admin doesn't have a _company
   _company: {
     type:     ObjectId,
