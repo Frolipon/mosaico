@@ -134,7 +134,7 @@ module.exports = function () {
   app.locals.mergeQueries = function mergeQueries(route, _query, params = {}) {
     params  = merge({}, _query, params)
     params  = qs.stringify(params, { skipNulls: true })
-    return `${route}?${params}`
+    return Object.keys(params).length ? `${route}?${params}` : route
   }
 
   app.locals.getSorting = function getSorting(key, currentSorting) {

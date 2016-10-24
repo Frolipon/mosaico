@@ -1,23 +1,22 @@
 'use strict'
 
-const _             = require('lodash')
+const {assign, set} = require('lodash')
 const chalk         = require('chalk')
 const util          = require('util')
 const createError   = require('http-errors')
 
 const config        = require('./config')
-const DB            = require('./database')
 const filemanager   = require('./filemanager')
-const Wireframes    = DB.Wireframes
-const Creations     = DB.Creations
-const isFromCompany = DB.isFromCompany
+const { Wireframes, Creations,
+  isFromCompany, }  = require('./models')
+
 const translations  = {
-  en: JSON.stringify(_.assign(
+  en: JSON.stringify(assign(
     {},
     require('../res/lang/mosaico-en.json'),
     require('../res/lang/badsender-en')
   )),
-  fr: JSON.stringify(_.assign(
+  fr: JSON.stringify(assign(
     {},
     require('../res/lang/mosaico-fr.json'),
     require('../res/lang/badsender-fr')
@@ -26,8 +25,9 @@ const translations  = {
 
 const perpage = 10
 
-//
+// Pagination should be done better
 // http://stackoverflow.com/questions/5539955/how-to-paginate-with-mongoose-in-node-js/23640287#23640287
+// https://scalegrid.io/blog/fast-paging-with-mongodb/
 
 function customerList(req, res, next) {
   const { query } = req
@@ -38,6 +38,7 @@ function customerList(req, res, next) {
   const filter  = { _company: isAdmin ? { $exists: false } : req.user._company }
 
   // PAGINATION
+
   const pagination  = {
     page:   query.page ? ~~query.page - 1 : 0,
     limit:  query.limit ? ~~query.limit : perpage,
@@ -49,8 +50,11 @@ function customerList(req, res, next) {
     sort: query.sort  ? query.sort  : 'updatedAt',
     dir:  query.dir   ? query.dir   : 'desc',
   }
-  const sort          = {}
-  sort[sorting.sort]  = sorting.dir === 'desc' ? -1 : 1
+  // sorting on populated keys won't work
+  // we have to make a script to update DB schema
+  // http://stackoverflow.com/questions/19428471/node-mongoose-3-6-sort-query-with-populated-field
+  // const sort = set({}, sorting.sort, sorting.dir === 'desc' ? -1 : 1)
+  const sort = { [sorting.sort]: sorting.dir === 'desc' ? -1 : 1}
 
   // FILTERING
   // console.log(util.inspect(pagination))
@@ -58,11 +62,13 @@ function customerList(req, res, next) {
   // console.log(util.inspect(sort))
   const creationsPaginate  = Creations
   .find( filter )
-  .skip( pagination.page * pagination.limit )
-  .limit( pagination.limit )
-  .sort( sort )
   .populate('_wireframe')
   .populate('_user')
+  .sort( sort )
+  .skip( pagination.page * pagination.limit )
+  .limit( pagination.limit )
+
+
 
   const creationsTotal = Creations
   .find( filter )
@@ -98,7 +104,7 @@ function show(req, res, next) {
   .then( (creation) => {
     if (!creation) return next(createError(404))
     if (!isFromCompany(req.user, creation._company)) return next(createError(401))
-    res.render('editor', { data: _.assign({}, data, creation.mosaico) })
+    res.render('editor', { data: assign({}, data, creation.mosaico) })
   })
   .catch(next)
 }

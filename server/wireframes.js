@@ -4,15 +4,12 @@ const _                     = require('lodash')
 const chalk                 = require('chalk')
 const createError           = require('http-errors')
 
-var config                  = require('./config')
-var filemanager             = require('./filemanager')
-var DB                      = require('./database')
-var slugFilename            = require('../shared/slug-filename.js')
-var Wireframes              = DB.Wireframes
-var Companies               = DB.Companies
-var Creations               = DB.Creations
-var handleValidatorsErrors  = DB.handleValidatorsErrors
-const isFromCompany         = DB.isFromCompany
+const config                = require('./config')
+const filemanager           = require('./filemanager')
+const slugFilename          = require('../shared/slug-filename.js')
+const { handleValidatorsErrors,
+  isFromCompany, Companies,
+  Wireframes, Creations }   = require('./models')
 
 function list(req, res, next) {
   Wireframes

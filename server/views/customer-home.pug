@@ -15,10 +15,10 @@ block list
   - const { sorting }     = data
 
   if data.creations.length
-    h4.home-subtitle= __('home.saved.caption')
+    if !_config.pagination
+      h4.home-subtitle= __('home.saved.caption')
     if _config.pagination
       div
-        h5 pagination
         p
           span lignes par pages
           |  &nbsp;
@@ -33,23 +33,13 @@ block list
           if !pagination.prev
             span prev
           else
-            a(
-              href=mergeQueries(
-                '/',
-                _query,
-                { page: pagination.prev, }
-              )
+            a( href=mergeQueries('/', _query, { page: pagination.prev, } )
             ) prev
           | &nbsp;
           if !pagination.next
             span next
           else
-            a(
-              href=mergeQueries(
-                '/',
-                _query,
-                { page: pagination.next, }
-              )
+            a( href=mergeQueries('/', _query, { page: pagination.next, })
             ) next
 
     table#savedTable.mdl-data-table.mdl-js-data-table.mdl-shadow--2dp
@@ -59,25 +49,21 @@ block list
           if _config.debug
             th.mdl-data-table__cell--non-numeric Id
           th.mdl-data-table__cell--non-numeric
-            a(
-              href=mergeQueries(
-                '/',
-                _query,
-                getSorting('name', sorting)
-              )
+            a( href=mergeQueries('/', _query,getSorting('name', sorting) )
             )= __('home.saved.name')
           th.mdl-data-table__cell--non-numeric
-            a(
-              href=mergeQueries(
-                '/',
-                _query,
-                getSorting('_wireframe.name', sorting)
-              )
+            a( href=mergeQueries('/', _query,getSorting('_wireframe.name', sorting) )
             )= __('home.saved.wireframe-name')
           if (!isAdmin)
-            th.mdl-data-table__cell--non-numeric= __('home.saved.created-by')
-          th.mdl-data-table__cell--non-numeric= __('home.saved.created')
-          th.mdl-data-table__cell--non-numeric= __('home.saved.last-change')
+            th.mdl-data-table__cell--non-numeric
+              a( href=mergeQueries('/', _query,getSorting('_user.name', sorting) )
+            )= __('home.saved.created-by')
+          th.mdl-data-table__cell--non-numeric
+            a( href=mergeQueries('/', _query,getSorting('createdAt', sorting) )
+            )= __('home.saved.created')
+          th.mdl-data-table__cell--non-numeric
+            a( href=mergeQueries('/', _query,getSorting('updatedAt', sorting) )
+            )= __('home.saved.last-change')
           th.mdl-data-table__cell--action= __('home.saved.rename')
           th.mdl-data-table__cell--action= __('home.saved.edit')
           th.mdl-data-table__cell--action= __('home.saved.duplicate')

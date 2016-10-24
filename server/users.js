@@ -3,13 +3,10 @@
 const chalk                 = require('chalk')
 const createError           = require('http-errors')
 
-var config                  = require('./config')
-var DB                      = require('./database')
-var Users                   = DB.Users
-var Wireframes              = DB.Wireframes
-var Companies               = DB.Companies
-var Creations               = DB.Creations
-var handleValidatorsErrors  = DB.handleValidatorsErrors
+const config                = require('./config')
+const { handleValidatorsErrors,
+  Companies, Users,
+  Wireframes, Creations }   = require('./models')
 
 function list(req, res, next) {
   Users
