@@ -50,7 +50,8 @@ function showCreations(creations) {
     if (creation._user) {
       creation.author   = creation._user.name
     }
-
+    // Don't let a a name empty
+    // It'll fuck up with ordering if empty
     if (!creation.name) {
       let lang = creation._user ? creation._user.lang : 'en'
       creation.name = lang === 'en' ? 'untitled' : 'sans titre'

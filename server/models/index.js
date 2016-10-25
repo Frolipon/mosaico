@@ -62,6 +62,18 @@ function connectDB(dbConfig) {
 }
 
 //////
+// HELPERS
+//////
+
+function isFromCompany(user, companyId) {
+  if (!user) return false
+  if (user.isAdmin) return true
+  // creations from admin doesn't gave a companyId
+  if (!companyId) return false
+  return user._company.toString() === companyId.toString()
+}
+
+//////
 // EXPORTS
 //////
 
@@ -71,9 +83,10 @@ const Creations   = mongoose.model(CreationModel, CreationSchema)
 const Companies   = mongoose.model(CompanyModel, CompanySchema)
 
 module.exports    = {
-  connectDB:        connectDB,
   connection:       mongoose.connection,
-  formatErrors:     formatErrors,
+  connectDB,
+  formatErrors,
+  isFromCompany,
   // Compiled schema
   Users,
   Wireframes,
