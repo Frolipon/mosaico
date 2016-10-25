@@ -28,9 +28,9 @@ html(lang=getLocale())
               a.mdl-navigation__link(href="/wireframes" title="wireframes"): i.material-icons web
 
             if getLocale() === 'en'
-              a.mdl-navigation__link(href="/?lang=fr") version française
+              a.mdl-navigation__link(href=mergeQueries('/', _query, { lang: 'fr' })) version française
             else
-              a.mdl-navigation__link(href="/?lang=en") english version
+              a.mdl-navigation__link(href=mergeQueries('/', _query, { lang: 'en' })) english version
 
             a.mdl-navigation__link(href="/logout"): i.material-icons power_settings_new
 
