@@ -43,8 +43,8 @@ $('.js-post').on('click', function () {
       name: name,
     }
   })
-  .then(function () {
-    $name.text(name)
+  .then(function (creation) {
+    $name.text(creation.name)
     notif.MaterialSnackbar.showSnackbar({
       message: window.badesenderI18n.snackbarRenameMessage,
     })

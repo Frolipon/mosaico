@@ -135,14 +135,14 @@ function create(req, res, next) {
 
 function update(req, res, next) {
   if (!req.xhr) next(createError(501)) // Not Implemented
-  const creationId  = req.params.creationId
+  const { creationId } = req.params
 
   Creations
   .findById(creationId)
-  .then(onCreation)
+  .then(handleCreation)
   .catch(next)
 
-  function onCreation(creation) {
+  function handleCreation(creation) {
     if (!creation) return next(createError(404))
     if (!isFromCompany(req.user, creation._company)) return next(createError(401))
     creation._wireframe = creation._wireframe
@@ -154,7 +154,7 @@ function update(req, res, next) {
     return creation
     .save()
     .then( (creation) => {
-      var data2editor = creation.mosaico
+      const data2editor = creation.mosaico
       if (!creationId) data2editor.meta.redirect = `/editor/${creation._id}`
       res.json(data2editor)
     })
@@ -166,16 +166,30 @@ function remove(req, res, next) {
   const creationId  = req.params.creationId
   Creations
   .findByIdAndRemove(creationId)
-  .then( function () { res.redirect('/')} )
+  .then( _ => res.redirect('/') )
   .catch(next)
 }
 
 function rename(req, res, next) {
-  const creationId  = req.params.creationId
+  if (!req.xhr) next(createError(501)) // Not Implemented
+  const { creationId }  = req.params
+
   Creations
-  .findByIdAndUpdate(creationId, req.body)
-  .then( creation => res.json(creation) )
+  .findById(creationId)
+  .then(handleCreation)
   .catch(next)
+
+  function handleCreation(creation) {
+    if (!creation) return next(createError(404))
+    if (!isFromCompany(req.user, creation._company)) return next(createError(401))
+
+    creation.name = req.body.name
+
+    creation
+    .save()
+    .then( creation => res.json(creation)  )
+    .catch(next)
+  }
 }
 
 // should upload image on a specific client bucket
