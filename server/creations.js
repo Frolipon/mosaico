@@ -28,8 +28,6 @@ const perpage = 10
 
 function customerList(req, res, next) {
   const { query, user } = req
-  console.log('Customer list')
-  console.log(util.inspect(query))
   const isAdmin = user.isAdmin
 
   // PAGINATION
@@ -37,7 +35,6 @@ function customerList(req, res, next) {
   // Pagination could be done better
   // http://stackoverflow.com/questions/5539955/how-to-paginate-with-mongoose-in-node-js/23640287#23640287
   // https://scalegrid.io/blog/fast-paging-with-mongodb/
-
   const pagination  = {
     page:   query.page ? ~~query.page - 1 : 0,
     limit:  query.limit ? ~~query.limit : perpage,
@@ -45,6 +42,7 @@ function customerList(req, res, next) {
   pagination.start  = pagination.page * pagination.limit
 
   // SORTING
+
   const sorting     = {
     sort: query.sort  ? query.sort  : 'updatedAt',
     dir:  query.dir   ? query.dir   : 'desc',
@@ -58,20 +56,22 @@ function customerList(req, res, next) {
   const filter  = {
     _company: isAdmin ? { $exists: false } : req.user._company,
   }
-
   // text search can be improved
   // http://stackoverflow.com/questions/23233223/how-can-i-find-all-documents-where-a-field-contains-a-particular-string
   if (query.name) filter.name = new RegExp(query.name)
+  // select
   for (let keys of ['_user', '_wireframe']) {
     if (query[keys]) filter[keys] = { $in: query[keys] }
   }
+  // dates
   // for…of breaks on return, use forEach
   ;['createdAt', 'updatedAt'].forEach( key => {
     if (!query[key]) return
     ;['$lte', '$gte'].forEach( range => {
       if (!query[key][range]) return
+      // force UTC time for better comparison purpose
       const date = moment(`${query[key][range]} +0000`, 'YYYY-MM-DD Z')
-      if (!date.isValid()) return)
+      if (!date.isValid()) return
       // day begin at 00h00… got the next ^^
       if (range === '$lte') date.add(1, 'days')
       filter[key] = filter[key] || {}

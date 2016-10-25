@@ -219,12 +219,13 @@ function bundleShare(b) {
 
 //----- TEMPLATES: see -> combineKOTemplates.js
 
-var path          = require('path')
-var through       = require('through2')
-var StringDecoder = require('string_decoder').StringDecoder
-var decoder       = new StringDecoder('utf8')
+const path          = require('path')
+const through       = require('through2')
+const babelify      = require('babelify')
+const StringDecoder = require('string_decoder').StringDecoder
+const decoder       = new StringDecoder('utf8')
 
-gulp.task('templates', function () {
+gulp.task('templates', _ => {
   var templates = [];
   function passThrough(file, encoding, cb) {
     var name    = path.basename(file.path);
@@ -265,8 +266,12 @@ gulp.task('js-home', function () {
     cache:        {},
     packageCache: {},
     debug:        true,
-    entries:      ['./src/js/home.js']
+    entries:      ['./src/js/badsender-home.js']
   })
+  .transform(babelify, {
+    presets: ['es2015'],
+  })
+
   if (isWatch) {
     b = watchify(b);
     b.on('update', function () {

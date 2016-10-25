@@ -1,13 +1,112 @@
 @import "../../node_modules/material-design-lite/dist/material.orange-blue.min.css";
 @import "../../node_modules/dialog-polyfill/dialog-polyfill.css";
 
-$primary  =  #ff9f00;
-$accent   = rgb(68,138,255);
+$primary    =  #ff9f00;
+$accent     = rgb(68,138,255);
+$c-grey-700 = #616161;
+
+panel-shadow() {
+  box-shadow: 0 12px 15px 0 rgba(0,0,0,.24), 0 17px 50px 0 rgba(0,0,0,.19);
+}
+
+@import "./select2";
+@import "./date-picker";
 
 // fix left column not expanding to bottom when content > viewport
 .mdl-layout {
   height: auto;
   min-height: 100%;
+}
+
+////////
+// TABLE CARDS + PAGINATION + FILTER
+////////
+
+.bs-table {
+  background: white;
+  margin-bottom: 56px;
+
+  .mdl-data-table {
+    border-left: 0;
+    border-right: 0;
+  }
+
+  &__header,
+  &__header *,
+  &__footer,
+  &__footer *,
+  &__filter,
+  &__filter * {
+    box-sizing: border-box;
+  }
+  &__header,
+  &__footer {
+    padding: 0 14px 0 24px;
+    display: flex;
+    align-items: center;
+  }
+
+  &__header {
+    height: 64px;
+    justify-content: space-between;
+
+  }
+
+  &__footer {
+    height: 56px;
+    justify-content: flex-end;
+    font-size: 14px;
+    color: rgba(black, .54)
+  }
+}
+
+.bs-table-filter__row {
+  display: flex;
+  padding: 0 24px;
+  > div {
+    width: unit(100/3, '%')
+  }
+}
+
+.bs-table-filter-row__dual-field {
+  display: flex;
+
+  > div {
+    width: 50%;
+  }
+}
+
+.bs-table-header {
+  &__title {
+    font-size: 20px;
+    color: rgba(black, .87);
+    margin: 0;
+    font-weight: bold;
+  }
+}
+
+.bs-table-footer {
+
+  &__limit {
+    width: 40px;
+    text-align: right;
+    margin-right: 24px;
+  }
+
+  &__position {
+    margin: 0 8px;
+  }
+
+  &__nav {
+    width: 24px;
+    margin-left: @width;
+    color: currentColor;
+    // align icon
+    line-height: 0;
+    span& {
+      opacity: .5;
+    }
+  }
 }
 
 ////////
@@ -43,10 +142,7 @@ $accent   = rgb(68,138,255);
   text-align: center;
 }
 
-#savedTable {
-  margin-bottom: 3em;
-}
-
+// user menu underline
 .customer-home .navigation--creations,
 .customer-wireframe .navigation--wireframes  {
   box-shadow: inset 0 -3px 0 0 $accent;
