@@ -4,6 +4,7 @@ const { assign }    = require('lodash')
 const chalk         = require('chalk')
 const util          = require('util')
 const createError   = require('http-errors')
+const moment        = require('moment')
 
 const config        = require('./config')
 const filemanager   = require('./filemanager')
@@ -61,8 +62,22 @@ function customerList(req, res, next) {
   // text search can be improved
   // http://stackoverflow.com/questions/23233223/how-can-i-find-all-documents-where-a-field-contains-a-particular-string
   if (query.name) filter.name = new RegExp(query.name)
-  if (query._user) filter._user = { $in: query._user }
-  if (query._wireframe) filter._wireframe = { $in: query._wireframe }
+  for (let keys of ['_user', '_wireframe']) {
+    if (query[keys]) filter[keys] = { $in: query[keys] }
+  }
+  // for…of breaks on return, use forEach
+  ;['createdAt', 'updatedAt'].forEach( key => {
+    if (!query[key]) return
+    ;['$lte', '$gte'].forEach( range => {
+      if (!query[key][range]) return
+      const date = moment(`${query[key][range]} +0000`, 'YYYY-MM-DD Z')
+      if (!date.isValid()) return)
+      // day begin at 00h00… got the next ^^
+      if (range === '$lte') date.add(1, 'days')
+      filter[key] = filter[key] || {}
+      filter[key][range] = date.toDate()
+    })
+  })
 
   console.log(util.inspect(filter))
 

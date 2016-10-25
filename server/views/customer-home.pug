@@ -14,75 +14,92 @@ block list
   - const { isAdmin }     = _user
   - const { pagination, users, wireframes }  = data
 
-  if data.creations.length
-    if !_config.pagination
-      h4.home-subtitle= __('home.saved.caption')
 
+  if !_config.pagination
+    h4.home-subtitle= __('home.saved.caption')
+
+  if _config.pagination
+    form(action=mergeQueries('/', _query))
+      input(type="hidden" value="" name="page")
+      label name
+      br
+      input(name="name" value=_query.name)
+      br
+      if users
+        label author
+        br
+        select(name="_user" multiple)
+          each user in users
+            - const { _id, name } = user
+            - const selected = !_query._user ? false : _query._user === _id || _query._user.includes(`${_id}`)
+            option(value=_id selected=selected)= name
+        br
+
+      label template
+      br
+      select(name="_wireframe" multiple)
+        each wireframe in wireframes
+          - const { _id, name } = wireframe
+          - const selected = !_query._wireframe ? false : _query._wireframe === _id || _query._wireframe.includes(`${_id}`)
+          option(value=wireframe._id selected=selected)= wireframe.name
+      br
+      fieldset
+        label créé entre
+        input(type="date" name="createdAt[$gte]" value=!_query.createdAt ? false : _query.createdAt.$gte)
+        label et entre
+        input(type="date" name="createdAt[$lte]" value=!_query.createdAt ? false : _query.createdAt.$lte)
+      fieldset
+        label mis à jour entre
+        input(type="date" name="updatedAt[$gte]" value=!_query.updatedAt ? false : _query.updatedAt.$gte)
+        label et entre
+        input(type="date" name="updatedAt[$lte]" value=!_query.updatedAt ? false : _query.updatedAt.$lte)
+      a(href="/") reset
+      button(type="submit") filter
+
+  table#savedTable.mdl-data-table.mdl-js-data-table.mdl-shadow--2dp
     if _config.pagination
-      form(action=mergeQueries('/', _query))
-        input(type="hidden" value="" name="page")
-        label name
-        br
-        input(name="name" value=_query.name)
-        br
-        if users
-          label author
-          br
-          select(name="_user" multiple)
-            each user in users
-              - const { _id, name } = user
-              - const selected = !_query._user ? false : _query._user === _id || _query._user.includes(`${_id}`)
-              option(value=_id selected=selected)= name
-          br
+      thead: tr
+        th.mdl-data-table__cell Index
+        if _config.debug
+          th.mdl-data-table__cell--non-numeric Id
+        th.mdl-data-table__cell--non-numeric
+          +reorder('/', 'name', 'home.saved.name')
+        th.mdl-data-table__cell--non-numeric
+          +reorder('/', 'wireframe', 'home.saved.wireframe-name')
+        if (!isAdmin)
+          th.mdl-data-table__cell--non-numeric
+            +reorder('/', 'author', 'home.saved.created-by')
+        th.mdl-data-table__cell--non-numeric
+          +reorder('/', 'createdAt', 'home.saved.created')
+        th.mdl-data-table__cell--non-numeric
+          +reorder('/', 'updatedAt', 'home.saved.last-change')
+        th.mdl-data-table__cell--action= __('home.saved.rename')
+        th.mdl-data-table__cell--action= __('home.saved.edit')
+        th.mdl-data-table__cell--action= __('home.saved.duplicate')
+        th.mdl-data-table__cell--action= __('home.saved.delete')
+    else
+      thead: tr
+        if _config.debug
+          th.mdl-data-table__cell--non-numeric Id
+        th.mdl-data-table__cell--non-numeric= __('home.saved.name')
+        th.mdl-data-table__cell--non-numeric= __('home.saved.wireframe-name')
+        if (!isAdmin)
+          th.mdl-data-table__cell--non-numeric= __('home.saved.created-by')
+        th.mdl-data-table__cell--non-numeric= __('home.saved.created')
+        th.mdl-data-table__cell--non-numeric= __('home.saved.last-change')
+        th.mdl-data-table__cell--action= __('home.saved.rename')
+        th.mdl-data-table__cell--action= __('home.saved.edit')
+        th.mdl-data-table__cell--action= __('home.saved.duplicate')
+        th.mdl-data-table__cell--action= __('home.saved.delete')
 
-        label template
-        br
-        select(name="_wireframe" multiple)
-          each wireframe in wireframes
-            - const { _id, name } = wireframe
-            - const selected = !_query._wireframe ? false : _query._wireframe === _id || _query._wireframe.includes(`${_id}`)
-            option(value=wireframe._id selected=selected)= wireframe.name
-        br
-        a(href="/") reset
-        button(type="submit") filter
-
-    table#savedTable.mdl-data-table.mdl-js-data-table.mdl-shadow--2dp
-      if _config.pagination
-        thead: tr
-          th.mdl-data-table__cell Index
-          if _config.debug
-            th.mdl-data-table__cell--non-numeric Id
-          th.mdl-data-table__cell--non-numeric
-            +reorder('/', 'name', 'home.saved.name')
-          th.mdl-data-table__cell--non-numeric
-            +reorder('/', 'wireframe', 'home.saved.wireframe-name')
-          if (!isAdmin)
-            th.mdl-data-table__cell--non-numeric
-              +reorder('/', 'author', 'home.saved.created-by')
-          th.mdl-data-table__cell--non-numeric
-            +reorder('/', 'createdAt', 'home.saved.created')
-          th.mdl-data-table__cell--non-numeric
-            +reorder('/', 'updatedAt', 'home.saved.last-change')
-          th.mdl-data-table__cell--action= __('home.saved.rename')
-          th.mdl-data-table__cell--action= __('home.saved.edit')
-          th.mdl-data-table__cell--action= __('home.saved.duplicate')
-          th.mdl-data-table__cell--action= __('home.saved.delete')
+    tbody(data-bind="foreach: edits")
+      if !data.creations.length
+        - let length = 9
+        - length = _config.pagination ? length + 1 : length
+        - length = isAdmin ? length + 1 : length
+        - length = _config.debug ? length + 1 : length
+        tr: td(style="text-align: center;" colspan=length) no creations founded
       else
-        thead: tr
-          if _config.debug
-            th.mdl-data-table__cell--non-numeric Id
-          th.mdl-data-table__cell--non-numeric= __('home.saved.name')
-          th.mdl-data-table__cell--non-numeric= __('home.saved.wireframe-name')
-          if (!isAdmin)
-            th.mdl-data-table__cell--non-numeric= __('home.saved.created-by')
-          th.mdl-data-table__cell--non-numeric= __('home.saved.created')
-          th.mdl-data-table__cell--non-numeric= __('home.saved.last-change')
-          th.mdl-data-table__cell--action= __('home.saved.rename')
-          th.mdl-data-table__cell--action= __('home.saved.edit')
-          th.mdl-data-table__cell--action= __('home.saved.duplicate')
-          th.mdl-data-table__cell--action= __('home.saved.delete')
-
-      tbody(data-bind="foreach: edits")
         each creation, index in data.creations
           tr
             if _config.pagination
@@ -110,36 +127,30 @@ block list
               a.js-delete.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(href=creation.url.delete title="delete")
                 i.material-icons delete
 
-    if _config.pagination
-      div
-        p
-          span lignes par pages
-          |  &nbsp;
-          span= pagination.limit
-          | &nbsp;—&nbsp;
-          span= pagination.current
-          | &nbsp;
-          span sur
-          | &nbsp;
-          span= pagination.total
-          | &nbsp;—&nbsp;
-          if !pagination.prev
-            span prev
-          else
-            a( href=mergeQueries('/', _query, { page: pagination.prev, } )
-            ) prev
-          | &nbsp;
-          if !pagination.next
-            span next
-          else
-            a( href=mergeQueries('/', _query, { page: pagination.next, })
-            ) next
-
-
-  else
-    p(style="text-align: center; padding-top: 4em;")
-      a.mdl-button--accent.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect(href="/new-creation")
-        | Make a new mailing
+  if _config.pagination
+    div
+      p
+        span lignes par pages
+        |  &nbsp;
+        span= pagination.limit
+        | &nbsp;—&nbsp;
+        span= pagination.current
+        | &nbsp;
+        span sur
+        | &nbsp;
+        span= pagination.total
+        | &nbsp;—&nbsp;
+        if !pagination.prev
+          span prev
+        else
+          a( href=mergeQueries('/', _query, { page: pagination.prev, } )
+          ) prev
+        | &nbsp;
+        if !pagination.next
+          span next
+        else
+          a( href=mergeQueries('/', _query, { page: pagination.next, })
+          ) next
 
 block dialog
   dialog.js-dialog-rename.mdl-dialog
