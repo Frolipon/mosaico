@@ -81,5 +81,20 @@
 			"back-to-login": "back to login",
 			"password-new": "Set my new password"
 		}
+	},
+	"filter": {
+		"name": "name",
+		"author": "author",
+		"wireframe": "wireframe",
+		"createdat": {
+			"start": "created between",
+			"end": "and"
+		},
+		"updatedat": {
+			"start": "updated between",
+			"end": "and"
+		},
+		"reset": "reset",
+		"submit": "submit"
 	}
 }

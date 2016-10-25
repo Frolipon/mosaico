@@ -82,5 +82,20 @@
 			"forgot": "Mot de passe oublié ?",
 			"reset": "Réinitialisation du mot de passe"
 		}
+	},
+	"filter": {
+		"name": "nom",
+		"author": "auteur",
+		"wireframe": "template",
+		"createdat": {
+			"start": "créé entre le",
+			"end": "et le"
+		},
+		"updatedat": {
+			"start": "modifié entre le",
+			"end": "et le"
+		},
+		"reset": "réinitialiser",
+		"submit": "filtrer"
 	}
 }

@@ -32,7 +32,7 @@ block list
               name="name"
               value=_query.name
             ).mdl-textfield__input
-            label.mdl-textfield__label(for="name-field") name
+            label.mdl-textfield__label(for="name-field")= __('filter.name')
 
           if !isAdmin
             .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
@@ -44,7 +44,7 @@ block list
                   - const { _id, name } = user
                   - const selected = !_query._user ? false : _query._user === _id || _query._user.includes(`${_id}`)
                   option(value=_id selected=selected)= name
-              label(for="author-field").mdl-textfield__label author
+              label(for="author-field").mdl-textfield__label= __('filter.author')
           else
             div
 
@@ -57,7 +57,7 @@ block list
                 - const { _id, name } = wireframe
                 - const selected = !_query._wireframe ? false : _query._wireframe === _id || _query._wireframe.includes(`${_id}`)
                 option(value=wireframe._id selected=selected)= wireframe.name
-            label(for="wireframe-field").mdl-textfield__label template
+            label(for="wireframe-field").mdl-textfield__label= __('filter.wireframe')
 
         .bs-table-filter__row
           //- don't use fieldsets, not working with flexbox
@@ -68,7 +68,7 @@ block list
                 name="createdAt[$gte]"
                 value=!_query.createdAt ? false : _query.createdAt.$gte
               ).mdl-textfield__input
-              label.mdl-textfield__label(for="createat-gte-field") créé entre
+              label.mdl-textfield__label(for="createat-gte-field")= __('filter.createdat.start')
               i.material-icons date_range
 
             .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
@@ -77,7 +77,7 @@ block list
                 name="createdAt[$lte]"
                 value=!_query.createdAt ? false : _query.createdAt.$lte
               ).mdl-textfield__input
-              label.mdl-textfield__label(for="createat-lte-field") et entre
+              label.mdl-textfield__label(for="createat-lte-field")= __('filter.createdat.end')
               i.material-icons date_range
 
           div.bs-table-filter-row__dual-field
@@ -87,7 +87,7 @@ block list
                 name="updatedAt[$gte]"
                 value=!_query.updatedAt ? false : _query.updatedAt.$gte
               ).mdl-textfield__input
-              label.mdl-textfield__label(for="updatedat-gte-field") mis à jour entre
+              label.mdl-textfield__label(for="updatedat-gte-field")= __('filter.updatedat.start')
               i.material-icons date_range
 
             .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
@@ -96,15 +96,15 @@ block list
                 name="updatedAt[$lte]"
                 value=!_query.updatedAt ? false : _query.updatedAt.$lte
               ).mdl-textfield__input
-              label.mdl-textfield__label(for="updatedat-lte-field") et entre
+              label.mdl-textfield__label(for="updatedat-lte-field")= __('filter.updatedat.end')
               i.material-icons date_range
 
 
           div.bs-table-filter-row__action
             a(
               href=mergeQueries('/', {sort: _query.sort, dir: _query.dir})
-            ).mdl-button.mdl-js-button.mdl-js-ripple-effect reset
-            button.mdl-button.mdl-js-button.mdl-button--accent(type="submit") filter
+            ).mdl-button.mdl-js-button.mdl-js-ripple-effect= __('filter.reset')
+            button.mdl-button.mdl-js-button.mdl-button--accent(type="submit")= __('filter.submit')
 
     table.mdl-data-table.mdl-js-data-table
       if _config.pagination
