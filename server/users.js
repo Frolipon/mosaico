@@ -86,18 +86,25 @@ function remove(req, res, next) {
 }
 
 function adminResetPassword(req, res, next) {
-  var id = req.body.id
-  // TODO should resolve to a 404 if no user
+  const { id } = req.body
+
   Users
   .findById(id)
-  .then( user => user.resetPassword(user.lang, 'admin') )
-  .then( user => {
-    // reset from elsewhere
-    if (req.body.redirect) return res.redirect(req.body.redirect)
-    // reset from company page
-    res.redirect(user.url.company)
-  })
+  .then(handleUser)
   .catch(next)
+
+  function handleUser(user) {
+    if (!user) return next(createError(404))
+    user
+    .resetPassword(user.lang, 'admin')
+    .then(user => {
+      // reset from elsewhere
+      if (req.body.redirect) return res.redirect(req.body.redirect)
+      // reset from company page
+      res.redirect(user.url.company)
+    })
+    .catch(next)
+  }
 }
 
 function userResetPassword(req, res, next) {

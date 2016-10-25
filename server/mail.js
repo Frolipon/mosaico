@@ -1,15 +1,16 @@
 'use strict'
 
-var _           = require('lodash')
-var chalk       = require('chalk')
-var nodemailer  = require('nodemailer')
-var wellknown   = require('nodemailer-wellknown')
+const { extend }    = require('lodash')
+const chalk         = require('chalk')
+const nodemailer    = require('nodemailer')
+const wellknown     = require('nodemailer-wellknown')
+const createError   = require('http-errors')
 
-var config      = require('./config')
+const config        = require('./config')
 
-var mailConfig  = config.emailTransport
+let mailConfig  = config.emailTransport
 if (mailConfig.service) {
-  mailConfig    = _.extend({}, mailConfig, wellknown(mailConfig.service))
+  mailConfig    = extend({}, mailConfig, wellknown(mailConfig.service))
   delete mailConfig.service
 }
 console.log('try to initalize nodemailer with config:')
@@ -28,7 +29,7 @@ transporter
 })
 
 function send(options) {
-  var mailOptions = _.extend({}, options, config.emailOptions)
+  var mailOptions = extend({}, options, config.emailOptions)
   return new Promise(function (resolve, reject) {
     transporter
     .sendMail(mailOptions)
@@ -38,13 +39,10 @@ function send(options) {
     })
     .catch(function (err) {
       console.log(chalk.red('email error'))
-      // normalize nodemailer errors
-      // TODO should be made by http-errors
-      err.reason      = 'email error'
-      err.status      = 500
-      err.stacktrace  = new Error().stack
-      if (err.code === 'ECONNREFUSED') err.description = 'connection failed'
-      reject(err)
+      const message = err.code === 'ECONNREFUSED' ?
+      'smtp connection failed'
+      : 'email error'
+      reject(createError(500, message))
     })
   })
 }

@@ -10,6 +10,7 @@ const bcrypt        = require('bcryptjs')
 const validator     = require('validator')
 const randtoken     = require('rand-token')
 
+const config              = require('../config')
 const { normalizeString } = require('./utils')
 const mail                = require('../mail')
 const { CompanyModel }    = require('./names')
@@ -39,8 +40,7 @@ const UserSchema    = Schema({
   _company: {
     type:       ObjectId,
     ref:        CompanyModel,
-    // Should be required after migration
-    // required:   [true, 'user is required'],
+    required:   [true, 'Company is required'],
   },
   password:   {
     type:     String,
@@ -94,7 +94,6 @@ UserSchema.virtual('url').get(function () {
   }
 })
 
-// TODO: take care of good email send
 UserSchema.methods.resetPassword = function resetPassword(lang, type) {
   var user      = this
   user.password = void(0)
@@ -118,7 +117,7 @@ UserSchema.methods.resetPassword = function resetPassword(lang, type) {
           url:  `http://${config.host}/password/${user.token}?lang=${lang}`,
         })),
       })
-      .then(function () { return resolve(updatedUser) })
+      .then( _ =>  resolve(updatedUser) )
       .catch(reject)
     }
   })
