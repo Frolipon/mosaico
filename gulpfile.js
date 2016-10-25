@@ -373,7 +373,7 @@ gulp.task('dev', ['build', 'nodemon'], function () {
   gulp.watch(['server/views/*.jade', 'dist/*.js']).on('change', reload)
   gulp.watch([
     'src/css/**/*.less',
-    'src/css-backend/*.styl'],        ['css'])
+    'src/css-backend/**/*.styl'],     ['css'])
   gulp.watch('src/tmpl/*.html',       ['templates'])
 })
 

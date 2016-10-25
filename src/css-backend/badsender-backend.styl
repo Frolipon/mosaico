@@ -49,7 +49,10 @@ panel-shadow() {
   &__header {
     height: 64px;
     justify-content: space-between;
+  }
 
+  &__filter {
+    background: #FBFBFB;
   }
 
   &__footer {
@@ -62,17 +65,22 @@ panel-shadow() {
 
 .bs-table-filter__row {
   display: flex;
-  padding: 0 24px;
+  align-items: center;
+
   > div {
-    width: unit(100/3, '%')
+    width: 'calc(%s - 48px)' % ( unit(100/3, '%') )
+    margin: 0 24px;
   }
 }
 
 .bs-table-filter-row__dual-field {
   display: flex;
+  align-items: center;
 
   > div {
-    width: 50%;
+    width: calc(50% - 12px);
+    &:first-child { margin-right: 12px; }
+    &:last-child {  margin-left:  12px; }
   }
 }
 

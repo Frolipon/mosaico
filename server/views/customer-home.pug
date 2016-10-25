@@ -53,7 +53,7 @@ block list
             select#wireframe-field(
               name="_wireframe"
               multiple
-            )
+            ).mdl-textfield__input
               each wireframe in wireframes
                 - const { _id, name } = wireframe
                 - const selected = !_query._wireframe ? false : _query._wireframe === _id || _query._wireframe.includes(`${_id}`)
