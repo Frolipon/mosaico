@@ -3,7 +3,8 @@
 const { Schema }    = require('mongoose')
 const { ObjectId }  = Schema.Types
 
-const { CompanyModel } = require('./names')
+const { normalizeString } = require('./utils')
+const { CompanyModel }    = require('./names')
 
 
 const WireframeSchema = Schema({
@@ -11,6 +12,7 @@ const WireframeSchema = Schema({
     type:       String,
     unique:     true,
     required:   [true, 'name is required'],
+    set:        normalizeString,
   },
   description: {
     type: String

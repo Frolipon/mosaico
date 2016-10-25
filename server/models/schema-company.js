@@ -2,6 +2,8 @@
 
 const { Schema }    = require('mongoose')
 
+const { normalizeString } = require('./utils')
+
 const CompanySchema = Schema({
   name: {
     type:     String,
@@ -10,6 +12,7 @@ const CompanySchema = Schema({
     // from mongoose doc:
     // violating the constraint returns an E11000 error from MongoDB when saving, not a Mongoose validation error.
     unique:   true,
+    set:      normalizeString,
   },
 }, { timestamps: true })
 

@@ -10,7 +10,7 @@
     "Stefano Bagnara",
     "Yannick Aivayan <yannick@goodenough.agency> (https://github.com/hiswe)"
   ],
-  "main": "./index.js",
+  "main": "./server/workers.js",
   "engines": {
     "node": "6.9.1"
   },

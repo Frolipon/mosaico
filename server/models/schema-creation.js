@@ -3,12 +3,13 @@
 const { Schema }      = require('mongoose')
 const { ObjectId }    = Schema.Types
 
+const { normalizeString } = require('./utils')
 const { UserModel, WireframeModel, CompanyModel } = require('./names')
 
 const CreationSchema  = Schema({
   name: {
-    type: String,
-    set: name => name.trim().toLowerCase(),
+    type:     String,
+    set:      normalizeString,
   },
   // _user can't be required: admin doesn't set a _user
   _user: {
@@ -17,7 +18,8 @@ const CreationSchema  = Schema({
   },
   // replicate user name for ordering purpose
   author: {
-    type:       String,
+    type:     String,
+    set:      normalizeString,
   },
   _wireframe: {
     type:     ObjectId,
@@ -27,6 +29,7 @@ const CreationSchema  = Schema({
   // replicate wireframe name for ordering purpose
   wireframe: {
     type:       String,
+    set:        normalizeString,
   },
   // _company can't be required: admin doesn't have a _company
   _company: {
