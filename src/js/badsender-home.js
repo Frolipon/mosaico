@@ -70,6 +70,13 @@ function closeRenameDialog() {
 }
 
 //////
+// toggle filters
+//////
+
+const $filter = $('.js-filter')
+$('.js-toggle-filter').on('click', e => $filter.toggleClass('is-visible'))
+
+//////
 // DELETE CREATION
 //////
 
@@ -135,7 +142,6 @@ $('select[multiple').each( (index, el) => {
     componentHandler.upgradeElements(wrapper)
   }
 })
-
 
 //////
 // DATEPICKER

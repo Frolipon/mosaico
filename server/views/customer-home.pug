@@ -14,7 +14,6 @@ block list
   - const { isAdmin }     = _user
   - const { pagination, users, wireframes }  = data
 
-
   if !_config.pagination
     h4.home-subtitle= __('home.saved.caption')
 
@@ -22,8 +21,8 @@ block list
     if _config.pagination
       header.bs-table__header
         h4.bs-table-header__title= __('home.saved.caption')
-        span: i.material-icons more_vert
-      form.bs-table__filter(action=mergeQueries('/', _query))
+        span.bs-table-header__filter.js-toggle-filter: i.material-icons more_vert
+      form.bs-table__filter.js-filter(action=mergeQueries('/', _query))
 
         input(type="hidden" value="" name="page")
 
@@ -61,7 +60,7 @@ block list
             label(for="wireframe-field").mdl-textfield__label template
 
         .bs-table-filter__row
-          //- don't use fieldsets, not working great with flexbox
+          //- don't use fieldsets, not working with flexbox
           div.bs-table-filter-row__dual-field
             .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
               input#createat-gte-field(
@@ -70,6 +69,7 @@ block list
                 value=!_query.createdAt ? false : _query.createdAt.$gte
               ).mdl-textfield__input
               label.mdl-textfield__label(for="createat-gte-field") créé entre
+              i.material-icons date_range
 
             .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
               input#createat-lte-field(
@@ -78,6 +78,7 @@ block list
                 value=!_query.createdAt ? false : _query.createdAt.$lte
               ).mdl-textfield__input
               label.mdl-textfield__label(for="createat-lte-field") et entre
+              i.material-icons date_range
 
           div.bs-table-filter-row__dual-field
             .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
@@ -87,6 +88,7 @@ block list
                 value=!_query.updatedAt ? false : _query.updatedAt.$gte
               ).mdl-textfield__input
               label.mdl-textfield__label(for="updatedat-gte-field") mis à jour entre
+              i.material-icons date_range
 
             .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
               input#updatedat-lte-field(
@@ -95,15 +97,19 @@ block list
                 value=!_query.updatedAt ? false : _query.updatedAt.$lte
               ).mdl-textfield__input
               label.mdl-textfield__label(for="updatedat-lte-field") et entre
+              i.material-icons date_range
 
-          div
-            a.mdl-button.mdl-js-button.mdl-js-ripple-effect(href="/") reset
+
+          div.bs-table-filter-row__action
+            a(
+              href=mergeQueries('/', {sort: _query.sort, dir: _query.dir})
+            ).mdl-button.mdl-js-button.mdl-js-ripple-effect reset
             button.mdl-button.mdl-js-button.mdl-button--accent(type="submit") filter
 
     table.mdl-data-table.mdl-js-data-table
       if _config.pagination
         thead: tr
-          th.mdl-data-table__cell Index
+          th.mdl-data-table__cell--action Index
           if _config.debug
             th.mdl-data-table__cell--non-numeric Id
           th.mdl-data-table__cell--non-numeric
