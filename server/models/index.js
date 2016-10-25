@@ -4,21 +4,19 @@ const util      = require('util')
 const chalk     = require('chalk')
 const mongoose  = require('mongoose')
 
-// const config        = require('../config')
 mongoose.Promise    = global.Promise // Use native promises
 let connection
-
-mongoose.connection.on('error', console.error.bind(console, chalk.red('[DB] connection error:')))
-mongoose.connection.once('open', e =>  {
-  console.log(chalk.green('[DB] connection OK'))
-})
-
 
 const UserSchema        = require('./schema-user')
 const WireframeSchema   = require('./schema-wireframe')
 const CreationSchema    = require('./schema-creation')
 const CompanySchema     = require('./schema-company')
 const { UserModel, WireframeModel, CreationModel, CompanyModel } = require('./names')
+
+mongoose.connection.on('error', console.error.bind(console, chalk.red('[DB] connection error:')))
+mongoose.connection.once('open', e =>  {
+  console.log(chalk.green('[DB] connection OK'))
+})
 
 //////
 // ERRORS HANDLING

@@ -1,13 +1,13 @@
 'use strict'
 
-const {assign, set} = require('lodash')
+const { assign }    = require('lodash')
 const chalk         = require('chalk')
 const util          = require('util')
 const createError   = require('http-errors')
 
 const config        = require('./config')
 const filemanager   = require('./filemanager')
-const { Wireframes, Creations,
+const { Wireframes, Creations, Users,
   isFromCompany, }  = require('./models')
 
 const translations  = {
@@ -25,19 +25,17 @@ const translations  = {
 
 const perpage = 10
 
-// Pagination should be done better
-// http://stackoverflow.com/questions/5539955/how-to-paginate-with-mongoose-in-node-js/23640287#23640287
-// https://scalegrid.io/blog/fast-paging-with-mongodb/
-
 function customerList(req, res, next) {
-  const { query } = req
+  const { query, user } = req
   console.log('Customer list')
   console.log(util.inspect(query))
-  const isAdmin = req.user.isAdmin
-  // admin doesn't have a company
-  const filter  = { _company: isAdmin ? { $exists: false } : req.user._company }
+  const isAdmin = user.isAdmin
 
   // PAGINATION
+
+  // Pagination could be done better
+  // http://stackoverflow.com/questions/5539955/how-to-paginate-with-mongoose-in-node-js/23640287#23640287
+  // https://scalegrid.io/blog/fast-paging-with-mongodb/
 
   const pagination  = {
     page:   query.page ? ~~query.page - 1 : 0,
@@ -50,30 +48,46 @@ function customerList(req, res, next) {
     sort: query.sort  ? query.sort  : 'updatedAt',
     dir:  query.dir   ? query.dir   : 'desc',
   }
-  // sorting on populated keys won't work
-  // we have to make a script to update DB schema
-  // http://stackoverflow.com/questions/19428471/node-mongoose-3-6-sort-query-with-populated-field
-  // const sort = set({}, sorting.sort, sorting.dir === 'desc' ? -1 : 1)
+  // beware that sorting on populated keys won't work
   const sort = { [sorting.sort]: sorting.dir === 'desc' ? -1 : 1}
 
   // FILTERING
-  // console.log(util.inspect(pagination))
-  // console.log(util.inspect(sorting))
-  // console.log(util.inspect(sort))
+
+  // admin doesn't have a company
+  const filter  = {
+    _company: isAdmin ? { $exists: false } : req.user._company,
+  }
+
+  // text search can be improved
+  // http://stackoverflow.com/questions/23233223/how-can-i-find-all-documents-where-a-field-contains-a-particular-string
+  if (query.name) filter.name = new RegExp(query.name)
+  if (query._user) filter._user = { $in: query._user }
+  if (query._wireframe) filter._wireframe = { $in: query._wireframe }
+
+  console.log(util.inspect(filter))
+
+  // QUERY DB
+
+  // don't use lean, we need virtuals
   const creationsPaginate  = Creations
   .find( filter )
   .sort( sort )
   .skip( pagination.page * pagination.limit )
   .limit( pagination.limit )
 
-
-
   const creationsTotal = Creations
   .find( filter )
   .lean()
 
-  Promise.all([creationsPaginate, creationsTotal])
-  .then( ([paginated, filtered]) => {
+  // gather informations for select boxes
+  const usersRequest      = isAdmin ? Promise.resolve(false)
+  : Users.find( { _company: user._company }, '_id name').lean()
+
+  const wireframesRequest = isAdmin ? Wireframes.find({}, '_id name').lean()
+  : Wireframes.find( { _company: user._company }, '_id name').lean()
+
+  Promise.all([creationsPaginate, creationsTotal, usersRequest, wireframesRequest])
+  .then( ([paginated, filtered, users, wireframes]) => {
     const total         = filtered.length
     const isFirst       = pagination.start === 0
     const isLast        = pagination.page >= Math.trunc(total / perpage)
@@ -81,12 +95,13 @@ function customerList(req, res, next) {
     pagination.current  = `${pagination.start + 1}-${pagination.start + perpage}`
     pagination.prev     = isFirst ? false : pagination.page
     pagination.next     = isLast ? false : pagination.page + 2
-    console.log(util.inspect(pagination))
+
     res.render('customer-home', {
       data: {
-        sorting:    sorting,
         pagination: pagination,
         creations:  paginated,
+        users,
+        wireframes,
       }
     })
   })

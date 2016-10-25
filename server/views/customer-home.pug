@@ -12,36 +12,39 @@ block create
 
 block list
   - const { isAdmin }     = _user
-  - const { pagination }  = data
-  - const { sorting }     = data
+  - const { pagination, users, wireframes }  = data
 
   if data.creations.length
     if !_config.pagination
       h4.home-subtitle= __('home.saved.caption')
+
     if _config.pagination
-      div
-        p
-          span lignes par pages
-          |  &nbsp;
-          span= pagination.limit
-          | &nbsp;—&nbsp;
-          span= pagination.current
-          | &nbsp;
-          span sur
-          | &nbsp;
-          span= pagination.total
-          | &nbsp;—&nbsp;
-          if !pagination.prev
-            span prev
-          else
-            a( href=mergeQueries('/', _query, { page: pagination.prev, } )
-            ) prev
-          | &nbsp;
-          if !pagination.next
-            span next
-          else
-            a( href=mergeQueries('/', _query, { page: pagination.next, })
-            ) next
+      form(action=mergeQueries('/', _query))
+        input(type="hidden" value="" name="page")
+        label name
+        br
+        input(name="name" value=_query.name)
+        br
+        if users
+          label author
+          br
+          select(name="_user" multiple)
+            each user in users
+              - const { _id, name } = user
+              - const selected = !_query._user ? false : _query._user === _id || _query._user.includes(`${_id}`)
+              option(value=_id selected=selected)= name
+          br
+
+        label template
+        br
+        select(name="_wireframe" multiple)
+          each wireframe in wireframes
+            - const { _id, name } = wireframe
+            - const selected = !_query._wireframe ? false : _query._wireframe === _id || _query._wireframe.includes(`${_id}`)
+            option(value=wireframe._id selected=selected)= wireframe.name
+        br
+        a(href="/") reset
+        button(type="submit") filter
 
     table#savedTable.mdl-data-table.mdl-js-data-table.mdl-shadow--2dp
       if _config.pagination
@@ -106,6 +109,33 @@ block list
             td.mdl-data-table__cell--action
               a.js-delete.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(href=creation.url.delete title="delete")
                 i.material-icons delete
+
+    if _config.pagination
+      div
+        p
+          span lignes par pages
+          |  &nbsp;
+          span= pagination.limit
+          | &nbsp;—&nbsp;
+          span= pagination.current
+          | &nbsp;
+          span sur
+          | &nbsp;
+          span= pagination.total
+          | &nbsp;—&nbsp;
+          if !pagination.prev
+            span prev
+          else
+            a( href=mergeQueries('/', _query, { page: pagination.prev, } )
+            ) prev
+          | &nbsp;
+          if !pagination.next
+            span next
+          else
+            a( href=mergeQueries('/', _query, { page: pagination.next, })
+            ) next
+
+
   else
     p(style="text-align: center; padding-top: 4em;")
       a.mdl-button--accent.mdl-button.mdl-js-button.mdl-button--raised.mdl-js-ripple-effect(href="/new-creation")

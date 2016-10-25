@@ -32,7 +32,7 @@ const UserSchema    = Schema({
     // violating the constraint returns an E11000 error from MongoDB when saving, not a Mongoose validation error.
     unique:   true,
     validate: [{
-      validator: email => validator.isEmail(email),
+      validator: validator.isEmail,
       message:  '{VALUE} is not a valid email address',
     }],
     set:      normalizeString,

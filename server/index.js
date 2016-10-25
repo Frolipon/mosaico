@@ -132,9 +132,14 @@ module.exports = function () {
     return formatedDate === 'Invalid date' ? '' : formatedDate
   }
 
+  function filterQuery(prefix, value) {
+    if (value === '' || value === null || typeof value === 'undefined') return
+    return value
+  }
+
   app.locals.mergeQueries = function mergeQueries(route, _query, params = {}) {
     params  = merge({}, _query, params)
-    params  = qs.stringify(params, { skipNulls: true })
+    params  = qs.stringify(params, { filter: filterQuery })
     return Object.keys(params).length ? `${route}?${params}` : route
   }
 
