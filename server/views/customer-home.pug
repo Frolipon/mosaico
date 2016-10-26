@@ -196,9 +196,11 @@ block list
                   a(href=creation.url.update)= creation._id
               td.mdl-data-table__cell--non-numeric
                 a(href=creation.url.update).js-name= creation.name || __('home.saved.noname')
-              td.mdl-data-table__cell--non-numeric: span= creation.wireframe
+              td.mdl-data-table__cell--non-numeric
+                a(href=mergeQueries('/', _query, {page: 1, _wireframe: `${creation._wireframe}`}))= creation.wireframe
               if (!isAdmin)
-                td.mdl-data-table__cell--non-numeric: span= creation.author
+                td.mdl-data-table__cell--non-numeric
+                  a(href=mergeQueries('/', _query, {page: 1, _user: `${creation._user}`}))= creation.author
               td.mdl-data-table__cell--non-numeric: span= formatDate(creation.createdAt)
               td.mdl-data-table__cell--non-numeric: span= formatDate(creation.updatedAt)
               td.mdl-data-table__cell--action

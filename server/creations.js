@@ -79,7 +79,6 @@ function customerList(req, res, next) {
     })
   })
 
-
   // QUERY DB
 
   // don't use lean, we need virtuals
