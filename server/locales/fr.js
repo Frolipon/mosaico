@@ -96,6 +96,23 @@
 			"end": "et le"
 		},
 		"reset": "réinitialiser",
-		"submit": "filtrer"
+		"submit": "filtrer",
+		"summary": {
+			"contain": "nom contenant",
+			"author": "auteur",
+			"template": "template",
+			"createdat": "créé",
+			"after": "après le",
+			"and": "et",
+			"before": "avant le",
+			"updatedat": "modifié"
+		}
+	},
+	"pikaday": {
+		"previousMonth": "Mois précédent",
+		"nextMonth": "Mois suivant",
+		"months": "Janvier Février Mars Avril Mai Juin Juillet Août Septembre Octobre Novembre Décembre",
+		"weekdays": "Dimanche Lundi Mardi Mercredi Jeudi Vendredi Samedi",
+		"weekdaysShort": "Dim Lun Mar Mer Jeu Ven Sam"
 	}
 }

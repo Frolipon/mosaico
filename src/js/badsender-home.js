@@ -149,14 +149,6 @@ $('select[multiple').each( (index, el) => {
 
 // https://www.npmjs.com/package/pikaday
 
-const i18n = {
-  previousMonth : 'Mois précédent',
-  nextMonth     : 'Mois suivant',
-  months        : ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'],
-  weekdays      : ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'],
-  weekdaysShort : ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'],
-};
-
 const pickers = []
 
 $('input[type="date"]').each( (index, el) => {
@@ -167,7 +159,7 @@ $('input[type="date"]').each( (index, el) => {
   $input.attr('type', 'text')
   const picker  = new Pikaday({
     field:    el,
-    i18n:     i18n,
+    i18n:     window.badesenderI18n.pikaday,
     firstDay: 1,
     onSelect: date => {
       // set value & update MDL

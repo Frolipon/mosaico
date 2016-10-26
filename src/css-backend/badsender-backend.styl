@@ -60,6 +60,8 @@ panel-shadow() {
   &__header {
     height: 64px;
     justify-content: space-between;
+    align-items: baseline;
+    padding-top: 1.2em;
   }
 
   &__filter {
@@ -121,9 +123,40 @@ panel-shadow() {
     color: rgba(black, .87);
     margin: 0;
     font-weight: bold;
+    flex: 0 0 auto;
+  }
+  &__summary {
+    margin: 0;
+    padding: 0 24px;
+    flex: 1 1 auto;
+    white-space: nowrap;
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    dt,
+    dd {
+      display: inline;
+      padding: 0;
+      margin: 0;
+    }
+    dt {
+      padding-left: 12px;
+      font-weight: normal;
+      color: #999999;
+
+      + dt {
+        padding-left: 0;
+        &::before { content: ' '}
+      }
+    }
+    dd {
+      padding-left: 6px;
+    }
   }
   &__filter {
     cursor: pointer;
+    flex: 0 0 auto;
     &:hover {
       color: $accent;
     }

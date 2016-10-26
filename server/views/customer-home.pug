@@ -21,7 +21,43 @@ block list
     if _config.pagination
       header.bs-table__header
         h4.bs-table-header__title= __('home.saved.caption')
-        span.bs-table-header__filter.js-toggle-filter: i.material-icons more_vert
+        dl.bs-table-header__summary
+          if (_query.name)
+            dt= __('filter.summary.contain')
+            dd= _query.name
+          if (_query._user)
+            - let ids   =  Array.isArray(_query._user) ? _query._user : [_query._user]
+            - let names = ids.map( id => users.find( u => `${u._id}` === id) )
+            - names     = names.filter( u => u && u.name ).map( u => u.name)
+            dt= __('filter.summary.author')
+            dd= names.join(', ')
+          if (_query._wireframe)
+            - let ids   =  Array.isArray(_query._wireframe) ? _query._wireframe : [_query._wireframe]
+            - let names = ids.map( id => wireframes.find( w => `${w._id}` === id) )
+            - names     = names.filter( w => w && w.name ).map( w => w.name)
+            dt= __('filter.summary.template')
+            dd= names.join(', ')
+          if (_query.createdAt)
+            dt= __('filter.summary.createdat')
+            if (_query.createdAt.$gte)
+              dt= __('filter.summary.after')
+              dd= _query.createdAt.$gte
+            if (_query.createdAt.$gte && _query.createdAt.$lte)
+              dt= __('filter.summary.and')
+            if (_query.createdAt.$lte)
+              dt= __('filter.summary.before')
+              dd= _query.createdAt.$lte
+          if (_query.updatedAt)
+            dt= __('filter.summary.updatedat')
+            if (_query.updatedAt.$gte)
+              dt= __('filter.summary.after')
+              dd= _query.updatedAt.$gte
+            if (_query.updatedAt.$gte && _query.updatedAt.$lte)
+              dt= __('filter.summary.and')
+            if (_query.updatedAt.$lte)
+              dt= __('filter.summary.before')
+              dd= _query.updatedAt.$lte
+        span.bs-table-header__filter.js-toggle-filter: i.material-icons filter_list
       form.bs-table__filter.js-filter(action=mergeQueries('/', _query))
 
         input(type="hidden" value="" name="page")

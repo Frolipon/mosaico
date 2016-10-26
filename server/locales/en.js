@@ -95,6 +95,23 @@
 			"end": "and"
 		},
 		"reset": "reset",
-		"submit": "submit"
+		"submit": "submit",
+		"summary": {
+			"contain": "name contains",
+			"author": "author",
+			"template": "template",
+			"createdat": "created",
+			"after": "after the",
+			"updatedat": "updated",
+			"before": "before the",
+			"and": "and"
+		}
+	},
+	"pikaday": {
+		"previousMonth": "Previous Month",
+		"nextMonth": "Next Month",
+		"weekdays": "Sunday Monday Tuesday Wednesday Thursday Friday Saturday",
+		"weekdaysShort": "Sun Mon Tue Wed Thu Fri Sat",
+		"months": "January February March April May June July August September October November December"
 	}
 }
