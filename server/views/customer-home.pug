@@ -184,7 +184,7 @@ block list
           - length = _config.pagination ? length + 1 : length
           - length = isAdmin ? length + 1 : length
           - length = _config.debug ? length + 1 : length
-          tr: td(style="text-align: center;" colspan=length) no creations founded
+          tr: td(style="text-align: center;" colspan=length)= __('home.no.creation')
         else
           each creation, index in data.creations
             tr

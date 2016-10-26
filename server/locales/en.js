@@ -37,7 +37,8 @@
 		"make-creation": "Click on one of the templates below to make a new mailing",
 		"no-content": "No saved content",
 		"no": {
-			"wireframes": "No accessible templates yet"
+			"wireframes": "No accessible templates yet",
+			"creation": "no mailings founded"
 		},
 		"welcome": "Welcome",
 		"delete": {

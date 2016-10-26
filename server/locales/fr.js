@@ -38,7 +38,8 @@
 		"no-content": "Pas de mailing enregistrés",
 		"create-new-mailing": "home.create-new-mailing",
 		"no": {
-			"wireframes": "Il n'y a pas encore de templates accessibles"
+			"wireframes": "Il n'y a pas encore de templates accessibles",
+			"creation": "pas de mailings trouvés"
 		},
 		"welcome": "bienvenue",
 		"delete": {

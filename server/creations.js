@@ -79,7 +79,6 @@ function customerList(req, res, next) {
     })
   })
 
-  console.log(util.inspect(filter))
 
   // QUERY DB
 
