@@ -7,15 +7,17 @@
 const c             = require('chalk')
 const util          = require('util')
 const inquirer      = require('inquirer')
+
 const { logErrorAndExit } = require('./_db-utils')
 const { dbConfigs } = require('../server/config')
 const { connectDB, connection, Creations} = require('../server/models')
+const prefix        = c.blue('[CONSOLIDATE CREATIONS]')
 
 const selectDb = inquirer.prompt([
   {
     type:     'list',
     name:     'destination',
-    message:  `Choose DB to update`,
+    message:  `${prefix} Choose DB to update`,
     choices:  Object.keys(dbConfigs),
   },
 ])
@@ -30,12 +32,12 @@ function dbUrl(conf) {
 selectDb
 .then( (promptConf) => {
   const selectedDb = dbConfigs[promptConf.destination]
-  console.log(selectedDb)
   connectDB(dbUrl(selectedDb))
 })
 .catch(logErrorAndExit)
 
 function getCreations() {
+  console.log(prefix, 'fetching creations…')
   Creations
   .find({}, 'name _user _wireframe')
   .populate('_user', 'name lang')
@@ -45,6 +47,7 @@ function getCreations() {
 }
 
 function showCreations(creations) {
+  console.log(prefix, 'updating creations…')
   creations = creations.map( creation => {
     // admin creations don't have _user
     if (creation._user) {
@@ -63,6 +66,9 @@ function showCreations(creations) {
   })
   Promise
   .all(creations)
-  .then( _ => process.exit(1) )
+  .then( _ => {
+    console.log(prefix, 'all done!')
+    process.exit(0)
+  } )
   .catch(logErrorAndExit)
 }
