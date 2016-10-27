@@ -120,6 +120,7 @@ function update(req, res, next) {
 
     dbRequest
     .then( (wireframe) => {
+      const nameChange  = body.name !== wireframe.name
       // custom update function
       wireframe         = _.assignIn(wireframe, _.omit(body, ['images']))
       // merge images array
@@ -132,6 +133,20 @@ function update(req, res, next) {
       // form image name may differ from uploaded image name
       // make it coherent
       wireframe.images = wireframe.images.map( img => slugFilename(img) )
+
+      // copy wireframe name in creation
+      if (wireId && nameChange) {
+        Creations
+        .find({_wireframe: wireId})
+        .then( creations => {
+          creations.forEach( creation => {
+            creation.wireframe = body.name
+            creation.save().catch(console.log)
+          })
+        })
+        .catch(console.log)
+      }
+      // return
       return wireframe.save()
     })
     .then( (wireframe) => {

@@ -59,21 +59,36 @@ function show(req, res, next) {
 }
 
 function update(req, res, next) {
+  const { body }    = req
   const { userId }  = req.params
   const dbRequest   = userId ?
     Users.findById(userId)
-    : Promise.resolve(new Users(req.body))
+    : Promise.resolve(new Users(body))
 
   dbRequest
   .then(handleUser)
   .catch(next)
 
   function handleUser(user) {
-    user = merge(user, req.body)
+    const nameChange  = body.name !== user.name
+    user              = merge(user, body)
     user
     .save()
     .then( user => res.redirect( user.url.show ) )
     .catch( err => handleValidatorsErrors(err, req, res, next) )
+
+    // copy user name attribute in creation author
+    if (userId && nameChange) {
+      Creations
+      .find({_user: userId})
+      .then( creations => {
+        creations.forEach( creation => {
+          creation.author = body.name
+          creation.save().catch(console.log)
+        })
+      })
+      .catch(console.log)
+    }
   }
 }
 

@@ -135,7 +135,6 @@ function show(req, res, next) {
   .catch(next)
 }
 
-// TODO add name and wireframe name at creation!
 function create(req, res, next) {
   const wireframeId = req.query.wireframeId
 
