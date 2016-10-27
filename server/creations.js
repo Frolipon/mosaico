@@ -140,21 +140,23 @@ function create(req, res, next) {
   const wireframeId = req.query.wireframeId
 
   Wireframes
-  .findById(wireframeId)
+  .findById(wireframeId, '_id _company name')
   .then(onWireframe)
   .catch(next)
 
   function onWireframe(wireframe) {
     if (!wireframe) return next(createError(404))
     if (!isFromCompany(req.user, wireframe._company)) return next(createError(401))
-    var initParameters = { _wireframe: wireframe._id, }
-    // admin doesn't have valid user id
-    if (!req.user.isAdmin) initParameters._user = req.user.id
-    // Keep this: Admin will never have a company
-    if (req.user._company) {
+    const initParameters = {
+      _wireframe: wireframe._id,
+      wireframe: wireframe.name,
+    }
+    // admin doesn't have valid user id and company
+    if (!req.user.isAdmin) {
+      initParameters._user    = req.user.id
+      initParameters.author   = req.user.name
       initParameters._company = req.user._company
     }
-
     new Creations(initParameters)
     .save()
     .then( creation =>  res.redirect('/editor/' + creation._id) )
