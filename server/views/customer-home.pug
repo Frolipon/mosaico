@@ -65,9 +65,12 @@ block content
       .mdl-tooltip.mdl-tooltip--large(for="tt-open-filter")= __('filter.submit')
 
     //- FILTERS
-    form.bs-table__filter.js-filter(action=mergeQueries('/', _query))
+    form.bs-table__filter.js-filter(action='/')
 
       input(type="hidden" value="" name="page")
+      each param in ['sort', 'desc', 'limit']
+        if (_query[param])
+          input(type="hidden" value=_query[param] name=param)
 
       .bs-table-filter__row
         .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
@@ -201,7 +204,21 @@ block content
                 a.js-delete.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(href=creation.url.delete title="delete")
                   i.material-icons delete
 
-    form.bs-table__footer.js-pagination(action=mergeQueries('/', _query, {page: 1}))
+    form.bs-table__footer.js-pagination(action='/')
+      input(type="hidden" value="" name="page")
+      each param in ['sort', 'desc', 'name', '_user', '_wireframe']
+        if (_query[param])
+          input(type="hidden" value=_query[param] name=param)
+      each param in ['createdAt', 'updatedAt']
+        if (_query[param])
+          each subParam in ['$lte', '$gte']
+            if (_query[param][subParam])
+              input(
+                type="hidden"
+                value=_query[param][subParam]
+                name=`${param}[${subParam}]`
+              )
+
       span.bs-table-footer__rows= __('pagination.row')
       select.bs-table-footer__limit(name="limit")
         each limit in [10, 25, 50]
