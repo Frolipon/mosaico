@@ -1,6 +1,6 @@
 {
   "name": "mosaico",
-  "version": "0.15.0",
+  "version": "5.1.0",
   "description": "Free Email Template Editor",
   "repository": {
     "type": "git",
@@ -50,6 +50,7 @@
     "sync-db": "node ./bin/db-sync.js",
     "backup-db": "node ./bin/db-backup.js",
     "local-db": "node ./bin/db-manage-local.js",
+    "consolidate-creations": "node ./bin/db-consolidate-creations.js",
     "toc": "gulp toc"
   },
   "dependencies": {
