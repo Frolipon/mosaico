@@ -123,6 +123,12 @@ function closeDeleteDialog() {
 }
 
 //////
+// PAGINATION
+//////
+
+$('.js-pagination').on('change', e =>  e.currentTarget.submit()  )
+
+//////
 // SELECT2
 //////
 

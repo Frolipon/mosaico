@@ -115,5 +115,9 @@
 		"months": "Janvier Février Mars Avril Mai Juin Juillet Août Septembre Octobre Novembre Décembre",
 		"weekdays": "Dimanche Lundi Mardi Mercredi Jeudi Vendredi Samedi",
 		"weekdaysShort": "Dim Lun Mar Mer Jeu Ven Sam"
+	},
+	"pagination": {
+		"row": "lignes par pages :",
+		"of": "sur"
 	}
 }

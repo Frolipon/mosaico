@@ -105,7 +105,7 @@ function customerList(req, res, next) {
     const isFirst       = pagination.start === 0
     const isLast        = pagination.page >= Math.trunc(total / perpage)
     pagination.total    = total
-    pagination.current  = `${pagination.start + 1}-${pagination.start + perpage}`
+    pagination.current  = `${pagination.start + 1}-${pagination.start + paginated.length}`
     pagination.prev     = isFirst ? false : pagination.page
     pagination.next     = isLast ? false : pagination.page + 2
 
@@ -135,6 +135,7 @@ function show(req, res, next) {
   .catch(next)
 }
 
+// TODO add name and wireframe name at creation!
 function create(req, res, next) {
   const wireframeId = req.query.wireframeId
 

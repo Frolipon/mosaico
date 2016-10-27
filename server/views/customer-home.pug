@@ -201,10 +201,15 @@ block content
                 a.js-delete.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(href=creation.url.delete title="delete")
                   i.material-icons delete
 
-    form.bs-table__footer
-      span.bs-table-footer__rows lignes par pages :
-      span.bs-table-footer__limit= pagination.limit
-      span.bs-table-footer__position #{pagination.current} sur #{pagination.total}
+    form.bs-table__footer.js-pagination(action=mergeQueries('/', _query, {page: 1}))
+      span.bs-table-footer__rows= __('pagination.row')
+      select.bs-table-footer__limit(name="limit")
+        each limit in [10, 25, 50]
+          option(
+            value=limit
+            selected= _query.limit === `${limit}`
+          )= limit
+      span.bs-table-footer__position #{pagination.current} #{__('pagination.of')} #{pagination.total}
       if !pagination.prev
         span.bs-table-footer__nav: i.material-icons keyboard_arrow_left
       else
