@@ -155,12 +155,18 @@ panel-shadow() {
     }
   }
   &__filter {
+    color: currentColor;
     cursor: pointer;
     flex: 0 0 auto;
     &:hover {
       color: $accent;
     }
+
+    ~ .bs-table-header__filter {
+      margin-left: 1em;
+    }
   }
+
 }
 
 .bs-table-footer {
