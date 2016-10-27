@@ -227,54 +227,6 @@ panel-shadow() {
 }
 
 ////////
-// HEADER
-////////
-
-.home-badsender-header {
-  padding:  0 10px 10px;
-  position: relative;
-}
-
-.ribbon {
-  background-color: $primary;
-  color: white;
-  display: inline-block;
-  position: relative;
-  z-index: 10;
-  margin: 6px;
-
-  span {
-    display: inline-block;
-    padding: 3px 10px;
-
-    border: 1px solid white;
-    position: relative;
-    z-index: 2;
-  }
-
-  &::before,
-  &::after {
-    z-index: -4;
-    content: ' ';
-    position: absolute;
-    width: 5px;
-    top: 7px;
-    height: 0;
-    border-width: 12px 12px;
-    border-style: solid;
-    border-color: $primary;
-  }
-  &::before {
-    left: -20px;
-    border-left-color: transparent;
-  }
-  &::after {
-    right: -20px;
-    border-right-color: transparent;
-  }
-}
-
-////////
 // SECTIONS
 ////////
 
@@ -299,37 +251,6 @@ panel-shadow() {
   padding: 1em;
 }
 
-@media screen and (max-width: 900px) {
-  .byTable { display: none; }
-  .byRibbon { display: inline !important; }
-}
-
-.subscribe {
-  background-color: $primary;
-  color: white;
-  padding: 2em .5em;
-
-  a {
-    display: inline-block;
-    color: white;
-    border: 1px solid white;
-    box-sizing: border-box;
-    border-radius: 0;
-    padding: 5px 10px;
-    text-transform: uppercase;
-    text-decoration: none;
-
-    &:hover {
-      color: $primary;
-      background: white;
-    }
-  }
-  a + a {
-    margin-left: 1em;
-  }
-}
-
-.home-badsender-header,
 .home-badsender-footer {
   text-align: center;
 }

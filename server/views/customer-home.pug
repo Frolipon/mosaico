@@ -4,203 +4,176 @@ include _table-reorder.pug
 block vars
   - var pageClass = 'customer-home';
 
-block create
-  if !_config.pagination
-    header.home-badsender-header
-      div: img(src="/media/logo_badsender_154x118.png")
-      .ribbon: span Badsender Email Builder
-
-block list
+block content
   - const { isAdmin }     = _user
   - const { pagination, users, wireframes }  = data
 
-  if !_config.pagination
-    h4.home-subtitle= __('home.saved.caption')
-
   section.bs-table.mdl-shadow--2dp
-    if _config.pagination
-      header.bs-table__header
-        h4.bs-table-header__title= __('home.saved.caption')
-        dl.bs-table-header__summary
-          if (_query.name)
-            dt= __('filter.summary.contain')
-            dd= _query.name
-          if (_query._user)
-            - let ids   =  Array.isArray(_query._user) ? _query._user : [_query._user]
-            - let names = ids.map( id => users.find( u => `${u._id}` === id) )
-            - names     = names.filter( u => u && u.name ).map( u => u.name)
-            dt= __('filter.summary.author')
-            dd= names.join(', ')
-          if (_query._wireframe)
-            - let ids   =  Array.isArray(_query._wireframe) ? _query._wireframe : [_query._wireframe]
-            - let names = ids.map( id => wireframes.find( w => `${w._id}` === id) )
-            - names     = names.filter( w => w && w.name ).map( w => w.name)
-            dt= __('filter.summary.template')
-            dd= names.join(', ')
-          if (_query.createdAt)
-            dt= __('filter.summary.createdat')
-            if (_query.createdAt.$gte)
-              dt= __('filter.summary.after')
-              dd= _query.createdAt.$gte
-            if (_query.createdAt.$gte && _query.createdAt.$lte)
-              dt= __('filter.summary.and')
-            if (_query.createdAt.$lte)
-              dt= __('filter.summary.before')
-              dd= _query.createdAt.$lte
-          if (_query.updatedAt)
-            dt= __('filter.summary.updatedat')
-            if (_query.updatedAt.$gte)
-              dt= __('filter.summary.after')
-              dd= _query.updatedAt.$gte
-            if (_query.updatedAt.$gte && _query.updatedAt.$lte)
-              dt= __('filter.summary.and')
-            if (_query.updatedAt.$lte)
-              dt= __('filter.summary.before')
-              dd= _query.updatedAt.$lte
-        span.bs-table-header__filter.js-toggle-filter: i.material-icons filter_list
-      form.bs-table__filter.js-filter(action=mergeQueries('/', _query))
 
-        input(type="hidden" value="" name="page")
+    //- HEADER
+    header.bs-table__header
+      h4.bs-table-header__title= __('home.saved.caption')
+      dl.bs-table-header__summary
+        if (_query.name)
+          dt= __('filter.summary.contain')
+          dd= _query.name
+        if (_query._user)
+          - let ids   =  Array.isArray(_query._user) ? _query._user : [_query._user]
+          - let names = ids.map( id => users.find( u => `${u._id}` === id) )
+          - names     = names.filter( u => u && u.name ).map( u => u.name)
+          dt= __('filter.summary.author')
+          dd= names.join(', ')
+        if (_query._wireframe)
+          - let ids   =  Array.isArray(_query._wireframe) ? _query._wireframe : [_query._wireframe]
+          - let names = ids.map( id => wireframes.find( w => `${w._id}` === id) )
+          - names     = names.filter( w => w && w.name ).map( w => w.name)
+          dt= __('filter.summary.template')
+          dd= names.join(', ')
+        if (_query.createdAt)
+          dt= __('filter.summary.createdat')
+          if (_query.createdAt.$gte)
+            dt= __('filter.summary.after')
+            dd= _query.createdAt.$gte
+          if (_query.createdAt.$gte && _query.createdAt.$lte)
+            dt= __('filter.summary.and')
+          if (_query.createdAt.$lte)
+            dt= __('filter.summary.before')
+            dd= _query.createdAt.$lte
+        if (_query.updatedAt)
+          dt= __('filter.summary.updatedat')
+          if (_query.updatedAt.$gte)
+            dt= __('filter.summary.after')
+            dd= _query.updatedAt.$gte
+          if (_query.updatedAt.$gte && _query.updatedAt.$lte)
+            dt= __('filter.summary.and')
+          if (_query.updatedAt.$lte)
+            dt= __('filter.summary.before')
+            dd= _query.updatedAt.$lte
+      span.bs-table-header__filter.js-toggle-filter: i.material-icons filter_list
 
-        .bs-table-filter__row
+    //- FILTERS
+    form.bs-table__filter.js-filter(action=mergeQueries('/', _query))
+
+      input(type="hidden" value="" name="page")
+
+      .bs-table-filter__row
+        .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
+          input#name-field(
+            name="name"
+            value=_query.name
+          ).mdl-textfield__input
+          label.mdl-textfield__label(for="name-field")= __('filter.name')
+
+        if !isAdmin
           .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
-            input#name-field(
-              name="name"
-              value=_query.name
-            ).mdl-textfield__input
-            label.mdl-textfield__label(for="name-field")= __('filter.name')
-
-          if !isAdmin
-            .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
-              select#author-field(
-                name="_user"
-                multiple
-              ).mdl-textfield__input
-                each user in users
-                  - const { _id, name } = user
-                  - const selected = !_query._user ? false : _query._user === _id || _query._user.includes(`${_id}`)
-                  option(value=_id selected=selected)= name
-              label(for="author-field").mdl-textfield__label= __('filter.author')
-          else
-            div
-
-          .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
-            select#wireframe-field(
-              name="_wireframe"
+            select#author-field(
+              name="_user"
               multiple
             ).mdl-textfield__input
-              each wireframe in wireframes
-                - const { _id, name } = wireframe
-                - const selected = !_query._wireframe ? false : _query._wireframe === _id || _query._wireframe.includes(`${_id}`)
-                option(value=wireframe._id selected=selected)= wireframe.name
-            label(for="wireframe-field").mdl-textfield__label= __('filter.wireframe')
+              each user in users
+                - const { _id, name } = user
+                - const selected = !_query._user ? false : _query._user === _id || _query._user.includes(`${_id}`)
+                option(value=_id selected=selected)= name
+            label(for="author-field").mdl-textfield__label= __('filter.author')
+        else
+          div
 
-        .bs-table-filter__row
-          //- don't use fieldsets, not working with flexbox
-          div.bs-table-filter-row__dual-field
-            .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
-              input#createat-gte-field(
-                type="date"
-                name="createdAt[$gte]"
-                value=!_query.createdAt ? false : _query.createdAt.$gte
-              ).mdl-textfield__input
-              label.mdl-textfield__label(for="createat-gte-field")= __('filter.createdat.start')
-              i.material-icons date_range
+        .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
+          select#wireframe-field(
+            name="_wireframe"
+            multiple
+          ).mdl-textfield__input
+            each wireframe in wireframes
+              - const { _id, name } = wireframe
+              - const selected = !_query._wireframe ? false : _query._wireframe === _id || _query._wireframe.includes(`${_id}`)
+              option(value=wireframe._id selected=selected)= wireframe.name
+          label(for="wireframe-field").mdl-textfield__label= __('filter.wireframe')
 
-            .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
-              input#createat-lte-field(
-                type="date"
-                name="createdAt[$lte]"
-                value=!_query.createdAt ? false : _query.createdAt.$lte
-              ).mdl-textfield__input
-              label.mdl-textfield__label(for="createat-lte-field")= __('filter.createdat.end')
-              i.material-icons date_range
+      .bs-table-filter__row
+        //- don't use fieldsets, not working with flexbox
+        div.bs-table-filter-row__dual-field
+          .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
+            input#createat-gte-field(
+              type="date"
+              name="createdAt[$gte]"
+              value=!_query.createdAt ? false : _query.createdAt.$gte
+            ).mdl-textfield__input
+            label.mdl-textfield__label(for="createat-gte-field")= __('filter.createdat.start')
+            i.material-icons date_range
 
-          div.bs-table-filter-row__dual-field
-            .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
-              input#updatedat-gte-field(
-                type="date"
-                name="updatedAt[$gte]"
-                value=!_query.updatedAt ? false : _query.updatedAt.$gte
-              ).mdl-textfield__input
-              label.mdl-textfield__label(for="updatedat-gte-field")= __('filter.updatedat.start')
-              i.material-icons date_range
+          .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
+            input#createat-lte-field(
+              type="date"
+              name="createdAt[$lte]"
+              value=!_query.createdAt ? false : _query.createdAt.$lte
+            ).mdl-textfield__input
+            label.mdl-textfield__label(for="createat-lte-field")= __('filter.createdat.end')
+            i.material-icons date_range
 
-            .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
-              input#updatedat-lte-field(
-                type="date"
-                name="updatedAt[$lte]"
-                value=!_query.updatedAt ? false : _query.updatedAt.$lte
-              ).mdl-textfield__input
-              label.mdl-textfield__label(for="updatedat-lte-field")= __('filter.updatedat.end')
-              i.material-icons date_range
+        div.bs-table-filter-row__dual-field
+          .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
+            input#updatedat-gte-field(
+              type="date"
+              name="updatedAt[$gte]"
+              value=!_query.updatedAt ? false : _query.updatedAt.$gte
+            ).mdl-textfield__input
+            label.mdl-textfield__label(for="updatedat-gte-field")= __('filter.updatedat.start')
+            i.material-icons date_range
+
+          .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
+            input#updatedat-lte-field(
+              type="date"
+              name="updatedAt[$lte]"
+              value=!_query.updatedAt ? false : _query.updatedAt.$lte
+            ).mdl-textfield__input
+            label.mdl-textfield__label(for="updatedat-lte-field")= __('filter.updatedat.end')
+            i.material-icons date_range
 
 
-          div.bs-table-filter-row__action
-            a(
-              href=mergeQueries('/', {sort: _query.sort, dir: _query.dir})
-            ).mdl-button.mdl-js-button.mdl-js-ripple-effect= __('filter.reset')
-            button.mdl-button.mdl-js-button.mdl-button--accent(type="submit")= __('filter.submit')
+        div.bs-table-filter-row__action
+          a(
+            href=mergeQueries('/', {sort: _query.sort, dir: _query.dir})
+          ).mdl-button.mdl-js-button.mdl-js-ripple-effect= __('filter.reset')
+          button.mdl-button.mdl-js-button.mdl-button--accent(type="submit")= __('filter.submit')
 
+    //- CREATIONS
     table.mdl-data-table.mdl-js-data-table
-      if _config.pagination
-        thead: tr
-          th.mdl-data-table__cell--action Index
-          if _config.debug
-            th.mdl-data-table__cell--non-numeric Id
+      thead: tr
+        if _config.debug
+          th.mdl-data-table__cell--non-numeric Id
+        th.mdl-data-table__cell--non-numeric
+          +reorder('/', 'name', 'home.saved.name')
+        th.mdl-data-table__cell--non-numeric
+          +reorder('/', 'wireframe', 'home.saved.wireframe-name')
+        if (!isAdmin)
           th.mdl-data-table__cell--non-numeric
-            +reorder('/', 'name', 'home.saved.name')
-          th.mdl-data-table__cell--non-numeric
-            +reorder('/', 'wireframe', 'home.saved.wireframe-name')
-          if (!isAdmin)
-            th.mdl-data-table__cell--non-numeric
-              +reorder('/', 'author', 'home.saved.created-by')
-          th.mdl-data-table__cell--non-numeric
-            +reorder('/', 'createdAt', 'home.saved.created')
-          th.mdl-data-table__cell--non-numeric
-            +reorder('/', 'updatedAt', 'home.saved.last-change')
-          th.mdl-data-table__cell--action= __('home.saved.rename')
-          th.mdl-data-table__cell--action= __('home.saved.edit')
-          th.mdl-data-table__cell--action= __('home.saved.duplicate')
-          th.mdl-data-table__cell--action= __('home.saved.delete')
-      else
-        thead: tr
-          if _config.debug
-            th.mdl-data-table__cell--non-numeric Id
-          th.mdl-data-table__cell--non-numeric= __('home.saved.name')
-          th.mdl-data-table__cell--non-numeric= __('home.saved.wireframe-name')
-          if (!isAdmin)
-            th.mdl-data-table__cell--non-numeric= __('home.saved.created-by')
-          th.mdl-data-table__cell--non-numeric= __('home.saved.created')
-          th.mdl-data-table__cell--non-numeric= __('home.saved.last-change')
-          th.mdl-data-table__cell--action= __('home.saved.rename')
-          th.mdl-data-table__cell--action= __('home.saved.edit')
-          th.mdl-data-table__cell--action= __('home.saved.duplicate')
-          th.mdl-data-table__cell--action= __('home.saved.delete')
+            +reorder('/', 'author', 'home.saved.created-by')
+        th.mdl-data-table__cell--non-numeric
+          +reorder('/', 'createdAt', 'home.saved.created')
+        th.mdl-data-table__cell--non-numeric
+          +reorder('/', 'updatedAt', 'home.saved.last-change')
+        th.mdl-data-table__cell--action= __('home.saved.rename')
+        th.mdl-data-table__cell--action= __('home.saved.edit')
+        th.mdl-data-table__cell--action= __('home.saved.duplicate')
+        th.mdl-data-table__cell--action= __('home.saved.delete')
 
       tbody(data-bind="foreach: edits")
         if !data.creations.length
           - let length = 9
-          - length = _config.pagination ? length + 1 : length
           - length = isAdmin ? length + 1 : length
           - length = _config.debug ? length + 1 : length
           tr: td(style="text-align: center;" colspan=length)= __('home.no.creation')
         else
           each creation, index in data.creations
             tr
-              if _config.pagination
-                td.mdl-data-table__cell
-                  span= index + 1 + pagination.start
               if _config.debug
                 td.mdl-data-table__cell--non-numeric
                   a(href=creation.url.update)= creation._id
               td.mdl-data-table__cell--non-numeric
                 a(href=creation.url.update).js-name= creation.name || __('home.saved.noname')
-              td.mdl-data-table__cell--non-numeric
-                a(href=mergeQueries('/', _query, {page: 1, _wireframe: `${creation._wireframe}`}))= creation.wireframe
+              td.mdl-data-table__cell--non-numeric: span= creation.wireframe
               if (!isAdmin)
-                td.mdl-data-table__cell--non-numeric
-                  a(href=mergeQueries('/', _query, {page: 1, _user: `${creation._user}`}))= creation.author
+                td.mdl-data-table__cell--non-numeric: span= creation.author
               td.mdl-data-table__cell--non-numeric: span= formatDate(creation.createdAt)
               td.mdl-data-table__cell--non-numeric: span= formatDate(creation.updatedAt)
               td.mdl-data-table__cell--action
@@ -215,22 +188,21 @@ block list
                 a.js-delete.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(href=creation.url.delete title="delete")
                   i.material-icons delete
 
-    if _config.pagination
-      form.bs-table__footer
-        span.bs-table-footer__rows lignes par pages :
-        span.bs-table-footer__limit= pagination.limit
-        span.bs-table-footer__position #{pagination.current} sur #{pagination.total}
-        if !pagination.prev
-          span.bs-table-footer__nav: i.material-icons keyboard_arrow_left
-        else
-          a.bs-table-footer__nav( href=mergeQueries('/', _query, { page: pagination.prev, } ) )
-            i.material-icons keyboard_arrow_left
-        | &nbsp;
-        if !pagination.next
-          span.bs-table-footer__nav: i.material-icons keyboard_arrow_right
-        else
-          a.bs-table-footer__nav( href=mergeQueries('/', _query, { page: pagination.next, }) )
-            i.material-icons keyboard_arrow_right
+    form.bs-table__footer
+      span.bs-table-footer__rows lignes par pages :
+      span.bs-table-footer__limit= pagination.limit
+      span.bs-table-footer__position #{pagination.current} sur #{pagination.total}
+      if !pagination.prev
+        span.bs-table-footer__nav: i.material-icons keyboard_arrow_left
+      else
+        a.bs-table-footer__nav( href=mergeQueries('/', _query, { page: pagination.prev, } ) )
+          i.material-icons keyboard_arrow_left
+      | &nbsp;
+      if !pagination.next
+        span.bs-table-footer__nav: i.material-icons keyboard_arrow_right
+      else
+        a.bs-table-footer__nav( href=mergeQueries('/', _query, { page: pagination.next, }) )
+          i.material-icons keyboard_arrow_right
 
 block dialog
   dialog.js-dialog-rename.mdl-dialog
