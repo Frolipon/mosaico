@@ -43,7 +43,7 @@ WireframeSchema.virtual('url').get(function () {
   let userUrl     = this._user ? `/users/${userId}` : '/users'
   let companyId   = this._company && this._company._id ? this._company._id : this._company
   let companyUrl  = this._company ? `/companies/${companyId}` : '/companies'
-  // read should be `/companies/${this._company}/wireframs/${this._id}`
+  // read should be `/companies/${this._company}/wireframes/${this._id}`
   return {
     read:      `/users/${this._user}/wireframe/${this._id}`,
     show:      `/wireframes/${this._id}`,
