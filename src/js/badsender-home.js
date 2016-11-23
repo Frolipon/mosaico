@@ -20,26 +20,29 @@ if (!dialogRename.showModal) {
 // RENAME CREATION
 //////
 
-let route   = false
-let $name   = false
-let $input  = $('#name-field')
+let route         = false
+let $nameLink     = false
+let $inputRename  = $('#rename-field')
 
 $('.js-rename').on('click', e => {
   e.preventDefault()
   const $target = $(e.currentTarget)
-  route       = $target.data('href')
-  $name       = $target.parents('tr').find('.js-name')
-  $input.val($name.text())
+  route         = $target.data('href')
+  $nameLink     = $target.parents('tr').find('.js-name')
+  $inputRename.val( $nameLink.text() )
+
   // update MDL
-  const wrapper = $input.parent()[0]
+  const wrapper = $inputRename.parent()[0]
   componentHandler.downgradeElements(wrapper)
+  // strangely componentHandler.downgradeElements doens't remove invalid class
+  wrapper.classList.remove('is-invalid')
   componentHandler.upgradeElement(wrapper)
   // show modal
   dialogRename.showModal()
 })
 
 $('.js-post').on('click', e => {
-  var name = $('#name-field').val()
+  var name = $inputRename.val()
   $.ajax({
     method: 'PUT',
     url:    route,
@@ -48,7 +51,7 @@ $('.js-post').on('click', e => {
     }
   })
   .then( creation => {
-    $name.text(creation.name)
+    $nameLink.text(creation.name)
     notif.MaterialSnackbar.showSnackbar({
       message: window.badesenderI18n.snackbarRenameMessage,
     })
@@ -64,13 +67,13 @@ $('.js-post').on('click', e => {
 $('.js-close-rename-dialog').on('click', closeRenameDialog)
 
 function closeRenameDialog() {
-  $name = false
-  route = false
+  $nameLink = false
+  route     = false
   dialogRename.close()
 }
 
 //////
-// toggle filters
+// TOGGLE FILTERS
 //////
 
 const $filter = $('.js-filter')
