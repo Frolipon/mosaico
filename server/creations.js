@@ -261,7 +261,7 @@ function duplicate(req, res, next) {
     if (!creation) return next(createError(404))
     if (!isFromCompany(req.user, creation._company)) return next(createError(401))
     creation
-    .duplicate()
+    .duplicate(req.user)
     .then(onDuplicate)
     .catch(next)
   }
@@ -269,7 +269,7 @@ function duplicate(req, res, next) {
   function onDuplicate(newCreation) {
     filemanager
     .copyImages(req.params.creationId, newCreation._id)
-    .then( () =>  { res.redirect('/') } )
+    .then( _ => res.redirect('/') )
   }
 }
 
