@@ -2,14 +2,12 @@
 
 const chalk                 = require('chalk')
 const createError           = require('http-errors')
+const { merge }             = require('lodash')
 
-var config                  = require('./config')
-var DB                      = require('./database')
-var Users                   = DB.Users
-var Wireframes              = DB.Wireframes
-var Companies               = DB.Companies
-var Creations               = DB.Creations
-var handleValidatorsErrors  = DB.handleValidatorsErrors
+const config                = require('./config')
+const { handleValidatorsErrors,
+  Companies, Users,
+  Wireframes, Creations }   = require('./models')
 
 function list(req, res, next) {
   Users
@@ -61,37 +59,67 @@ function show(req, res, next) {
 }
 
 function update(req, res, next) {
-  const userId    = req.params.userId
-  const dbRequest = userId ?
-    Users.findByIdAndUpdate(userId, req.body, {runValidators: true})
-    : new Users(req.body).save()
+  const { body }    = req
+  const { userId }  = req.params
+  const dbRequest   = userId ?
+    Users.findById(userId)
+    : Promise.resolve(new Users(body))
 
   dbRequest
-  .then( user => res.redirect( user.url.show ) )
-  .catch( err => handleValidatorsErrors(err, req, res, next) )
+  .then(handleUser)
+  .catch(next)
+
+  function handleUser(user) {
+    const nameChange  = body.name !== user.name
+    user              = merge(user, body)
+    user
+    .save()
+    .then( user => res.redirect( user.url.show ) )
+    .catch( err => handleValidatorsErrors(err, req, res, next) )
+
+    // copy user name attribute in creation author
+    if (userId && nameChange) {
+      Creations
+      .find({_user: userId})
+      .then( creations => {
+        creations.forEach( creation => {
+          creation.author = body.name
+          creation.save().catch(console.log)
+        })
+      })
+      .catch(console.log)
+    }
+  }
 }
 
 function remove(req, res, next) {
   var userId = req.params.userId
   Users
   .findByIdAndRemove(userId)
-  .then( () => res.redirect('/admin') )
+  .then( _ => res.redirect('/admin') )
   .catch(next)
 }
 
 function adminResetPassword(req, res, next) {
-  var id = req.body.id
-  // TODO should resolve to a 404 if no user
+  const { id } = req.body
+
   Users
   .findById(id)
-  .then( user => user.resetPassword(user.lang, 'admin') )
-  .then( (user) => {
-    // reset from elsewhere
-    if (req.body.redirect) return res.redirect(req.body.redirect)
-    // reset from company page
-    res.redirect(user.url.company)
-  })
+  .then(handleUser)
   .catch(next)
+
+  function handleUser(user) {
+    if (!user) return next(createError(404))
+    user
+    .resetPassword(user.lang, 'admin')
+    .then(user => {
+      // reset from elsewhere
+      if (req.body.redirect) return res.redirect(req.body.redirect)
+      // reset from company page
+      res.redirect(user.url.company)
+    })
+    .catch(next)
+  }
 }
 
 function userResetPassword(req, res, next) {
@@ -109,7 +137,7 @@ function userResetPassword(req, res, next) {
     }
     user
     .resetPassword(req.getLocale(), 'user')
-    .then( (user) => {
+    .then( user => {
       req.flash('success', 'password has been reseted. You should receive an email soon')
       res.redirect('/forgot')
     })
@@ -123,8 +151,7 @@ function setPassword(req, res, next) {
     token: req.params.token,
     email: req.body.username,
   })
-  .then( (user) => {
-    console.log(user)
+  .then( user => {
     if (!user) {
       req.flash('error', {message: 'no token or bad email address'})
       res.redirect(req.path)
@@ -132,8 +159,7 @@ function setPassword(req, res, next) {
     }
     return user.setPassword(req.body.password, req.getLocale())
   })
-  .then( (user) => {
-    console.log(user)
+  .then( user => {
     if (!user) return
     res.redirect('/login')
   })

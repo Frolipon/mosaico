@@ -1,0 +1,93 @@
+'use strict'
+
+const util      = require('util')
+const chalk     = require('chalk')
+const mongoose  = require('mongoose')
+
+mongoose.Promise    = global.Promise // Use native promises
+let connection
+
+const UserSchema        = require('./schema-user')
+const WireframeSchema   = require('./schema-wireframe')
+const CreationSchema    = require('./schema-creation')
+const CompanySchema     = require('./schema-company')
+const { UserModel, WireframeModel, CreationModel, CompanyModel } = require('./names')
+
+mongoose.connection.on('error', console.error.bind(console, chalk.red('[DB] connection error:')))
+mongoose.connection.once('open', e =>  {
+  console.log(chalk.green('[DB] connection OK'))
+})
+
+//////
+// ERRORS HANDLING
+//////
+
+// normalize errors between mongoose & mongoDB
+function handleValidationErrors(err) {
+  console.log('handleValidationErrors')
+  console.log(util.inspect(err))
+  // mongoose errors
+  if (err.name === 'ValidationError') {
+    return Promise.resolve(err.errors)
+  }
+  // duplicated field
+  if (err.name === 'MongoError' && err.code === 11000) {
+    // mongo doens't provide field name out of the box
+    // fix that based on the error message
+    var fieldName = /index:\s([a-z]*)/.exec(err.message)[1]
+    var errorMsg  = {}
+    errorMsg[fieldName] = {
+      message: `this ${fieldName} is already taken`,
+    }
+    return Promise.resolve(errorMsg)
+  }
+  return Promise.reject(err)
+}
+
+// take care of everything
+function formatErrors(err, req, res, next) {
+  handleValidationErrors(err)
+  .then( (errorMessages) => {
+    req.flash('error', errorMessages)
+    res.redirect(req.path)
+  })
+  .catch(next)
+}
+
+function connectDB(dbConfig) {
+  connection    = mongoose.connect(dbConfig)
+  return connection
+}
+
+//////
+// HELPERS
+//////
+
+function isFromCompany(user, companyId) {
+  if (!user) return false
+  if (user.isAdmin) return true
+  // creations from admin doesn't gave a companyId
+  if (!companyId) return false
+  return user._company.toString() === companyId.toString()
+}
+
+//////
+// EXPORTS
+//////
+
+const Users       = mongoose.model(UserModel, UserSchema)
+const Wireframes  = mongoose.model(WireframeModel, WireframeSchema)
+const Creations   = mongoose.model(CreationModel, CreationSchema)
+const Companies   = mongoose.model(CompanyModel, CompanySchema)
+
+module.exports    = {
+  connection:       mongoose.connection,
+  connectDB,
+  formatErrors,
+  isFromCompany,
+  // Compiled schema
+  Users,
+  Wireframes,
+  Creations,
+  Companies,
+}

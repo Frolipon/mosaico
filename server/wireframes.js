@@ -4,15 +4,12 @@ const _                     = require('lodash')
 const chalk                 = require('chalk')
 const createError           = require('http-errors')
 
-var config                  = require('./config')
-var filemanager             = require('./filemanager')
-var DB                      = require('./database')
-var slugFilename            = require('../shared/slug-filename.js')
-var Wireframes              = DB.Wireframes
-var Companies               = DB.Companies
-var Creations               = DB.Creations
-var handleValidatorsErrors  = DB.handleValidatorsErrors
-const isFromCompany         = DB.isFromCompany
+const config                = require('./config')
+const filemanager           = require('./filemanager')
+const slugFilename          = require('../shared/slug-filename.js')
+const { handleValidatorsErrors,
+  isFromCompany, Companies,
+  Wireframes, Creations }   = require('./models')
 
 function list(req, res, next) {
   Wireframes
@@ -123,6 +120,7 @@ function update(req, res, next) {
 
     dbRequest
     .then( (wireframe) => {
+      const nameChange  = body.name !== wireframe.name
       // custom update function
       wireframe         = _.assignIn(wireframe, _.omit(body, ['images']))
       // merge images array
@@ -135,6 +133,20 @@ function update(req, res, next) {
       // form image name may differ from uploaded image name
       // make it coherent
       wireframe.images = wireframe.images.map( img => slugFilename(img) )
+
+      // copy wireframe name in creation
+      if (wireId && nameChange) {
+        Creations
+        .find({_wireframe: wireId})
+        .then( creations => {
+          creations.forEach( creation => {
+            creation.wireframe = body.name
+            creation.save().catch(console.log)
+          })
+        })
+        .catch(console.log)
+      }
+      // return
       return wireframe.save()
     })
     .then( (wireframe) => {

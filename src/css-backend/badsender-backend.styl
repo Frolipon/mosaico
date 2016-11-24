@@ -1,13 +1,203 @@
 @import "../../node_modules/material-design-lite/dist/material.orange-blue.min.css";
 @import "../../node_modules/dialog-polyfill/dialog-polyfill.css";
 
-$primary  =  #ff9f00;
-$accent   = rgb(68,138,255);
+$primary    =  #ff9f00;
+$accent     = rgb(68,138,255);
+$c-grey-700 = #616161;
+
+panel-shadow() {
+  box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.14), 0 1px 18px 0 rgba(0, 0, 0, 0.12), 0 3px 5px -1px rgba(0, 0, 0, 0.2);
+}
+
+@import "./select2";
+@import "./date-picker";
 
 // fix left column not expanding to bottom when content > viewport
 .mdl-layout {
   height: auto;
   min-height: 100%;
+}
+
+////////
+// TABLE CARDS + PAGINATION + FILTER
+////////
+
+.bs-table {
+  background: white;
+  margin-bottom: 56px;
+
+  .mdl-data-table {
+    border-left: 0;
+    border-right: 0;
+    border-top: 0;
+  }
+
+  th a {
+    color: currentColor;
+    font-weight: inherit;
+    text-decoration: none;
+
+    .material-icons {
+      vertical-align: middle;
+    }
+  }
+
+  &__header,
+  &__header *,
+  &__footer,
+  &__footer *,
+  &__filter,
+  &__filter * {
+    box-sizing: border-box;
+  }
+  &__header,
+  &__footer {
+    padding: 0 14px 0 24px;
+    display: flex;
+    align-items: center;
+  }
+
+  &__header {
+    height: 64px;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-top: 1.2em;
+  }
+
+  &__filter {
+    background: #FBFBFB;
+    visibility: hidden;
+    height: 0;
+
+    &.is-visible {
+      visibility: visible;
+      height: auto;
+    }
+  }
+
+  &__footer {
+    height: 56px;
+    justify-content: flex-end;
+    font-size: 14px;
+    color: rgba(black, .54)
+  }
+}
+
+.bs-table-filter__row {
+  display: flex;
+  align-items: center;
+
+  > div {
+    width: 'calc(%s - 48px)' % ( unit(100/3, '%') )
+    margin: 0 24px;
+  }
+}
+
+// contain date pickers
+.bs-table-filter-row__dual-field {
+  display: flex;
+  align-items: center;
+
+  > div {
+    width: calc(50% - 12px);
+    &:first-child { margin-right: 12px; }
+    &:last-child {  margin-left:  12px; }
+  }
+  // only date pickers have icons
+  i.material-icons {
+    position: absolute;
+    right: 0;
+    bottom: 24px;
+    pointer-events: none;
+    opacity: .5;
+  }
+}
+
+.bs-table-filter-row__action {
+  text-align: right;
+}
+
+.bs-table-header {
+  &__title {
+    font-size: 20px;
+    color: rgba(black, .87);
+    margin: 0;
+    font-weight: bold;
+    flex: 0 0 auto;
+  }
+  &__summary {
+    margin: 0;
+    padding: 0 24px;
+    flex: 1 1 auto;
+    white-space: nowrap;
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    dt,
+    dd {
+      display: inline;
+      padding: 0;
+      margin: 0;
+    }
+    dt {
+      padding-left: 12px;
+      font-weight: normal;
+      color: #999999;
+
+      + dt {
+        padding-left: 0;
+        &::before { content: ' '}
+      }
+    }
+    dd {
+      padding-left: 6px;
+    }
+  }
+  &__filter {
+    color: currentColor;
+    cursor: pointer;
+    flex: 0 0 auto;
+    &:hover {
+      color: $accent;
+    }
+
+    ~ .bs-table-header__filter {
+      margin-left: 1em;
+    }
+  }
+
+}
+
+.bs-table-footer {
+
+  &__limit {
+    width: 40px;
+    text-align: right;
+    margin-right: 24px;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    border: 0;
+    background: none;
+    border-radius: 0;
+    margin-left: 24px;
+  }
+
+  &__position {
+    margin: 0 8px;
+  }
+
+  &__nav {
+    width: 24px;
+    margin-left: @width;
+    color: currentColor;
+    // align icon
+    line-height: 0;
+    span& {
+      opacity: .5;
+    }
+  }
 }
 
 ////////
@@ -43,61 +233,10 @@ $accent   = rgb(68,138,255);
   text-align: center;
 }
 
-#savedTable {
-  margin-bottom: 3em;
-}
-
+// user menu underline
 .customer-home .navigation--creations,
 .customer-wireframe .navigation--wireframes  {
   box-shadow: inset 0 -3px 0 0 $accent;
-}
-
-////////
-// HEADER
-////////
-
-.home-badsender-header {
-  padding:  0 10px 10px;
-  position: relative;
-}
-
-.ribbon {
-  background-color: $primary;
-  color: white;
-  display: inline-block;
-  position: relative;
-  z-index: 10;
-  margin: 6px;
-
-  span {
-    display: inline-block;
-    padding: 3px 10px;
-
-    border: 1px solid white;
-    position: relative;
-    z-index: 2;
-  }
-
-  &::before,
-  &::after {
-    z-index: -4;
-    content: ' ';
-    position: absolute;
-    width: 5px;
-    top: 7px;
-    height: 0;
-    border-width: 12px 12px;
-    border-style: solid;
-    border-color: $primary;
-  }
-  &::before {
-    left: -20px;
-    border-left-color: transparent;
-  }
-  &::after {
-    right: -20px;
-    border-right-color: transparent;
-  }
 }
 
 ////////
@@ -125,37 +264,6 @@ $accent   = rgb(68,138,255);
   padding: 1em;
 }
 
-@media screen and (max-width: 900px) {
-  .byTable { display: none; }
-  .byRibbon { display: inline !important; }
-}
-
-.subscribe {
-  background-color: $primary;
-  color: white;
-  padding: 2em .5em;
-
-  a {
-    display: inline-block;
-    color: white;
-    border: 1px solid white;
-    box-sizing: border-box;
-    border-radius: 0;
-    padding: 5px 10px;
-    text-transform: uppercase;
-    text-decoration: none;
-
-    &:hover {
-      color: $primary;
-      background: white;
-    }
-  }
-  a + a {
-    margin-left: 1em;
-  }
-}
-
-.home-badsender-header,
 .home-badsender-footer {
   text-align: center;
 }

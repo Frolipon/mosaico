@@ -15,7 +15,7 @@
 			"delete": "delete",
 			"noname": "untitled",
 			"wireframe-name": "wireframe used",
-			"created-by": "created by"
+			"created-by": "author"
 		},
 		"more-info": "more info about the builder",
 		"footer": {
@@ -37,7 +37,8 @@
 		"make-creation": "Click on one of the templates below to make a new mailing",
 		"no-content": "No saved content",
 		"no": {
-			"wireframes": "No accessible templates yet"
+			"wireframes": "No accessible templates yet",
+			"creation": "no mailings founded"
 		},
 		"welcome": "Welcome",
 		"delete": {
@@ -81,5 +82,41 @@
 			"back-to-login": "back to login",
 			"password-new": "Set my new password"
 		}
+	},
+	"filter": {
+		"name": "name",
+		"author": "author",
+		"wireframe": "wireframe",
+		"createdat": {
+			"start": "created between",
+			"end": "and"
+		},
+		"updatedat": {
+			"start": "updated between",
+			"end": "and"
+		},
+		"reset": "reset",
+		"submit": "submit",
+		"summary": {
+			"contain": "name contains",
+			"author": "author",
+			"template": "template",
+			"createdat": "created",
+			"after": "after the",
+			"updatedat": "updated",
+			"before": "before the",
+			"and": "and"
+		}
+	},
+	"pikaday": {
+		"previousMonth": "Previous Month",
+		"nextMonth": "Next Month",
+		"weekdays": "Sunday Monday Tuesday Wednesday Thursday Friday Saturday",
+		"weekdaysShort": "Sun Mon Tue Wed Thu Fri Sat",
+		"months": "January February March April May June July August September October November December"
+	},
+	"pagination": {
+		"row": "rows per page:",
+		"of": "of"
 	}
 }

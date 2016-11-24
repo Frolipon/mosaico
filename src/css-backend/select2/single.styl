@@ -1,0 +1,43 @@
+.select2-selection--single {
+  cursor: pointer;
+
+  .select2-selection__rendered {
+    display: block;
+    padding-right: 20px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    color: inherit;
+    line-height: 32px;
+  }
+
+  .select2-selection__clear {
+    cursor: pointer;
+    float: right;
+    font-weight: bold;
+  }
+}
+
+&.select2-container--disabled {
+  .select2-selection--single {
+    background-color: #eee;
+    cursor: default;
+
+    .select2-selection__clear {
+      display: none;
+    }
+  }
+}
+
+&.select2-container--open {
+  .select2-selection--single {
+    .select2-selection__arrow {
+      b {
+        border-color: transparent transparent #888 transparent;
+        border-width: 0 4px 5px 4px;
+      }
+    }
+  }
+}

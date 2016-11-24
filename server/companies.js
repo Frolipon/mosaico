@@ -1,16 +1,12 @@
 'use strict'
 
-const _                     = require('lodash')
 const chalk                 = require('chalk')
 const createError           = require('http-errors')
 
-var config                  = require('./config')
-var DB                      = require('./database')
-var handleValidatorsErrors  = DB.handleValidatorsErrors
-var Companies               = DB.Companies
-var Users                   = DB.Users
-var Wireframes              = DB.Wireframes
-var Creations               = DB.Creations
+const config                = require('./config')
+const { handleValidatorsErrors,
+  Companies, Users,
+  Wireframes, Creations }   = require('./models')
 
 function list(req, res, next) {
   Companies

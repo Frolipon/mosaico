@@ -30,7 +30,6 @@ function getResized(req, res, next) {
     stdout.pipe(res);
   }
 
-  // TODO method should be different routes
   switch(method) {
     case 'placeholder':
       var out = gm(width, height, '#707070');

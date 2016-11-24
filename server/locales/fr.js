@@ -15,7 +15,7 @@
 			"noname": "sans titre",
 			"duplicate": "dupliquer",
 			"wireframe-name": "modèle utilisé",
-			"created-by": "créé par"
+			"created-by": "auteur"
 		},
 		"more-info": "en savoir plus à propos de l'éditeur",
 		"footer": {
@@ -38,7 +38,8 @@
 		"no-content": "Pas de mailing enregistrés",
 		"create-new-mailing": "home.create-new-mailing",
 		"no": {
-			"wireframes": "Il n'y a pas encore de templates accessibles"
+			"wireframes": "Il n'y a pas encore de templates accessibles",
+			"creation": "pas de mailings trouvés"
 		},
 		"welcome": "bienvenue",
 		"delete": {
@@ -82,5 +83,41 @@
 			"forgot": "Mot de passe oublié ?",
 			"reset": "Réinitialisation du mot de passe"
 		}
+	},
+	"filter": {
+		"name": "nom",
+		"author": "auteur",
+		"wireframe": "template",
+		"createdat": {
+			"start": "créé entre le",
+			"end": "et le"
+		},
+		"updatedat": {
+			"start": "modifié entre le",
+			"end": "et le"
+		},
+		"reset": "réinitialiser",
+		"submit": "filtrer",
+		"summary": {
+			"contain": "nom contenant",
+			"author": "auteur",
+			"template": "template",
+			"createdat": "créé",
+			"after": "après le",
+			"and": "et",
+			"before": "avant le",
+			"updatedat": "modifié"
+		}
+	},
+	"pikaday": {
+		"previousMonth": "Mois précédent",
+		"nextMonth": "Mois suivant",
+		"months": "Janvier Février Mars Avril Mai Juin Juillet Août Septembre Octobre Novembre Décembre",
+		"weekdays": "Dimanche Lundi Mardi Mercredi Jeudi Vendredi Samedi",
+		"weekdaysShort": "Dim Lun Mar Mer Jeu Ven Sam"
+	},
+	"pagination": {
+		"row": "lignes par pages :",
+		"of": "sur"
 	}
 }

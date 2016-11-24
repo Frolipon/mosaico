@@ -1,0 +1,167 @@
+input() {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.26);
+  transition: border $speed;
+  outline: none;
+  box-shadow: none;
+  height: 32px;
+
+  .dark-bg & {
+    border-bottom-color: rgba(white, 0.26);
+  }
+
+  &:invalid ,
+  .dark-bg &:invalid,
+  &.is-invalid ,
+  .dark-bg &.is-invalid {
+    border-bottom-color: red;
+  }
+}
+input-focus() {
+  border-bottom-color: $primary;
+  .dark-bg & {
+    border-bottom-color: white;
+  }
+}
+
+.select2-container {
+  display: inline-block;
+  margin: 0;
+  position: relative;
+  vertical-align: middle;
+
+  @import "./single";
+  @import "./multiple";
+
+  .select2-search--dropdown .select2-search__field {
+    border: 1px solid #aaa;
+  }
+
+  .select2-search--inline .select2-search__field {
+    background: transparent;
+    border: none;
+    outline: 0;
+    //display: none;
+  }
+  .select2-results__group {
+    cursor: default;
+    display: block;
+    padding: 6px;
+  }
+}
+
+.select2-selection {
+  input();
+  user-select: none;
+
+  :invalid ~ .select2 &,
+  .is-invalid ~ .select2 & {
+    border-color: red;
+  }
+
+  .select2-container--focus & {
+    input-focus();
+  }
+}
+
+.select2-selection__arrow {
+  height: 26px;
+
+  position: absolute;
+
+  top: 1px;
+  right: 1px;
+
+  width: 20px;
+
+  b {
+    border-color: currentColor transparent transparent transparent;
+    border-style: solid;
+    border-width: 5px 4px 0 4px;
+
+    height: 0;
+    left: 50%;
+
+    margin-left: -4px;
+    margin-top: -2px;
+
+    position: absolute;
+
+    top: 50%;
+    width: 0;
+  }
+}
+
+.select2-selection__placeholder {
+    // color: #999;
+    margin-top: 5px;
+    float: left;
+  }
+
+// CHIPS
+.select2-selection__choice {
+  background-color: #E0DED8;
+  border-radius: 4px;
+  cursor: default;
+  float: left;
+  margin-right: 5px;
+  // margin-top: 6px;
+  padding: 0 5px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  .dark-bg & {
+    background: rgba(white, .2);
+  }
+}
+
+.select2-selection__choice__remove {
+  cursor: pointer;
+
+  display: inline-block;
+  font-weight: bold;
+
+  margin-right: 2px;
+
+  &:hover {
+    color: $accent;
+  }
+}
+
+@import "./dropdown";
+
+.select2-close-mask {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: block;
+  position: fixed;
+  left: 0;
+  top: 0;
+  min-height: 100%;
+  min-width: 100%;
+  height: auto;
+  width: auto;
+  opacity: 0;
+  z-index: 99;
+
+  // styles required for IE to work
+
+  background-color: #fff;
+}
+
+.select2-hidden-accessible {
+  border: 0 !important;
+  clip: rect(0 0 0 0) !important;
+  height: 1px !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  position: absolute !important;
+  width: 1px !important;
+}

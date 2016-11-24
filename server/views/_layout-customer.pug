@@ -28,21 +28,17 @@ html(lang=getLocale())
               a.mdl-navigation__link(href="/wireframes" title="wireframes"): i.material-icons web
 
             if getLocale() === 'en'
-              a.mdl-navigation__link(href="/?lang=fr") version française
+              a.mdl-navigation__link(href=mergeQueries('/', _query, { lang: 'fr' })) version française
             else
-              a.mdl-navigation__link(href="/?lang=en") english version
+              a.mdl-navigation__link(href=mergeQueries('/', _query, { lang: 'en' })) english version
 
             a.mdl-navigation__link(href="/logout"): i.material-icons power_settings_new
 
       main.mdl-layout__content
         .page-content
-          block create
-          block list
+          block content
 
       footer.home-badsender-footer
-        .subscribe
-          //- a(href="http://agency.badsender.com/production/email-builder/")= __('home.more-info')
-          a(href="http://agence.badsender.com/production/email-builder/")= __('home.more-info')
         .footer
           | Badsender.com -
           |  #{__('home.footer.rights')}
@@ -65,6 +61,13 @@ html(lang=getLocale())
       window.badesenderI18n = {
         snackbarDeleteMessage: '!{__('home.snackbar.deleteMessage')}',
         snackbarRenameMessage: '!{__('home.snackbar.renameMessage')}',
-        snackbarError: '!{__('home.snackbar.errorMessage')}',
+        snackbarError:          '!{__('home.snackbar.errorMessage')}',
+        pikaday: {
+          previousMonth:  '!{__('pikaday.previousMonth')}',
+          nextMonth:      '!{__('pikaday.nextMonth')}',
+          months:         '!{__('pikaday.months')}'.split(' '),
+          weekdays:       '!{__('pikaday.weekdays')}'.split(' '),
+          weekdaysShort:  '!{__('pikaday.weekdaysShort')}'.split(' '),
+        },
       };
     script(defer src="/badsender-home.js")

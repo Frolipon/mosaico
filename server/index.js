@@ -1,21 +1,24 @@
 'use strict'
 
-const path          = require('path')
-const chalk         = require('chalk')
-const express       = require('express')
-const bodyParser    = require('body-parser')
-const compression   = require('compression')
-const morgan        = require('morgan')
-const favicon       = require('serve-favicon')
-const cookieParser  = require('cookie-parser')
-const i18n          = require('i18n')
-const moment        = require('moment')
-const util          = require('util')
+const qs              = require('qs')
+const path            = require('path')
+const chalk           = require('chalk')
+const express         = require('express')
+const bodyParser      = require('body-parser')
+const compression     = require('compression')
+const morgan          = require('morgan')
+const favicon         = require('serve-favicon')
+const cookieParser    = require('cookie-parser')
+const i18n            = require('i18n')
+const moment          = require('moment')
+const util            = require('util')
+const { merge, omit } = require('lodash')
 
 module.exports = function () {
 
   var config        = require('./config')
   var session       = require('./session')
+  require('./models').connectDB(config.database)
 
   //////
   // SERVER CONFIG
@@ -51,7 +54,7 @@ module.exports = function () {
   //----- TEMPLATES
 
   app.set('views', path.join(__dirname, './views'))
-  app.set('view engine', 'jade')
+  app.set('view engine', 'pug')
 
   //----- STATIC
 
@@ -59,8 +62,10 @@ module.exports = function () {
   app.use(express.static( path.join(__dirname, '../dist') ))
   // commited assets
   app.use(express.static( path.join(__dirname, '../res') ))
-  // tinymce skin
+  // libs
   app.use('/lib/skins', express.static( path.join(__dirname,'../res/vendor/skins') ))
+  app.use(express.static( path.join(__dirname, '../node_modules/material-design-lite') ))
+  app.use(express.static( path.join(__dirname, '../node_modules/material-design-icons-iconfont/dist') ))
 
   //////
   // LOGGING
@@ -116,16 +121,46 @@ module.exports = function () {
 
   //----- EXPOSE DATAS TO VIEWS
 
-  app.locals._config  = config
+  app.locals._config  = omit(config, ['_', 'configs', 'config'])
+
   app.locals.printJS  = function (data) {
     return JSON.stringify(data, null, '  ')
   }
+
   app.locals.formatDate = function formatDate(data) {
     var formatedDate = moment(data).format('DD/MM/YYYY HH:mm')
     return formatedDate === 'Invalid date' ? '' : formatedDate
   }
 
+  function filterQuery(prefix, value) {
+    if (value === '' || value === null || typeof value === 'undefined') return
+    return value
+  }
+
+  app.locals.mergeQueries = function mergeQueries(route, _query, params = {}) {
+    params  = merge({}, _query, params)
+    params  = qs.stringify(params, { filter: filterQuery })
+    return Object.keys(params).length ? `${route}?${params}` : route
+  }
+
+  app.locals.getSorting = function getSorting(key, currentSorting) {
+    const sorting = {
+      sort: key,
+      dir:  'desc',
+    }
+    if (key !== currentSorting.sort) return sorting
+    if (currentSorting.dir === 'asc' ) return {
+      sort: null,
+      dir:  null,
+    }
+    sorting.dir = 'asc'
+    return sorting
+  }
+
+  // those datas need to be refreshed on every request
+  // and also not exposed to `app` but to `res` ^^
   app.use(function exposeDataToViews(req, res, next) {
+    res.locals._query   = req.query
     res.locals._path    = req.path
     res.locals._user    = req.user ? req.user : {}
     if (config.isDev) {
@@ -133,6 +168,7 @@ module.exports = function () {
         _user:    res.locals._user,
         messages: req.session && req.session.flash,
         _config:  app.locals._config,
+        _query:   res.locals._query,
       }, null, '  ')
     }
     next()

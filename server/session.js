@@ -7,9 +7,9 @@ const flash         = require('express-flash')
 const MongoStore    = require('connect-mongo')(session)
 const createError   = require('http-errors')
 
-var config        = require('./config')
-var DB            = require('./database')
-var Users         = DB.Users
+const config        = require('./config')
+const { connection,
+  Users }           = require('./models')
 
 var adminUser = {
   isAdmin:  true,
@@ -61,7 +61,7 @@ function init(app) {
     secret:             'keyboard cat',
     resave:             false,
     saveUninitialized:  false,
-    store: new MongoStore({ mongooseConnection: DB.connection })
+    store: new MongoStore({ mongooseConnection: connection })
   }))
   app.use(flash())
   app.use(passport.initialize())
@@ -89,7 +89,7 @@ function guard(role) {
 }
 
 function logout(req, res, next) {
-  var isAdmin = req.user.isAdmin;
+  var isAdmin = req.user.isAdmin
   req.logout()
   res.redirect(isAdmin ? '/admin' : '/')
 }

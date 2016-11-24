@@ -1,9 +1,9 @@
-extends _layout-customer.jade
+extends _layout-customer.pug
 
 block vars
   - var pageClass = 'customer-wireframe';
 
-block create
+block content
 
   if !data.wireframes.length
     h4.home-subtitle= __('home.no.wireframes')
