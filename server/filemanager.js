@@ -217,6 +217,7 @@ function parseMultipart(req, options) {
       // slug every uploaded file name
       // user may put accent and/or spaces…
       var fileName  = slugFilename(file.name)
+      if (!fileName) return console.warn('unable to upload', file.name)
       file.name     = options.prefix + '-' + fileName
       uploads.push(write(file))
     }

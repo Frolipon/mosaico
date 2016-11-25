@@ -53,6 +53,8 @@ function templateUrlConverter(opts) {
     //    we need to retreive the file url by slugging the id
     // The same applies for uploaded resources images:
     //    html img src may differ from uploaded names
+    // No need to control slugFilename result (like in server-side)
+    //    It is done before for determining if it's an image or not
     url = slugFilename(url)
     url = opts.imgProcessorBackend + opts.metadata._wireframe  + '-' + url
     return url
