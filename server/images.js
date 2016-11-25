@@ -11,8 +11,11 @@ const filemanager = require('./filemanager')
 const streamImage = filemanager.streamImage
 
 //////
-// OLD IMAGE HANDLING: should be removed in november
+// OLD IMAGE HANDLING
 //////
+
+// Check logs on february
+// if no more `[IMAGE] old url for path` => remove
 
 function getResized(req, res, next) {
   if (!req.query.src)     return next( createError(404) )
@@ -29,62 +32,95 @@ function getResized(req, res, next) {
 }
 
 //////
-// NEW IMAGE HANDLING
+// IMAGE UTILS
 //////
 
 function getSizes(sizes) {
-  const [width, height] = sizes.split('x')
-  return { width, height }
+  sizes = sizes.split('x')
+  sizes = sizes.map( s => s === 'null' ? null : ~~s )
+  return sizes
 }
 
+function needResize(value, width, height) {
+  if (!value) return true
+  const sameWidth   = value.width === width
+  const sameHeight  = value.height === height
+  if (sameWidth && sameHeight)  return false
+  if (!width && sameHeight)     return false
+  if (!height && sameWidth )    return false
+  return true
+}
+
+//////
+// IMAGE HANDLING
+//////
+
 function resize(req, res, next) {
-  var imageName = req.params.imageName
-  var sizes     = getSizes(req.params.sizes)
-  var width     = sizes.width
-  var height    = sizes.height
-  // on resize imageName seems to be double urlencoded
-  var ir        = gm(streamImage(imageName))
-  ir.format({bufferStream: true}, onFormat)
+  const { imageName }     = req.params
+  const [ width, height ] = getSizes( req.params.sizes )
+  let img                 = gm( streamImage(imageName) )
+
+  img
+  .autoOrient()
+  .format({ bufferStream: true }, onFormat)
+
+  function onFormat(err, format) {
+    if (err) return next(err)
+    format = format.toLowerCase()
+    res.set('Content-Type', `image/${ format }`)
+    // Gif frames with differents size can be buggy to resize
+    // http://stackoverflow.com/questions/12293832/problems-when-resizing-cinemagraphs-animated-gifs
+    if (format === 'gif') img.coalesce()
+    img.size(onSize)
+  }
+
+  function onSize(err, value) {
+    if (err) return next(err)
+    if (!needResize(value, width, height)) return img.stream( streamToResponse )
+    img
+    .resize( width, height )
+    .stream( streamToResponse )
+  }
 
   function streamToResponse (err, stdout, stderr) {
     if (err) return next(err)
     stdout.pipe(res)
   }
 
-  function onFormat(err, format) {
-    if (!err) res.set('Content-Type', 'image/'+format.toLowerCase());
-    // Gif frames with differents size can be buggy to resize
-    // http://stackoverflow.com/questions/12293832/problems-when-resizing-cinemagraphs-animated-gifs
-    ir
-    .autoOrient()
-    .coalesce()
-    .resize(width == 'null' ? null : width, height == 'null' ? null : height)
-    .stream(streamToResponse)
-  }
 }
 
 function cover(req, res, next) {
-  var imageName = req.params.imageName
-  var sizes     = req.params.sizes ? req.params.sizes.split('x') : [0, 0]
-  var width     = sizes[0]
-  var height    = sizes[1]
+  const { imageName }     = req.params
+  const [ width, height ] = getSizes( req.params.sizes )
+  const img               = gm( streamImage(imageName) )
 
-  var ic = gm(streamImage(imageName)).format({ bufferStream: true }, onFormat)
-
-  function streamToResponse (err, stdout, stderr) {
-    if (err) return next(err)
-    stdout.pipe(res)
-  }
+  img
+  .autoOrient()
+  .format({ bufferStream: true }, onFormat)
 
   function onFormat(err, format) {
-    if (!err) res.set('Content-Type', 'image/' + format.toLowerCase());
-    ic.autoOrient()
-    .coalesce()
+    if (err) return next(err)
+    format = format.toLowerCase()
+    res.set('Content-Type', `image/${ format }`)
+    if (format === 'gif') img.coalesce() // Gif frames (see resize ^^)
+    img.size(onSize)
+  }
+
+  function onSize(err, value) {
+    if (err) return next(err)
+    if (!needResize(value, width, height)) return img.stream( streamToResponse )
+    img
     .resize(width, height + '^')
     .gravity('Center')
     .extent(width, height + '>')
     .stream(streamToResponse)
   }
+
+  function streamToResponse (err, stdout, stderr) {
+    if (err) return next(err)
+    stdout.pipe(res)
+  }
+
 }
 
 function placeholder(req, res, next) {
@@ -97,12 +133,12 @@ function placeholder(req, res, next) {
   var size = 40
   // stripes
   while (y < height) {
-      out = out
-        .fill('#808080')
-        .drawPolygon([x, y], [x + size, y], [x + size*2, y + size], [x + size*2, y + size*2])
-        .drawPolygon([x, y + size], [x + size, y + size*2], [x, y + size*2])
-      x = x + size * 2
-      if (x > width) { x = 0; y = y + size*2 }
+    out = out
+    .fill('#808080')
+    .drawPolygon([x, y], [x + size, y], [x + size*2, y + size], [x + size*2, y + size*2])
+    .drawPolygon([x, y + size], [x + size, y + size*2], [x, y + size*2])
+    x = x + size * 2
+    if (x > width) { x = 0; y = y + size*2 }
   }
   // text
   out = out.fill('#B0B0B0').fontSize(20).drawText(0, 0, width + ' x ' + height, 'center')
