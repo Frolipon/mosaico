@@ -27,6 +27,14 @@ module.exports = function () {
   var app = express()
 
   app.set('trust proxy', true)
+
+  function forcessl(req, res, next) {
+    if (req.header('x-forwarded-proto') === 'https') return next()
+    res.redirect(301, `https://${config.host}${req.url}`)
+  }
+
+  if (config.forcessl) app.use(forcessl)
+
   app.use(bodyParser.json({
     limit: '5mb'
   }))

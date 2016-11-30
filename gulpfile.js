@@ -364,7 +364,7 @@ gulp.task('nodemon', function (cb) {
 gulp.task('dev', ['build', 'nodemon'], function () {
 
   browserSync.init({
-    proxy: 'http://localhost:3000',
+    proxy: 'https://localhost',
     open: false,
     port: 7000,
     ghostMode: false,

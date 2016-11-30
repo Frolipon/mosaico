@@ -10,6 +10,7 @@ var mkdirp    = denodeify(require('fs-extra').mkdirs)
 // default config is made for easy use on local dev
 var config  = rc('badsender', {
   debug:          false,
+  forcessl:       false,
   host:           'localhost:3000',
   database:       'mongodb://localhost/badsender',
   emailTransport: {
@@ -50,7 +51,7 @@ config.isPreProd  = !config.isDev && !config.isProd
 config.isAws      = config.storage.type === 'aws'
 
 // http://stackoverflow.com/questions/12416738/how-to-use-herokus-ephemeral-filesystem
-config.setup    = new Promise(function (resolve, reject) {
+config.setup    = new Promise( (resolve, reject) => {
   console.log('create temp dir')
   var tmpPath     = path.join(__dirname, '/../', config.images.tmpDir)
   var uploadPath  = path.join(__dirname, '/../', config.images.uploadDir)
@@ -59,12 +60,12 @@ config.setup    = new Promise(function (resolve, reject) {
 
   Promise
   .all([tmpDir, uploadDir])
-  .then(function (folders) {
+  .then( folders => {
     config.images.tmpDir    = tmpPath
     config.images.uploadDir = uploadPath
     resolve(config)
   })
-  .catch(function (err) {
+  .catch( err => {
     console.log('folder exception')
     console.log('attempt with os.tmpdir()')
     console.log(err)
@@ -75,25 +76,17 @@ config.setup    = new Promise(function (resolve, reject) {
 
     Promise
     .all([tmpDir, uploadDir])
-    .then(function (folders) {
+    .then( folders => {
       console.log('all done with os.tmpdir()')
       config.images.tmpDir    = tmpPath
       config.images.uploadDir = uploadPath
       resolve(config)
     })
-    .catch(function (err) {
+    .catch( err => {
       reject(err)
       throw err
     })
   })
 })
-
-// if (!config.isProd) {
-config.setup.then(function (config) {
-  // console.log('config is')
-  // console.log(_.omit(config, ['_', 'config', '_configs', 'configs', 'setup']))
-})
-
-// }
 
 module.exports  = config
