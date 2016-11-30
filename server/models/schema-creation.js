@@ -36,6 +36,9 @@ const CreationSchema  = Schema({
     type:     ObjectId,
     ref:      CompanyModel,
   },
+  tags: {
+    type:     [],
+  },
   // http://mongoosejs.com/docs/schematypes.html#mixed
   data: { },
 

@@ -28,7 +28,9 @@ const perpage = 10
 
 function customerList(req, res, next) {
   const { query, user } = req
-  const isAdmin = user.isAdmin
+  const isAdmin         = user.isAdmin
+  // admin doesn't have a company
+  const _company        = isAdmin ? { $exists: false } : req.user._company
 
   // PAGINATION
 
@@ -52,10 +54,8 @@ function customerList(req, res, next) {
 
   // FILTERING
 
-  // admin doesn't have a company
-  const filter  = {
-    _company: isAdmin ? { $exists: false } : req.user._company,
-  }
+
+  const filter  = { _company }
   // text search can be improved
   // http://stackoverflow.com/questions/23233223/how-can-i-find-all-documents-where-a-field-contains-a-particular-string
   if (query.name) filter.name = new RegExp(query.name)
@@ -92,6 +92,20 @@ function customerList(req, res, next) {
   .find( filter )
   .lean()
 
+  // Extract used tags from creations
+  // http://stackoverflow.com/questions/14617379/mongoose-mongodb-count-elements-in-array
+  const tagsList = Creations
+  .aggregate( [
+    { $match: {
+       _company,
+      tags:     { $exists: true },
+    } },
+    { $unwind: '$tags' },
+    { $group: { _id: '$tags', } },
+    { $sort:  { _id: 1 } }
+  ])
+  tagsList.then(tags => console.log( tags.map( t => t._id ) ))
+
   // gather informations for select boxes
   const usersRequest      = isAdmin ? Promise.resolve(false)
   : Users.find( { _company: user._company }, '_id name').lean()
@@ -99,8 +113,8 @@ function customerList(req, res, next) {
   const wireframesRequest = isAdmin ? Wireframes.find({}, '_id name').lean()
   : Wireframes.find( { _company: user._company }, '_id name').lean()
 
-  Promise.all([creationsPaginate, creationsTotal, usersRequest, wireframesRequest])
-  .then( ([paginated, filtered, users, wireframes]) => {
+  Promise.all([creationsPaginate, creationsTotal, usersRequest, wireframesRequest, tagsList])
+  .then( ([paginated, filtered, users, wireframes, tags]) => {
     const total         = filtered.length
     const isFirst       = pagination.start === 0
     const isLast        = pagination.page >= Math.trunc(total / perpage)
@@ -115,6 +129,7 @@ function customerList(req, res, next) {
         creations:  paginated,
         users,
         wireframes,
+        tagsList: tags.map( t => t._id ),
       }
     })
   })

@@ -1,5 +1,5 @@
 
-//- we can use safeky _query as it is exposed globally
+//- we can use safely _query as it is exposed globally
 mixin reorder(route, key, translateKey)
   a(href=mergeQueries(route, _query, getSorting(key, _query) ))
     if (_query.sort === key)

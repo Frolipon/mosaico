@@ -165,6 +165,9 @@ block content
           th.mdl-data-table__cell--non-numeric
             +reorder('/', 'author', 'home.saved.created-by')
         th.mdl-data-table__cell--non-numeric
+          | TAGS
+          //- +reorder('/', 'author', 'home.saved.created-by')
+        th.mdl-data-table__cell--non-numeric
           +reorder('/', 'createdAt', 'home.saved.created')
         th.mdl-data-table__cell--non-numeric
           +reorder('/', 'updatedAt', 'home.saved.last-change')
@@ -190,6 +193,7 @@ block content
               td.mdl-data-table__cell--non-numeric: span= creation.wireframe
               if (!isAdmin)
                 td.mdl-data-table__cell--non-numeric: span= creation.author
+              td.mdl-data-table__cell--non-numeric: span= creation.tags.join(', ')
               td.mdl-data-table__cell--non-numeric: span= formatDate(creation.createdAt)
               td.mdl-data-table__cell--non-numeric: span= formatDate(creation.updatedAt)
               td.mdl-data-table__cell--action
