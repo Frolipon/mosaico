@@ -213,7 +213,7 @@ function rename(req, res, next) {
     if (!creation) return next(createError(404))
     if (!isFromCompany(req.user, creation._company)) return next(createError(401))
 
-    creation.name = req.body.name
+    creation.name = req.body.name || creation.name
 
     creation
     .save()
