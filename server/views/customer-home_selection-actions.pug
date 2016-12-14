@@ -1,29 +1,38 @@
 - const { tagsList }  = data
 
-.bs-line-selection
-  h4.bs-line-selection__count x items selected
+.bs-table__header.bs-table__header--selection.js-line-actions
 
-  .bs-line-selection__actions
-    button#set-label(type="submit" formaction="/creations?_method=PATCH")
+  h4.bs-table-header__title.bs-table-header__title.js-selection-count
+
+  div
+
+    button#set-label.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent.js-open-tags-panel(type="button")
       i.material-icons label
-    span(for="set-label").mdl-tooltip.mdl-tooltip--large set labels
+    span(for="set-label").mdl-tooltip.mdl-tooltip--large #Set labels
 
-    button#delete-creation(type="submit" formaction="/creations?_method=DELETE")
-      i.material-icons delete
-    span(for="delete-creation").mdl-tooltip.mdl-tooltip--large delete mailings
+    //- button#delete-creation.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(type="submit" formaction="/creations?_method=DELETE")
+    //-   i.material-icons delete
+    //- span(for="delete-creation").mdl-tooltip.mdl-tooltip--large delete mailings
 
-  dl.bs-labels
-    dt.bs-labels--title Labels
-    dd.bs-labels--list: ul
-      each tag, i in tagsList
-        li
-          label(for=`tag-${i}`)
-            input(type="radio" id=`tag-${i}` name=`tag-${tag}` value="remove" )
-            input(type="radio" id=`tag-${i}` name=`tag-${tag}` value="unchange" checked )
-            input(type="radio" id=`tag-${i}` name=`tag-${tag}` value="add" )
-            span= tag
+  dl.bsTagsPanel.js-tags
+    dt.bsTagsPanel__title
+     span #Labels
+     button.mdl-button.mdl-js-button.mdl-button--icon.js-close-tags-panel(type="button")
+      i.material-icons close
+    dd.bsTagsPanel__listWrapper: ul.bsTagsPanel__list
+      each tag in tagsList
+        li.bsTagsPanel__item.bs-tags-input.js-chech-tag
+          //- WARN
+          //- `tag-` prefix is used backend in creations.js
+          //- and frontend in tags.js
+          input(type="radio"  name=`tag-${tag}` value="remove" checked)
+          input(type="radio"  name=`tag-${tag}` value="unchange" )
+          input(type="radio"  name=`tag-${tag}` value="add" )
+          span.bs-tags-input__title= tag
 
-    dd.bs-labels--actions
-      button nouveau label
+    dd.bsTagsPanel__actions
+      button.mdl-button.mdl-js-button.mdl-js-ripple-effect #New label
+      button.mdl-button.mdl-js-button.mdl-button--accent(type="submit" formaction="/creations?_method=PATCH")
+        | #Apply
 
 

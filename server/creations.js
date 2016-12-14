@@ -104,7 +104,8 @@ function customerList(req, res, next) {
     { $group: { _id: '$tags', } },
     { $sort:  { _id: 1 } }
   ])
-  tagsList.then(tags => console.log( tags.map( t => t._id ) ))
+
+  // tagsList.then(tags => console.log( tags.map( t => t._id ) ))
 
   // gather informations for select boxes
   const usersRequest      = isAdmin ? Promise.resolve(false)
@@ -243,9 +244,10 @@ function updateLabels(req, res, next) {
     tags.forEach( tagAction => {
       const [tag, action] = tagAction
       if (action === 'unchange') return
-      if (action === 'add') doc.tags.push(tag)
-      if (action === 'remove') doc.tags = _.without(doc.tags, tag)
+      if (action === 'add')    doc.tags = _.union( doc.tags, [tag] )
+      if (action === 'remove') doc.tags = _.without( doc.tags, tag )
     })
+    doc.tags = doc.tags.sort()
     return doc.save()
   }
 

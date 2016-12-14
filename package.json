@@ -158,6 +158,7 @@
     "lazypipe": "^1.0.1",
     "load-grunt-tasks": "3.5.2",
     "lodash.omit": "^4.5.0",
+    "lodash.topairs": "^4.3.0",
     "main-bower-files": "^2.13.1",
     "material-design-lite": "^1.2.1",
     "merge-stream": "^1.0.0",

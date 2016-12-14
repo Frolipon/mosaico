@@ -8,7 +8,7 @@ block content
   - const { isAdmin }     = _user
   - const { pagination, users, wireframes }  = data
 
-  section.bs-table.mdl-shadow--2dp
+  section.bs-table.mdl-shadow--2dp.js-line-selection
 
     //- HEADER
     header.bs-table__header
@@ -22,14 +22,14 @@ block content
           dd= _query.name
         if (_query._user)
           - hasFilter = true
-          - let ids   =  Array.isArray(_query._user) ? _query._user : [_query._user]
+          - let ids   = Array.isArray(_query._user) ? _query._user : [_query._user]
           - let names = ids.map( id => users.find( u => `${u._id}` === id) )
           - names     = names.filter( u => u && u.name ).map( u => u.name)
           dt= __('filter.summary.author')
           dd= names.join(', ')
         if (_query._wireframe)
           - hasFilter = true
-          - let ids   =  Array.isArray(_query._wireframe) ? _query._wireframe : [_query._wireframe]
+          - let ids   = Array.isArray(_query._wireframe) ? _query._wireframe : [_query._wireframe]
           - let names = ids.map( id => wireframes.find( w => `${w._id}` === id) )
           - names     = names.filter( w => w && w.name ).map( w => w.name)
           dt= __('filter.summary.template')

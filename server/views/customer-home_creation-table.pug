@@ -3,9 +3,8 @@
 table.mdl-data-table
   thead: tr
     th
-      label(for=`line-all`).mdl-checkbox.mdl-js-checkbox.mdl-js-ripple-effect
-        input.mdl-checkbox__input(type="checkbox" id="line-all")
-        span.mdl-checkbox__label
+      label(for=`line-all`)
+        input.js-creation-selection-all(type="checkbox" id="line-all")
     if _config.debug
       th.mdl-data-table__cell--non-numeric Id
     th.mdl-data-table__cell--non-numeric
@@ -26,7 +25,7 @@ table.mdl-data-table
     th.mdl-data-table__cell--action= __('home.saved.duplicate')
     th.mdl-data-table__cell--action= __('home.saved.delete')
 
-  tbody(data-bind="foreach: edits")
+  tbody.js-tbody-selection
     if !creations.length
       - let length = 9
       - length = isAdmin ? length + 1 : length
@@ -36,8 +35,14 @@ table.mdl-data-table
       each creation, index in creations
         tr
           td
-            label(for=`line-${creation._id}`).mdl-checkbox.mdl-js-checkbox.mdl-js-ripple-effect
-              input(type="checkbox" id=`line-${creation._id}` class="mdl-checkbox__input" value=creation._id,  name="creations")
+            label(for=`line-${creation._id}`)
+              input(
+                name="creations"
+                type="checkbox"
+                id=`line-${creation._id}`
+                data-tags=creation.tags.join(',')
+                value=creation._id
+              )
           if _config.debug
             td.mdl-data-table__cell--non-numeric
               a(href=creation.url.update)= creation._id

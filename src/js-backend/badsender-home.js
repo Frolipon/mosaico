@@ -6,6 +6,10 @@ import Pikaday        from 'pikaday'
 import $              from 'jquery'
 import select2        from 'select2'
 
+import pubsub from './_pubsub'
+import './creation-selection'
+import './tags'
+
 const dialogRename    = $('.js-dialog-rename')[0]
 const dialogDelete    = $('.js-dialog-delete')[0]
 const notif           = $('#notification')[0]
@@ -15,6 +19,10 @@ if (!dialogRename.showModal) {
   dialogPolyfill.registerDialog(dialogRename)
   dialogPolyfill.registerDialog(dialogDelete)
 }
+
+$(document).on('keyup', e => {
+  if (e.keyCode == 27) pubsub('key:escape').publish()
+})
 
 //////
 // RENAME CREATION

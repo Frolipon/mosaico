@@ -271,6 +271,11 @@ gulp.task('js-home', function () {
   .transform(babelify, {
     presets: ['es2015'],
   })
+  .transform(envify({
+    _:          'purge',
+    NODE_ENV:   env,
+    LOG:        isDev,
+  }))
 
   if (isWatch) {
     b = watchify(b);
@@ -356,7 +361,7 @@ gulp.task('nodemon', function (cb) {
     // https://gist.github.com/sogko/b53d33d4f3b40d3b4b2e#comment-1457582
     if (init) {
       init = false;
-      cb();
+      cb()
     }
   });
 });
