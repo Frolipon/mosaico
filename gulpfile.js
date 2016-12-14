@@ -266,7 +266,7 @@ gulp.task('js-home', function () {
     cache:        {},
     packageCache: {},
     debug:        true,
-    entries:      ['./src/js/badsender-home.js']
+    entries:      ['./src/js-backend/badsender-home.js']
   })
   .transform(babelify, {
     presets: ['es2015'],
