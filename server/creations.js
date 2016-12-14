@@ -11,6 +11,7 @@ const config        = require('./config')
 const filemanager   = require('./filemanager')
 const { Wireframes, Creations, Users,
   isFromCompany, }  = require('./models')
+const cleanTagName  = require('../shared/clean-tag-name')
 
 const translations  = {
   en: JSON.stringify(_.assign(
@@ -247,7 +248,7 @@ function updateLabels(req, res, next) {
       if (action === 'add')    doc.tags = _.union( doc.tags, [tag] )
       if (action === 'remove') doc.tags = _.without( doc.tags, tag )
     })
-    doc.tags = doc.tags.sort()
+    doc.tags = doc.tags.sort().map( cleanTagName )
     return doc.save()
   }
 

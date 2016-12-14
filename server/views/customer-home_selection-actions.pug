@@ -8,7 +8,7 @@
 
     button#set-label.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent.js-open-tags-panel(type="button")
       i.material-icons label
-    span(for="set-label").mdl-tooltip.mdl-tooltip--large #Set labels
+    span(for="set-label").mdl-tooltip.mdl-tooltip--large #Set tags
 
     //- button#delete-creation.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(type="submit" formaction="/creations?_method=DELETE")
     //-   i.material-icons delete
@@ -16,12 +16,15 @@
 
   dl.bsTagsPanel.js-tags
     dt.bsTagsPanel__title
-     span #Labels
+     span #Tags
      button.mdl-button.mdl-js-button.mdl-button--icon.js-close-tags-panel(type="button")
       i.material-icons close
-    dd.bsTagsPanel__listWrapper: ul.bsTagsPanel__list
+    dd.bsTagsPanel__listWrapper: ul.bsTagsPanel__list.js-tags-list
       each tag in tagsList
-        li.bsTagsPanel__item.bs-tags-input.js-chech-tag
+        //- WARN
+        //- this markup is copied in the front-end
+        //- see template function in tags.js
+        li.bsTagsPanel__item.bs-tags-input.js-check-tag
           //- WARN
           //- `tag-` prefix is used backend in creations.js
           //- and frontend in tags.js
@@ -31,7 +34,7 @@
           span.bs-tags-input__title= tag
 
     dd.bsTagsPanel__actions
-      button.mdl-button.mdl-js-button.mdl-js-ripple-effect #New label
+      button.js-open-tag-dialog.mdl-button.mdl-js-button.mdl-js-ripple-effect(type="button") #New tag
       button.mdl-button.mdl-js-button.mdl-button--accent(type="submit" formaction="/creations?_method=PATCH")
         | #Apply
 

@@ -197,6 +197,7 @@ block content
           i.material-icons keyboard_arrow_right
 
 block dialog
+
   dialog.js-dialog-rename.mdl-dialog
     h4.mdl-dialog__title= __('home.rename.dialog-title')
     .mdl-dialog__content
@@ -206,6 +207,7 @@ block dialog
     .mdl-dialog__actions
       button(type="button").js-post.mdl-button.mdl-button--accent.mdl-js-button= __('home.rename.dialog-confirm')
       button(type="button").js-close-rename-dialog.mdl-button= __('home.rename.dialog-cancel')
+
   dialog.js-dialog-delete.mdl-dialog
     h4.mdl-dialog__title= __('home.delete.dialog-title')
     .mdl-dialog__content
@@ -213,3 +215,13 @@ block dialog
     .mdl-dialog__actions
       button(type="button").js-delete-confirm.mdl-button.mdl-button--accent.mdl-js-button= __('home.delete.dialog-confirm')
       button(type="button").js-close-delete-dialog.mdl-button= __('home.delete.dialog-cancel')
+
+  dialog.js-dialog-add-tag.mdl-dialog
+    h4.mdl-dialog__title #Add tag
+    .mdl-dialog__content
+      .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
+        input.mdl-textfield__input#addtag-field(type="text" name="addtag" required)
+        label.mdl-textfield__label(for="addtag-field") #enter an new tag
+    .mdl-dialog__actions
+      button(type="button").js-add-tag.mdl-button.mdl-button--accent.mdl-js-button #add
+      button(type="button").js-hide-tag-dialog.mdl-button #cancel

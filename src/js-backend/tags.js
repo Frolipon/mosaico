@@ -3,12 +3,13 @@ import entries  from 'lodash.topairs'
 
 import logger from './_logger'
 import pubsub from './_pubsub'
+import cleanTagName from './../../shared/clean-tag-name'
 
 const DEBUG     = init
 const log       = logger('tags', DEBUG)
 
 const $ui       = {}
-let tags        = []
+let isOpen      = false
 
 function init() {
   log('init')
@@ -20,14 +21,22 @@ function init() {
 
 function bindUi() {
   $ui.tagsList    = $ui.container.find('input')
+  $ui.modal       = $('.js-dialog-add-tag')
+  $ui.mdlTagInput = $ui.modal.find('.mdl-js-textfield')
+  $ui.newTagInput = $ui.modal.find('input')
+  $ui.tagsWrapper = $ui.container.find('.js-tags-list')
 }
 
 function bindEvents() {
-  pubsub('table:selection').subscribe(updateTagList)
   // $ui.selectionContainer.on('change' , updateTagList)
   $('.js-open-tags-panel').on('click', openTagPanel)
   $('.js-close-tags-panel').on('click', closeTagPanel)
-  $('.js-chech-tag').on('click', toggleTag)
+  $('.js-check-tag').on('click', toggleTag)
+  $('.js-open-tag-dialog').on('click', showModal)
+  $('.js-hide-tag-dialog').on('click', hideModal)
+  $('.js-add-tag').on('click', addTag)
+
+  pubsub('table:selection').subscribe(updateTagList)
   pubsub('key:escape').subscribe(closeTagPanel)
 }
 
@@ -38,6 +47,7 @@ function updateTagList(e) {
   let tagList           = {}
   const { $checkboxes } = e
   const lineCount       = $checkboxes.length
+  if (isOpen) closeTagPanel()
 
   $checkboxes
   .each( (i, el) => {
@@ -51,13 +61,13 @@ function updateTagList(e) {
     } )
   } )
 
-  // by default anything is unchecked
+  // by default everything is unchecked
   $ui.tagsList.filter('[value=remove]').prop('checked', true)
 
   entries( tagList )
   .forEach(  tagLine => {
     const [tag, count]  = tagLine
-    const tagCheckboxes = $ui.tagsList.filter(`[name=tag-${tag}]`)
+    const tagCheckboxes = $ui.tagsList.filter(`[name="tag-${tag}"]`)
     // mixed tags
     if (count < lineCount) {
       return tagCheckboxes.filter('[value=unchange]').prop('checked', true)
@@ -78,12 +88,60 @@ function toggleTag(e) {
 
 function openTagPanel() {
   log('open')
+  isOpen = true
   $ui.container.addClass('is-visible')
 }
 
 function closeTagPanel() {
   log('close')
+  isOpen = false
   $ui.container.removeClass('is-visible')
+}
+
+//////
+// TAG CREATION
+//////
+
+function showModal() {
+  log('show modal')
+  // update MDL
+  const wrapper = $ui.mdlTagInput[0]
+  componentHandler.downgradeElements(wrapper)
+  $ui.newTagInput.val('')
+  wrapper.classList.remove('is-invalid')
+  componentHandler.upgradeElement(wrapper)
+  // show modal
+  $ui.modal[0].showModal()
+}
+
+function addTag() {
+  log('add tag')
+  const newTag = cleanTagName( $ui.newTagInput.val() )
+  if (!newTag) return hideModal()
+  $ui.tagsWrapper.append( template({ newTag }) )
+  setTimeout( _ => {
+    bindUi()
+    hideModal()
+  }, 0)
+}
+
+function hideModal() {
+  log('close modal')
+  $ui.modal[0].close()
+}
+
+// WARN
+// this markup is copied from the back-end
+// see customer-home_selection-actions.pug
+function template(data) {
+  return `
+    <li class="bsTagsPanel__item bs-tags-input js-check-tag">
+      <input type="radio" name="tag-${data.newTag}" value="remove">
+      <input type="radio" name="tag-${data.newTag}" value="unchange">
+      <input type="radio" name="tag-${data.newTag}" value="add" checked>
+      <span class="bs-tags-input__title">${data.newTag}</span>
+    </li>
+  `
 }
 
 init()
