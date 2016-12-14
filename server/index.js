@@ -5,6 +5,7 @@ const path            = require('path')
 const chalk           = require('chalk')
 const express         = require('express')
 const bodyParser      = require('body-parser')
+const methodOverride  = require('method-override')
 const compression     = require('compression')
 const morgan          = require('morgan')
 const favicon         = require('serve-favicon')
@@ -42,6 +43,8 @@ module.exports = function () {
     limit: '5mb',
     extended: true,
   }))
+  // enable other methods from request (PUT, DELETE…)
+  app.use(methodOverride('_method', {methods: ['GET', 'POST']}))
   app.use(compression())
   app.use(favicon(path.join(__dirname, '../res/favicon.png')))
   app.use(cookieParser())
@@ -272,6 +275,14 @@ module.exports = function () {
   app.post('/editor/:creationId',           creations.update)
   app.put('/editor/:creationId',            creations.rename)
   app.get('/editor',                        creations.create)
+  app.all('/creation*',                     guard('user'))
+  // app.all('/creations*',                     (req, res, next) => {
+  //   console.log(req.body)
+  //   next()
+  // })
+  app.delete('/creations',                  (req, res, next) => res.redirect('/'))
+  app.patch('/creations',                   creations.updateLabels)
+  app.post('/creations',                    (req, res, next) => res.redirect('/'))
   app.get('/new-creation',                  guard('user'), wireframes.customerList)
   app.get('/',                              guard('user'), creations.customerList)
 

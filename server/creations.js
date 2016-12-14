@@ -1,10 +1,11 @@
 'use strict'
 
-const { assign }    = require('lodash')
-const chalk         = require('chalk')
-const util          = require('util')
-const createError   = require('http-errors')
-const moment        = require('moment')
+const _           = require('lodash')
+const chalk       = require('chalk')
+const util        = require('util')
+const createError = require('http-errors')
+const moment      = require('moment')
+const { Types }   = require('mongoose')
 
 const config        = require('./config')
 const filemanager   = require('./filemanager')
@@ -12,12 +13,12 @@ const { Wireframes, Creations, Users,
   isFromCompany, }  = require('./models')
 
 const translations  = {
-  en: JSON.stringify(assign(
+  en: JSON.stringify(_.assign(
     {},
     require('../res/lang/mosaico-en.json'),
     require('../res/lang/badsender-en')
   )),
-  fr: JSON.stringify(assign(
+  fr: JSON.stringify(_.assign(
     {},
     require('../res/lang/mosaico-fr.json'),
     require('../res/lang/badsender-fr')
@@ -53,7 +54,6 @@ function customerList(req, res, next) {
   const sort = { [sorting.sort]: sorting.dir === 'desc' ? -1 : 1}
 
   // FILTERING
-
 
   const filter  = { _company }
   // text search can be improved
@@ -127,9 +127,9 @@ function customerList(req, res, next) {
       data: {
         pagination: pagination,
         creations:  paginated,
+        tagsList:   tags.map( t => t._id ),
         users,
         wireframes,
-        tagsList: tags.map( t => t._id ),
       }
     })
   })
@@ -145,7 +145,7 @@ function show(req, res, next) {
   .then( (creation) => {
     if (!creation) return next(createError(404))
     if (!isFromCompany(req.user, creation._company)) return next(createError(401))
-    res.render('editor', { data: assign({}, data, creation.mosaico) })
+    res.render('editor', { data: _.assign({}, data, creation.mosaico) })
   })
   .catch(next)
 }
@@ -198,7 +198,7 @@ function update(req, res, next) {
 
     return creation
     .save()
-    .then( (creation) => {
+    .then( creation => {
       const data2editor = creation.mosaico
       if (!creationId) data2editor.meta.redirect = `/editor/${creation._id}`
       res.json(data2editor)
@@ -207,11 +207,58 @@ function update(req, res, next) {
   }
 }
 
+function updateLabels(req, res, next) {
+  const { body }  = req
+  const tagRegex  = /^tag-/
+
+  let creations   = body.creations || []
+  creations       = Array.isArray( creations ) ? creations : [ creations ]
+  console.log(creations)
+  if (!creations.length ) return res.redirect('/')
+
+  // Entries will be supported natively without flag in node 7+
+  // use lodash for not bumping node version
+  // http://node.green/#features
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
+  let tags = _.entries( body )
+  .filter( element => tagRegex.test( element[0] ) )
+  .map( tag => {
+    tag[0] = tag[0].replace(tagRegex, '')
+    return tag
+  } )
+
+  Creations
+  .find({ _id: { $in: creations.map(Types.ObjectId) } })
+  .then(onCreations)
+  .catch(next)
+
+  function onCreations(docs) {
+    Promise
+    .all( docs.map( updateTags ) )
+    .then( onSave )
+    .catch( next )
+  }
+
+  function updateTags(doc) {
+    tags.forEach( tagAction => {
+      const [tag, action] = tagAction
+      if (action === 'unchange') return
+      if (action === 'add') doc.tags.push(tag)
+      if (action === 'remove') doc.tags = _.without(doc.tags, tag)
+    })
+    return doc.save()
+  }
+
+  function onSave(docs) {
+    res.redirect('/')
+  }
+}
+
 function remove(req, res, next) {
   const creationId  = req.params.creationId
   Creations
   .findByIdAndRemove(creationId)
-  .then( _ => res.redirect('/') )
+  .then( c => res.redirect('/') )
   .catch(next)
 }
 
@@ -257,11 +304,7 @@ function upload(req, res, next) {
 function listImages(req, res, next) {
   filemanager
   .list(req.params.creationId)
-  .then( (images) => {
-    res.json({
-      files: images,
-    })
-  })
+  .then( files => res.json({ files }) )
   .catch(next)
 }
 
@@ -292,6 +335,7 @@ module.exports = {
   customerList: customerList,
   show:         show,
   update:       update,
+  updateLabels: updateLabels,
   remove:       remove,
   rename:       rename,
   create:       create,

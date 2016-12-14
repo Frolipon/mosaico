@@ -1,0 +1,29 @@
+- const { tagsList }  = data
+
+.bs-line-selection
+  h4.bs-line-selection__count x items selected
+
+  .bs-line-selection__actions
+    button#set-label(type="submit" formaction="/creations?_method=PATCH")
+      i.material-icons label
+    span(for="set-label").mdl-tooltip.mdl-tooltip--large set labels
+
+    button#delete-creation(type="submit" formaction="/creations?_method=DELETE")
+      i.material-icons delete
+    span(for="delete-creation").mdl-tooltip.mdl-tooltip--large delete mailings
+
+  dl.bs-labels
+    dt.bs-labels--title Labels
+    dd.bs-labels--list: ul
+      each tag, i in tagsList
+        li
+          label(for=`tag-${i}`)
+            input(type="radio" id=`tag-${i}` name=`tag-${tag}` value="remove" )
+            input(type="radio" id=`tag-${i}` name=`tag-${tag}` value="unchange" checked )
+            input(type="radio" id=`tag-${i}` name=`tag-${tag}` value="add" )
+            span= tag
+
+    dd.bs-labels--actions
+      button nouveau label
+
+
