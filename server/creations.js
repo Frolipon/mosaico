@@ -1,6 +1,7 @@
 'use strict'
 
 const _           = require('lodash')
+const qs          = require('qs')
 const chalk       = require('chalk')
 const util        = require('util')
 const createError = require('http-errors')
@@ -210,13 +211,14 @@ function update(req, res, next) {
 }
 
 function updateLabels(req, res, next) {
-  const { body }  = req
-  const tagRegex  = /^tag-/
+  const { body }    = req
+  const tagRegex    = /^tag-/
+  const query       = qs.stringify( _.omit(req.query, ['_method']) )
+  const redirectUrl = query ? `/?${query}` : '/'
 
-  let creations   = body.creations || []
-  creations       = Array.isArray( creations ) ? creations : [ creations ]
-  console.log(creations)
-  if (!creations.length ) return res.redirect('/')
+  let creations     = body.creations || []
+  creations         = Array.isArray( creations ) ? creations : [ creations ]
+  if (!creations.length ) return res.redirect( redirectUrl )
 
   // Entries will be supported natively without flag in node 7+
   // use lodash for not bumping node version
@@ -253,7 +255,7 @@ function updateLabels(req, res, next) {
   }
 
   function onSave(docs) {
-    res.redirect('/')
+    res.redirect( redirectUrl )
   }
 }
 

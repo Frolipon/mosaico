@@ -35,7 +35,10 @@
 
     dd.bsTagsPanel__actions
       button.js-open-tag-dialog.mdl-button.mdl-js-button.mdl-js-ripple-effect(type="button") #New tag
-      button.mdl-button.mdl-js-button.mdl-button--accent(type="submit" formaction="/creations?_method=PATCH")
+      button.mdl-button.mdl-js-button.mdl-button--accent(
+        type="submit"
+        formaction=mergeQueries('/creations', _query, { _method: 'PATCH', })
+      )
         | #Apply
 
 
