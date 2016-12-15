@@ -2,9 +2,9 @@
 
 table.mdl-data-table
   thead: tr
-    th
+    th.bsCheckbox
+      input.js-creation-selection-all(type="checkbox" id="line-all")
       label(for=`line-all`)
-        input.js-creation-selection-all(type="checkbox" id="line-all")
     if _config.debug
       th.mdl-data-table__cell--non-numeric Id
     th.mdl-data-table__cell--non-numeric
@@ -15,13 +15,12 @@ table.mdl-data-table
       th.mdl-data-table__cell--non-numeric
         +reorder('/', 'author', 'home.saved.created-by')
     th.mdl-data-table__cell--non-numeric
-      | TAGS
+      | #tags
     th.mdl-data-table__cell--non-numeric
       +reorder('/', 'createdAt', 'home.saved.created')
     th.mdl-data-table__cell--non-numeric
       +reorder('/', 'updatedAt', 'home.saved.last-change')
     th.mdl-data-table__cell--action= __('home.saved.rename')
-    //- th.mdl-data-table__cell--action= __('home.saved.edit')
     th.mdl-data-table__cell--action= __('home.saved.duplicate')
     th.mdl-data-table__cell--action= __('home.saved.delete')
 
@@ -34,15 +33,15 @@ table.mdl-data-table
     else
       each creation, index in creations
         tr
-          td
+          td.bsCheckbox
+            input(
+              name="creations"
+              type="checkbox"
+              id=`line-${creation._id}`
+              data-tags=creation.tags.join(',')
+              value=creation._id
+            )
             label(for=`line-${creation._id}`)
-              input(
-                name="creations"
-                type="checkbox"
-                id=`line-${creation._id}`
-                data-tags=creation.tags.join(',')
-                value=creation._id
-              )
           if _config.debug
             td.mdl-data-table__cell--non-numeric
               a(href=creation.url.update)= creation._id
@@ -56,9 +55,6 @@ table.mdl-data-table
           td.mdl-data-table__cell--non-numeric: span= formatDate(creation.updatedAt)
           td.mdl-data-table__cell--action
             a.js-rename.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(data-href=creation.url.update title="rename" href="#"): i.material-icons title
-          //- td.mdl-data-table__cell--action
-          //-   a.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(href=creation.url.update title="edit")
-          //-     i.material-icons mode_edit
           td.mdl-data-table__cell--action
             a.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(href=creation.url.duplicate title="duplicate")
               i.material-icons content_copy

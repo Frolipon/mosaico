@@ -55,10 +55,28 @@ togglable($height = auto) {
   min-height: 100%;
 }
 
-// fix checbox not being checked…
-// …not used anymore ¬_¬ stay here for documentation
-.mdl-checkbox.is-checked .mdl-checkbox__tick-outline  {
-  background: $primary;
+// simplified checkbox in tables
+.bsCheckbox {
+  width: 1px;
+
+  input {
+    hidden();
+  }
+  label {
+    display: inline-block;
+    cursor: pointer;
+  }
+  label::after {
+    material-icon();
+    // couldn't find another way to center them vertically :(
+    transform: translate(0, 3px);
+    content: 'check_box_outline_blank';
+    color: $c-grey-700;
+  }
+  input:checked + label::after {
+    content: 'check_box';
+    color: $accent;
+  }
 }
 
 ////////
