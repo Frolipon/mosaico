@@ -27,6 +27,10 @@ const translations  = {
   )),
 }
 
+//////
+// HOME LISTING
+//////
+
 const perpage = 10
 
 function customerList(req, res, next) {
@@ -35,7 +39,7 @@ function customerList(req, res, next) {
   // admin doesn't have a company
   const _company        = isAdmin ? { $exists: false } : req.user._company
 
-  // PAGINATION
+  //----- PAGINATION
 
   // Pagination could be done better
   // http://stackoverflow.com/questions/5539955/how-to-paginate-with-mongoose-in-node-js/23640287#23640287
@@ -46,7 +50,7 @@ function customerList(req, res, next) {
   }
   pagination.start  = pagination.page * pagination.limit
 
-  // SORTING
+  //----- SORTING
 
   const sorting     = {
     sort: query.sort  ? query.sort  : 'updatedAt',
@@ -55,17 +59,18 @@ function customerList(req, res, next) {
   // beware that sorting on populated keys won't work
   const sort = { [sorting.sort]: sorting.dir === 'desc' ? -1 : 1}
 
-  // FILTERING
+  //----- FILTERING
 
   const filter  = { _company }
   // text search can be improved
   // http://stackoverflow.com/questions/23233223/how-can-i-find-all-documents-where-a-field-contains-a-particular-string
   if (query.name) filter.name = new RegExp(query.name)
-  // select
+  if (query.tags) filter.tags = Array.isArray(query.tags) ? query.tags : [query.tags]
+  // SELECT
   for (let keys of ['_user', '_wireframe']) {
     if (query[keys]) filter[keys] = { $in: query[keys] }
   }
-  // dates
+  // DATES
   // for…of breaks on return, use forEach
   ;['createdAt', 'updatedAt'].forEach( key => {
     if (!query[key]) return
@@ -80,8 +85,7 @@ function customerList(req, res, next) {
       filter[key][range] = date.toDate()
     })
   })
-
-  // QUERY DB
+  //----- CREATE DB QUERIES
 
   // don't use lean, we need virtuals
   const creationsPaginate  = Creations
@@ -116,16 +120,96 @@ function customerList(req, res, next) {
   const wireframesRequest = isAdmin ? Wireframes.find({}, '_id name').lean()
   : Wireframes.find( { _company: user._company }, '_id name').lean()
 
-  Promise.all([creationsPaginate, creationsTotal, usersRequest, wireframesRequest, tagsList])
+
+  //----- GATHER ALL INFOS
+
+  Promise
+  .all( [
+    creationsPaginate,
+    creationsTotal,
+    usersRequest,
+    wireframesRequest,
+    tagsList
+  ] )
   .then( ([paginated, filtered, users, wireframes, tags]) => {
+
+    // PAGINATION STATUS
+
     const total         = filtered.length
     const isFirst       = pagination.start === 0
     const isLast        = pagination.page >= Math.trunc(total / perpage)
     pagination.total    = total
     pagination.current  = `${pagination.start + 1}-${pagination.start + paginated.length}`
     pagination.prev     = isFirst ? false : pagination.page
-    pagination.next     = isLast ? false : pagination.page + 2
+    pagination.next     = isLast  ? false : pagination.page + 2
 
+    // SUMMARY STATUS
+    //    - need users & wireframs in order to compute
+    //    - too much logic to be done in views
+    let hasFilter   = false
+    let filterQuery = _.omit(query, ['page', 'limit'])
+    // remove empty fields
+    ;['createdAt', 'updatedAt'].forEach( key => {
+      if (!query[key]) return
+      filterQuery[ key ] = _.omitBy(filterQuery[ key ], value => value === '' )
+    })
+    filterQuery     = _.omitBy(filterQuery, value => {
+      const isEmptyString = value === ''
+      const isEmptyObject = _.isPlainObject(value) && Object.keys(value) < 1
+      return isEmptyString || isEmptyObject
+    } )
+    // normalize array
+    for (let key of ['_user', '_wireframe', 'tags']) {
+      filterQuery[ key ] = Array.isArray( filterQuery[ key ] )
+      ? filterQuery[ key ]
+      : [ filterQuery[ key ] ]
+    }
+    // “translate” ids
+    for (let key of ['_user', '_wireframe']) {
+      const dataList = key === '_user' ? users : wireframes
+      filterQuery[ key ] = filterQuery[ key ].map( id => {
+        return _.find( dataList, value => `${value._id}` === id ).name
+      } )
+    }
+
+    // format for view
+    const i18nKeys = {
+      name:       'filter.summary.contain',
+      _user:      'filter.summary.author',
+      _wireframe: 'filter.summary.template',
+      createdAt:  'filter.summary.createdat',
+      updatedAt:  'filter.summary.updatedat',
+      tags:       'filter.summary.tags',
+    }
+    let summary      = []
+    _.forIn(filterQuery, (value, key) => {
+      let i18nKey = i18nKeys[ key ]
+      if ( _.isString(value) ) return summary.push( { message: i18nKey, value} )
+      if ( _.isArray(value) ) {
+        return summary.push( { message: i18nKey, value: value.join(', ')} )
+      }
+      // dates…
+      summary.push( { message: i18nKey } )
+      if (value.$gte) {
+        summary.push( {
+          message: 'filter.summary.after',
+          value:    value.$gte
+        } )
+      }
+      if (value.$gte && value.$lte ) {
+        summary.push( {
+          message: 'filter.summary.and',
+        } )
+      }
+      if (value.$lte) {
+        summary.push( {
+          message: 'filter.summary.before',
+          value:    value.$gte
+        } )
+      }
+    })
+
+    // FINALLY RENDER \0/
     res.render('customer-home', {
       data: {
         pagination: pagination,
@@ -133,11 +217,16 @@ function customerList(req, res, next) {
         tagsList:   tags.map( t => t._id ),
         users,
         wireframes,
+        summary,
       }
     })
   })
   .catch(next)
 }
+
+//////
+// EDITOR
+//////
 
 function show(req, res, next) {
   var data = {
@@ -153,6 +242,10 @@ function show(req, res, next) {
   .catch(next)
 }
 
+//////
+// NEW CREATION
+//////
+
 function create(req, res, next) {
   const wireframeId = req.query.wireframeId
 
@@ -166,7 +259,7 @@ function create(req, res, next) {
     if (!isFromCompany(req.user, wireframe._company)) return next(createError(401))
     const initParameters = {
       _wireframe: wireframe._id,
-      wireframe: wireframe.name,
+      wireframe:  wireframe.name,
     }
     // admin doesn't have valid user id and company
     if (!req.user.isAdmin) {
@@ -180,6 +273,10 @@ function create(req, res, next) {
     .catch(next)
   }
 }
+
+//////
+// UPDATE CREATION IN EDITOR
+//////
 
 function update(req, res, next) {
   if (!req.xhr) next(createError(501)) // Not Implemented
@@ -209,6 +306,10 @@ function update(req, res, next) {
     .catch(next)
   }
 }
+
+//////
+// HOME ACTIONS
+//////
 
 function updateLabels(req, res, next) {
   const { body }    = req

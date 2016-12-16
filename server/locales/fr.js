@@ -106,8 +106,10 @@
 			"after": "après le",
 			"and": "et",
 			"before": "avant le",
-			"updatedat": "modifié"
-		}
+			"updatedat": "modifié",
+			"tags": "filter.summary.tags"
+		},
+		"tag": "filter.tag"
 	},
 	"pikaday": {
 		"previousMonth": "Mois précédent",

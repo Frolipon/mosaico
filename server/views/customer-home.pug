@@ -6,59 +6,28 @@ block vars
 
 block content
   - const { isAdmin }     = _user
-  - const { pagination, users, wireframes }  = data
+  - const { pagination, users, wireframes, tagsList, summary }  = data
 
   section.bs-table.mdl-shadow--2dp.js-line-selection
 
     //- HEADER
     header.bs-table__header
       h4.bs-table-header__title= __('home.saved.caption')
-      //- filters resumé
-      - var hasFilter = false
+      //- filters summary
       dl.bs-table-header__summary
-        if (_query.name)
-          - hasFilter = true
-          dt= __('filter.summary.contain')
-          dd= _query.name
-        if (_query._user)
-          - hasFilter = true
-          - let ids   = Array.isArray(_query._user) ? _query._user : [_query._user]
-          - let names = ids.map( id => users.find( u => `${u._id}` === id) )
-          - names     = names.filter( u => u && u.name ).map( u => u.name)
-          dt= __('filter.summary.author')
-          dd= names.join(', ')
-        if (_query._wireframe)
-          - hasFilter = true
-          - let ids   = Array.isArray(_query._wireframe) ? _query._wireframe : [_query._wireframe]
-          - let names = ids.map( id => wireframes.find( w => `${w._id}` === id) )
-          - names     = names.filter( w => w && w.name ).map( w => w.name)
-          dt= __('filter.summary.template')
-          dd= names.join(', ')
-        if (_query.createdAt && (_query.createdAt.$gte || _query.createdAt.$lte))
-          - hasFilter = true
-          dt= __('filter.summary.createdat')
-          if (_query.createdAt.$gte)
-            dt= __('filter.summary.after')
-            dd= _query.createdAt.$gte
-          if (_query.createdAt.$gte && _query.createdAt.$lte)
-            dt= __('filter.summary.and')
-          if (_query.createdAt.$lte)
-            dt= __('filter.summary.before')
-            dd= _query.createdAt.$lte
-        if (_query.updatedAt && (_query.updatedAt.$gte || _query.updatedAt.$lte))
-          - hasFilter = true
-          dt= __('filter.summary.updatedat')
-          if (_query.updatedAt.$gte)
-            dt= __('filter.summary.after')
-            dd= _query.updatedAt.$gte
-          if (_query.updatedAt.$gte && _query.updatedAt.$lte)
-            dt= __('filter.summary.and')
-          if (_query.updatedAt.$lte)
-            dt= __('filter.summary.before')
-            dd= _query.updatedAt.$lte
-      if hasFilter
-        a#tt-clear-filter(href=mergeQueries('/', {page: 1, sort: _query.sort, dir: _query.dir})
-        ).bs-table-header__filter
+        for entry in summary
+          dt= __(entry.message)
+          if entry.value
+            dd= entry.value
+      if summary.length
+        a#tt-clear-filter.bs-table-header__filter(
+          href=mergeQueries('/', {
+            page: 1,
+            sort: _query.sort,
+            dir: _query.dir
+            }
+          )
+        )
           i.material-icons clear
         .mdl-tooltip.mdl-tooltip--large(for="tt-clear-filter")= __('filter.reset')
       //- filters icons
@@ -147,7 +116,20 @@ block content
             label.mdl-textfield__label(for="updatedat-lte-field")= __('filter.updatedat.end')
             i.material-icons date_range
 
+        .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
+          select#tag-field(
+            name="tags"
+            multiple
+          ).mdl-textfield__input
+            each tag in tagsList
+              //- - const { _id, name } = user
+              - const selected = !_query.tags ? false : _query.tags === tag || _query.tags.includes(`${tag}`)
+              option(value=tag selected=selected)= tag
+          label(for="tag-field").mdl-textfield__label= __('filter.tag')
 
+      .bs-table-filter__row
+        div
+        div
         div.bs-table-filter-row__action
           a(
             href=mergeQueries('/', {page: 1, sort: _query.sort, dir: _query.dir})
