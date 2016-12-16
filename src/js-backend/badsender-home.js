@@ -139,7 +139,10 @@ function closeDeleteDialog() {
 // PAGINATION
 //////
 
-$('.js-pagination').on('change', e =>  e.currentTarget.submit()  )
+const $paginationSelect = $('.js-pagination')
+$paginationSelect.on('change', e => {
+  window.location.assign( $paginationSelect.val() )
+})
 
 //////
 // SELECT2

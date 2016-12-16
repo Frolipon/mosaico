@@ -143,26 +143,12 @@ block content
       //- creations listing
       include customer-home_creation-table.pug
 
-    form.bs-table__footer.js-pagination(action='/')
-      input(type="hidden" value="" name="page")
-      each param in ['sort', 'desc', 'name', '_user', '_wireframe']
-        if (_query[param])
-          input(type="hidden" value=_query[param] name=param)
-      each param in ['createdAt', 'updatedAt']
-        if (_query[param])
-          each subParam in ['$lte', '$gte']
-            if (_query[param][subParam])
-              input(
-                type="hidden"
-                value=_query[param][subParam]
-                name=`${param}[${subParam}]`
-              )
-
+    .bs-table__footer
       span.bs-table-footer__rows= __('pagination.row')
-      select.bs-table-footer__limit(name="limit")
+      select.bs-table-footer__limit.js-pagination(name="limit")
         each limit in [10, 25, 50]
           option(
-            value=limit
+            value=mergeQueries('/', _query, { page: 1, limit })
             selected= _query.limit === `${limit}`
           )= limit
       span.bs-table-footer__position #{pagination.current} #{__('pagination.of')} #{pagination.total}

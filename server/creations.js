@@ -89,22 +89,22 @@ function customerList(req, res, next) {
   const filter  = { _company }
   // text search can be improved
   // http://stackoverflow.com/questions/23233223/how-can-i-find-all-documents-where-a-field-contains-a-particular-string
-  if (filterQuery.name) filter.name = new RegExp(query.name)
+  if (filterQuery.name) filter.name = new RegExp(filterQuery.name)
   // SELECT
-  for (let keys of arrayKeys ) { filter[keys] = { $in: query[keys] } }
+  for (let keys of arrayKeys ) { filter[keys] = { $in: filterQuery[keys] } }
   // DATES
   // for…of breaks on return, use forEach
   const datesFilterKeys = _.intersection( ['createdAt', 'updatedAt'], filterKeys )
   datesFilterKeys.forEach( key => {
-    const rangeKeys = _.intersection( ['$lte', '$gte'], Object.keys( query[key] ) )
+    const rangeKeys = _.intersection( ['$lte', '$gte'], Object.keys( filterQuery[key] ) )
     rangeKeys.forEach( range => {
       // force UTC time for better comparison purpose
-      const date = moment(`${query[key][range]} +0000`, 'YYYY-MM-DD Z')
+      const date = moment(`${filterQuery[key][range]} +0000`, 'YYYY-MM-DD Z')
       if (!date.isValid()) return
-      // day begin at 00h00… got the next ^^
+      // day begin at 00h00… go to the next ^^
       if (range === '$lte') date.add(1, 'days')
-      filter[key] = filter[key] || {}
-      filter[key][range] = date.toDate()
+      filter[key]         = filter[key] || {}
+      filter[key][range]  = date.toDate()
     })
   })
 
