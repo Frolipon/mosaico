@@ -24,16 +24,15 @@ block content
           href=mergeQueries('/', {
             page: 1,
             sort: _query.sort,
-            dir: _query.dir
-            }
-          )
+            dir:  _query.dir
+          } )
         )
           i.material-icons clear
         .mdl-tooltip.mdl-tooltip--large(for="tt-clear-filter")= __('filter.reset')
       //- filters icons
       span#tt-open-filter.bs-table-header__filter.js-toggle-filter
         i.material-icons filter_list
-      .mdl-tooltip.mdl-tooltip--large(for="tt-open-filter")= __('filter.submit')
+      .mdl-tooltip.mdl-tooltip--large(for="tt-open-filter")= __('filter.title')
 
     //- FILTERS
     form.bs-table__filter.js-filter(action='/')

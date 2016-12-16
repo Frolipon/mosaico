@@ -7,7 +7,7 @@
 
     button#set-label.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent.js-open-tags-panel(type="button")
       i.material-icons label
-    span(for="set-label").mdl-tooltip.mdl-tooltip--large #Set tags
+    span(for="set-label").mdl-tooltip.mdl-tooltip--large= __('tags.set')
 
     //- button#delete-creation.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(type="submit" formaction="/creations?_method=DELETE")
     //-   i.material-icons delete
@@ -15,7 +15,7 @@
 
   dl.bsTagsPanel.js-tags
     dt.bsTagsPanel__title
-     span #Tags
+     span= __('tags.title')
      button.mdl-button.mdl-js-button.mdl-button--icon.js-close-tags-panel(type="button")
       i.material-icons close
     dd.bsTagsPanel__listWrapper: ul.bsTagsPanel__list.js-tags-list
@@ -33,11 +33,10 @@
           span.bs-tags-input__title= tag
 
     dd.bsTagsPanel__actions
-      button.js-open-tag-dialog.mdl-button.mdl-js-button.mdl-js-ripple-effect(type="button") #New tag
+      button.js-open-tag-dialog.mdl-button.mdl-js-button.mdl-js-ripple-effect(type="button")= __('tags.new')
       button.mdl-button.mdl-js-button.mdl-button--accent(
         type="submit"
         formaction=mergeQueries('/creations', _query, { _method: 'PATCH', })
-      )
-        | #Apply
+      )= __('tags.apply')
 
 

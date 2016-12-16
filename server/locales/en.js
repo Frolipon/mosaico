@@ -15,7 +15,8 @@
 			"delete": "delete",
 			"noname": "untitled",
 			"wireframe-name": "wireframe used",
-			"created-by": "author"
+			"created-by": "author",
+			"tags": "tags"
 		},
 		"more-info": "more info about the builder",
 		"footer": {
@@ -96,7 +97,7 @@
 			"end": "and"
 		},
 		"reset": "reset",
-		"submit": "submit",
+		"submit": "filter",
 		"summary": {
 			"contain": "name contains",
 			"author": "author",
@@ -105,8 +106,11 @@
 			"after": "after the",
 			"updatedat": "updated",
 			"before": "before the",
-			"and": "and"
-		}
+			"and": "and",
+			"tags": "filter.summary.tags"
+		},
+		"tag": "tag",
+		"title": "filter"
 	},
 	"pikaday": {
 		"previousMonth": "Previous Month",
@@ -118,5 +122,11 @@
 	"pagination": {
 		"row": "rows per page:",
 		"of": "of"
+	},
+	"tags": {
+		"set": "Handle tags",
+		"title": "tags list",
+		"new": "new tag",
+		"apply": "apply"
 	}
 }

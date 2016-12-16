@@ -14,8 +14,7 @@ table.mdl-data-table
     if (!isAdmin)
       th.mdl-data-table__cell--non-numeric
         +reorder('/', 'author', 'home.saved.created-by')
-    th.mdl-data-table__cell--non-numeric
-      | #tags
+    th.mdl-data-table__cell--non-numeric= __('home.saved.tags')
     th.mdl-data-table__cell--non-numeric
       +reorder('/', 'createdAt', 'home.saved.created')
     th.mdl-data-table__cell--non-numeric

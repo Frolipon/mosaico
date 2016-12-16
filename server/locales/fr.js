@@ -15,7 +15,8 @@
 			"noname": "sans titre",
 			"duplicate": "dupliquer",
 			"wireframe-name": "modèle utilisé",
-			"created-by": "auteur"
+			"created-by": "auteur",
+			"tags": "labels"
 		},
 		"more-info": "en savoir plus à propos de l'éditeur",
 		"footer": {
@@ -109,7 +110,8 @@
 			"updatedat": "modifié",
 			"tags": "filter.summary.tags"
 		},
-		"tag": "filter.tag"
+		"tag": "label",
+		"title": "filtrer"
 	},
 	"pikaday": {
 		"previousMonth": "Mois précédent",
@@ -121,5 +123,11 @@
 	"pagination": {
 		"row": "lignes par pages :",
 		"of": "sur"
+	},
+	"tags": {
+		"set": "Gérer les labels",
+		"title": "Liste des labels",
+		"new": "nouveau label",
+		"apply": "appliquer"
 	}
 }

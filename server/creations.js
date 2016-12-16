@@ -64,12 +64,12 @@ function customerList(req, res, next) {
   // CLEANING QUERY
 
   // remove empty fields
-  let filterQuery = _.omit( query, ['page', 'limit', 'sort', 'dir'] )
+  let filterQuery = _.pick( query, ['name', '_user', '_wireframe', 'createdAt', 'updatedAt', 'tags'] )
   ;['createdAt', 'updatedAt'].forEach( key => {
     if (!query[key]) return
-    filterQuery[ key ]  = _.omitBy(filterQuery[ key ], value => value === '' )
+    filterQuery[ key ]  = _.omitBy( filterQuery[ key ], value => value === '' )
   })
-  filterQuery           = _.omitBy(filterQuery, value => {
+  filterQuery           = _.omitBy( filterQuery, value => {
     const isEmptyString = value === ''
     const isEmptyObject = _.isPlainObject(value) && Object.keys(value) < 1
     return isEmptyString || isEmptyObject
@@ -187,7 +187,7 @@ function customerList(req, res, next) {
       updatedAt:  'filter.summary.updatedat',
       tags:       'filter.summary.tags',
     }
-    let summary      = []
+    const summary   = []
     _.forIn( filterQuery, (value, key) => {
       let i18nKey = i18nKeys[ key ]
       if ( _.isString(value) ) return summary.push( { message: i18nKey, value} )
@@ -214,6 +214,8 @@ function customerList(req, res, next) {
         } )
       }
     })
+
+    console.log(summary)
 
     // FINALLY RENDER \o/
     res.render('customer-home', {
