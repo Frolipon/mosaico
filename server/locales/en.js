@@ -127,7 +127,13 @@
 		"set": "Handle tags",
 		"title": "tags list",
 		"new": "new tag",
-		"apply": "apply"
+		"apply": "apply",
+		"dialog": {
+			"title": "New tag",
+			"label": "tag name",
+			"apply": "add",
+			"cancel": "cancel"
+		}
 	},
 	"table": {
 		"selection": {

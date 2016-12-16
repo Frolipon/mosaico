@@ -184,11 +184,11 @@ block dialog
       button(type="button").js-close-delete-dialog.mdl-button= __('home.delete.dialog-cancel')
 
   dialog.js-dialog-add-tag.mdl-dialog
-    h4.mdl-dialog__title #Add tag
+    h4.mdl-dialog__title= __('tags.dialog.title')
     .mdl-dialog__content
       .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
         input.mdl-textfield__input#addtag-field(type="text" name="addtag" required)
-        label.mdl-textfield__label(for="addtag-field") #enter an new tag
+        label.mdl-textfield__label(for="addtag-field")= __('tags.dialog.label')
     .mdl-dialog__actions
-      button(type="button").js-add-tag.mdl-button.mdl-button--accent.mdl-js-button #add
-      button(type="button").js-hide-tag-dialog.mdl-button #cancel
+      button(type="button").js-add-tag.mdl-button.mdl-button--accent.mdl-js-button= __('tags.dialog.apply')
+      button(type="button").js-hide-tag-dialog.mdl-button= __('tags.dialog.cancel')

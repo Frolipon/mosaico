@@ -128,7 +128,13 @@
 		"set": "Gérer les labels",
 		"title": "Liste des labels",
 		"new": "nouveau label",
-		"apply": "appliquer"
+		"apply": "appliquer",
+		"dialog": {
+			"title": "Nouveau label",
+			"label": "nom",
+			"apply": "ajouter",
+			"cancel": "annuler"
+		}
 	},
 	"table": {
 		"selection": {
