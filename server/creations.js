@@ -220,9 +220,10 @@ function customerList(req, res, next) {
     // FINALLY RENDER \o/
     res.render('customer-home', {
       data: {
-        pagination: pagination,
         creations:  paginated,
         tagsList:   tags.map( t => t._id ),
+        pagination,
+        filterQuery,
         users,
         wireframes,
         summary,

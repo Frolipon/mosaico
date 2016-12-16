@@ -6,22 +6,10 @@ import pubsub from './_pubsub'
 const DEBUG     = true
 const log       = logger('creation selection', DEBUG)
 const $ui       = {}
-const lang      = $('html').attr('lang')
-// TODO move messages in i18n
-// _layout-customer.pug#60
-const messages  = {
-  en: {
-    singular: 'item selected',
-    plural:   'items selected',
-  },
-  fr: {
-    singular: 'élément selectionné',
-    plural:   'éléments selectionnés',
-  }
-}
+const messages  = window.badesenderI18n.table.selection
 
 function init() {
-  log('init', lang)
+  log('init')
   $ui.container = $('.js-line-selection')
   if (!$ui.container.length)  return log.warn('abort init')
   bindUi()
@@ -50,7 +38,7 @@ function updateTable() {
   const $checked        = $ui.checkboxes.filter(':checked')
   const creationsCount  = $checked.length
   const isPlural        = creationsCount < 2
-  const message         = messages[lang][ isPlural ? 'singular' : 'plural' ]
+  const message         = messages[ isPlural ? 'singular' : 'plural' ]
 
   log('updateTable', creationsCount)
   $ui.selectionCount.text( `${creationsCount} ${message}`)

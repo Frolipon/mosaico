@@ -96,7 +96,7 @@
 			"start": "updated between",
 			"end": "and"
 		},
-		"reset": "reset",
+		"reset": "reset filters",
 		"submit": "filter",
 		"summary": {
 			"contain": "name contains",
@@ -107,7 +107,7 @@
 			"updatedat": "updated",
 			"before": "before the",
 			"and": "and",
-			"tags": "filter.summary.tags"
+			"tags": "tags"
 		},
 		"tag": "tag",
 		"title": "filter"
@@ -128,5 +128,11 @@
 		"title": "tags list",
 		"new": "new tag",
 		"apply": "apply"
+	},
+	"table": {
+		"selection": {
+			"singular": "item selected",
+			"plural": "items selected"
+		}
 	}
 }

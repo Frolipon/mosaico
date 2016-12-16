@@ -6,7 +6,7 @@ block vars
 
 block content
   - const { isAdmin }     = _user
-  - const { pagination, users, wireframes, tagsList, summary }  = data
+  - const { pagination, users, wireframes, tagsList, summary, filterQuery }  = data
 
   section.bs-table.mdl-shadow--2dp.js-line-selection
 
@@ -46,7 +46,7 @@ block content
         .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
           input#name-field(
             name="name"
-            value=_query.name
+            value=filterQuery.name
           ).mdl-textfield__input
           label.mdl-textfield__label(for="name-field")= __('filter.name')
 
@@ -58,7 +58,7 @@ block content
             ).mdl-textfield__input
               each user in users
                 - const { _id, name } = user
-                - const selected = !_query._user ? false : _query._user === _id || _query._user.includes(`${_id}`)
+                - const selected = !filterQuery._user ? false : filterQuery._user.includes(`${_id}`)
                 option(value=_id selected=selected)= name
             label(for="author-field").mdl-textfield__label= __('filter.author')
         else
@@ -71,7 +71,7 @@ block content
           ).mdl-textfield__input
             each wireframe in wireframes
               - const { _id, name } = wireframe
-              - const selected = !_query._wireframe ? false : _query._wireframe === _id || _query._wireframe.includes(`${_id}`)
+              - const selected = !filterQuery._wireframe ? false : filterQuery._wireframe.includes(`${_id}`)
               option(value=wireframe._id selected=selected)= wireframe.name
           label(for="wireframe-field").mdl-textfield__label= __('filter.wireframe')
 
@@ -82,7 +82,7 @@ block content
             input#createat-gte-field(
               type="date"
               name="createdAt[$gte]"
-              value=!_query.createdAt ? false : _query.createdAt.$gte
+              value=!filterQuery.createdAt ? false : filterQuery.createdAt.$gte
             ).mdl-textfield__input
             label.mdl-textfield__label(for="createat-gte-field")= __('filter.createdat.start')
             i.material-icons date_range
@@ -91,7 +91,7 @@ block content
             input#createat-lte-field(
               type="date"
               name="createdAt[$lte]"
-              value=!_query.createdAt ? false : _query.createdAt.$lte
+              value=!filterQuery.createdAt ? false : filterQuery.createdAt.$lte
             ).mdl-textfield__input
             label.mdl-textfield__label(for="createat-lte-field")= __('filter.createdat.end')
             i.material-icons date_range
@@ -101,7 +101,7 @@ block content
             input#updatedat-gte-field(
               type="date"
               name="updatedAt[$gte]"
-              value=!_query.updatedAt ? false : _query.updatedAt.$gte
+              value=!filterQuery.updatedAt ? false : filterQuery.updatedAt.$gte
             ).mdl-textfield__input
             label.mdl-textfield__label(for="updatedat-gte-field")= __('filter.updatedat.start')
             i.material-icons date_range
@@ -110,7 +110,7 @@ block content
             input#updatedat-lte-field(
               type="date"
               name="updatedAt[$lte]"
-              value=!_query.updatedAt ? false : _query.updatedAt.$lte
+              value=!filterQuery.updatedAt ? false : filterQuery.updatedAt.$lte
             ).mdl-textfield__input
             label.mdl-textfield__label(for="updatedat-lte-field")= __('filter.updatedat.end')
             i.material-icons date_range
@@ -122,7 +122,7 @@ block content
           ).mdl-textfield__input
             each tag in tagsList
               //- - const { _id, name } = user
-              - const selected = !_query.tags ? false : _query.tags === tag || _query.tags.includes(`${tag}`)
+              - const selected = !filterQuery.tags ? false : filterQuery.tags.includes(`${tag}`)
               option(value=tag selected=selected)= tag
           label(for="tag-field").mdl-textfield__label= __('filter.tag')
 

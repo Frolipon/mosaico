@@ -97,7 +97,7 @@
 			"start": "modifié entre le",
 			"end": "et le"
 		},
-		"reset": "réinitialiser",
+		"reset": "réinitialiser les filtres",
 		"submit": "filtrer",
 		"summary": {
 			"contain": "nom contenant",
@@ -108,7 +108,7 @@
 			"and": "et",
 			"before": "avant le",
 			"updatedat": "modifié",
-			"tags": "filter.summary.tags"
+			"tags": "labels"
 		},
 		"tag": "label",
 		"title": "filtrer"
@@ -129,5 +129,11 @@
 		"title": "Liste des labels",
 		"new": "nouveau label",
 		"apply": "appliquer"
+	},
+	"table": {
+		"selection": {
+			"singular": "élément selectionné",
+			"plural": "éléments selectionnés"
+		}
 	}
 }
