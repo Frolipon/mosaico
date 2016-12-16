@@ -6,21 +6,22 @@ import pubsub from './_pubsub'
 import cleanTagName from './../../shared/clean-tag-name'
 import tmpl   from './../../server/views/_tag-item.pug'
 
-const DEBUG     = true
-const log       = logger('tags', DEBUG)
-
-const $ui       = {}
-let isOpen      = false
+const DEBUG           = true
+const log             = logger('tags', DEBUG)
+const $ui             = {}
+let isOpen            = false
+const countainerClass = '.js-tags'
 
 function init() {
   log('init')
-  $ui.container   = $('.js-tags')
+  $ui.container   = $( countainerClass )
   if (!$ui.container.length) return log.warn('abort init')
   bindUi()
   bindEvents()
 }
 
 function bindUi() {
+  $ui.html        = $('html')
   $ui.tagsList    = $ui.container.find('input')
   $ui.modal       = $('.js-dialog-add-tag')
   $ui.mdlTagInput = $ui.modal.find('.mdl-js-textfield')
@@ -86,16 +87,33 @@ function toggleTag(e) {
   $inputs.eq( isChecked ? 0 : 2 ).prop('checked', true)
 }
 
-function openTagPanel() {
-  log('open')
+function openTagPanel(e) {
+  log('open tag panel')
+  e.preventDefault()
   isOpen = true
   $ui.container.addClass('is-visible')
+  $ui.html.on('click.tag', handleGlobalCick)
 }
 
 function closeTagPanel() {
-  log('close')
+  log('close tag panel')
   isOpen = false
   $ui.container.removeClass('is-visible')
+  $ui.html.off('click.tag')
+}
+
+function handleGlobalCick(e) {
+  const $target     = $( e.target )
+  const fromTagsUi  = [
+    $target.is(countainerClass),
+    $target.parents(countainerClass).length > 0,
+    $target.is('dialog'),
+    $target.parents('dialog').length > 0
+  ].filter( value => value)
+  if ( e.isDefaultPrevented() || fromTagsUi.length ) return
+  log('close from global click')
+  e.preventDefault()
+  closeTagPanel()
 }
 
 //////
@@ -122,10 +140,8 @@ function addTag() {
   $line.find('input:checked').prop('checked', false)
   $line.find('input:last-of-type').prop('checked', true)
   $ui.tagsWrapper.append( $line )
-  setTimeout( _ => {
-    bindUi()
-    hideModal()
-  }, 0)
+  hideModal()
+  setTimeout( _ => { bindUi() }, 0)
 }
 
 function hideModal() {

@@ -19,6 +19,7 @@ block content
           dt= __(entry.message)
           if entry.value
             dd= entry.value
+      //- filters icons
       if summary.length
         a#tt-clear-filter.bs-table-header__filter(
           href=mergeQueries('/', {
@@ -29,7 +30,6 @@ block content
         )
           i.material-icons clear
         .mdl-tooltip.mdl-tooltip--large(for="tt-clear-filter")= __('filter.reset')
-      //- filters icons
       span#tt-open-filter.bs-table-header__filter.js-toggle-filter
         i.material-icons filter_list
       .mdl-tooltip.mdl-tooltip--large(for="tt-open-filter")= __('filter.title')
