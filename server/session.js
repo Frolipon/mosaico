@@ -14,6 +14,7 @@ const { connection,
 var adminUser = {
   isAdmin:  true,
   id:       config.admin.id,
+  email:    config.emailOptions.from,
   name:     'admin',
 }
 

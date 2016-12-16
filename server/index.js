@@ -282,7 +282,6 @@ module.exports = function () {
   // })
   app.delete('/creations',                  (req, res, next) => res.redirect('/'))
   app.patch('/creations',                   creations.updateLabels)
-  app.post('/creations',                    (req, res, next) => res.redirect('/'))
   app.get('/new-creation',                  guard('user'), wireframes.customerList)
   app.get('/',                              guard('user'), creations.customerList)
 

@@ -80,8 +80,8 @@ var loader = function (viewModel) {
     var datas     = {
       action:   'email',
       rcpt:     email,
-      subject:  '[test] ' + metadata.id,
-      html:     viewModel.exportHTML()
+      subject:  viewModel.metadata.name(),
+      html:     viewModel.exportHTML(),
     }
     $.ajax({
       url:          /dl/,

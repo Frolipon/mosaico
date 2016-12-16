@@ -18,7 +18,9 @@ var config  = rc('badsender', {
     port:         1025,
   },
   emailOptions: {
-    from:         'Badsender local test <info@badsender-local-test.name>',
+    from:           'Badsender local test <info@badsender-local-test.name>',
+    // last space is needed
+    testSubjectPrefix:  '[badsender email builder] ',
   },
   storage: {
     type:         'local',

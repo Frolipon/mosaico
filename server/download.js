@@ -11,10 +11,11 @@ const archiver      = require('archiver')
 const request       = require('request')
 const createError   = require('http-errors')
 
-var mail            = require('./mail')
+const mail          = require('./mail')
+const config        = require('./config')
 
 function postDownload(req, res, next) {
-  let action = req.body.action
+  let action    = req.body.action
   if (action === 'download')  return downloadZip(req, res, next)
   if (action === 'email')     return sendByMail(req, res, next)
   return next(createError(404))
@@ -35,16 +36,18 @@ function secureHtml(html) {
 //----- MAILING
 
 function sendByMail(req, res, next) {
-  let html      = secureHtml(req.body.html)
+  let html        = secureHtml(req.body.html)
+  const { user }  = req
   mail
   .send({
     to:       req.body.rcpt,
-    subject:  req.body.subject,
+    replyTo:  user.email,
+    subject:  config.emailOptions.testSubjectPrefix + req.body.subject,
     html:     html,
   })
-  .then(function (info) {
-    console.log('Message sent: ' + info.response)
-    res.send('OK: ' + info.response)
+  .then( info => {
+    console.log('Message sent: ', info.response)
+    res.send(`OK: ${info.response}` )
   })
   .catch(next)
 }
