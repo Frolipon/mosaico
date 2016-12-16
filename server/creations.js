@@ -61,21 +61,43 @@ function customerList(req, res, next) {
 
   //----- FILTERING
 
+  // CLEANING QUERY
+
+  // remove empty fields
+  let filterQuery = _.omit( query, ['page', 'limit', 'sort', 'dir'] )
+  ;['createdAt', 'updatedAt'].forEach( key => {
+    if (!query[key]) return
+    filterQuery[ key ]  = _.omitBy(filterQuery[ key ], value => value === '' )
+  })
+  filterQuery           = _.omitBy(filterQuery, value => {
+    const isEmptyString = value === ''
+    const isEmptyObject = _.isPlainObject(value) && Object.keys(value) < 1
+    return isEmptyString || isEmptyObject
+  } )
+
+  const filterKeys    = Object.keys( filterQuery )
+
+  // normalize array
+  let arrayKeys = ['_user', '_wireframe', 'tags']
+  arrayKeys     = _.intersection( arrayKeys, filterKeys )
+  for (let key of arrayKeys) {
+    filterQuery[ key ] = _.concat( [], filterQuery[ key ] )
+  }
+
+  // CONSTRUCT MONGODB FILTER
+
   const filter  = { _company }
   // text search can be improved
   // http://stackoverflow.com/questions/23233223/how-can-i-find-all-documents-where-a-field-contains-a-particular-string
-  if (query.name) filter.name = new RegExp(query.name)
-  if (query.tags) filter.tags = Array.isArray(query.tags) ? query.tags : [query.tags]
+  if (filterQuery.name) filter.name = new RegExp(query.name)
   // SELECT
-  for (let keys of ['_user', '_wireframe']) {
-    if (query[keys]) filter[keys] = { $in: query[keys] }
-  }
+  for (let keys of arrayKeys ) { filter[keys] = { $in: query[keys] } }
   // DATES
   // for…of breaks on return, use forEach
-  ;['createdAt', 'updatedAt'].forEach( key => {
-    if (!query[key]) return
-    ;['$lte', '$gte'].forEach( range => {
-      if (!query[key][range]) return
+  const datesFilterKeys = _.intersection( ['createdAt', 'updatedAt'], filterKeys )
+  datesFilterKeys.forEach( key => {
+    const rangeKeys = _.intersection( ['$lte', '$gte'], Object.keys( query[key] ) )
+    rangeKeys.forEach( range => {
       // force UTC time for better comparison purpose
       const date = moment(`${query[key][range]} +0000`, 'YYYY-MM-DD Z')
       if (!date.isValid()) return
@@ -85,6 +107,7 @@ function customerList(req, res, next) {
       filter[key][range] = date.toDate()
     })
   })
+
   //----- CREATE DB QUERIES
 
   // don't use lean, we need virtuals
@@ -144,28 +167,11 @@ function customerList(req, res, next) {
     pagination.next     = isLast  ? false : pagination.page + 2
 
     // SUMMARY STATUS
-    //    - need users & wireframs in order to compute
-    //    - too much logic to be done in views
-    let hasFilter   = false
-    let filterQuery = _.omit(query, ['page', 'limit'])
-    // remove empty fields
-    ;['createdAt', 'updatedAt'].forEach( key => {
-      if (!query[key]) return
-      filterQuery[ key ] = _.omitBy(filterQuery[ key ], value => value === '' )
-    })
-    filterQuery     = _.omitBy(filterQuery, value => {
-      const isEmptyString = value === ''
-      const isEmptyObject = _.isPlainObject(value) && Object.keys(value) < 1
-      return isEmptyString || isEmptyObject
-    } )
-    // normalize array
-    for (let key of ['_user', '_wireframe', 'tags']) {
-      filterQuery[ key ] = Array.isArray( filterQuery[ key ] )
-      ? filterQuery[ key ]
-      : [ filterQuery[ key ] ]
-    }
-    // “translate” ids
-    for (let key of ['_user', '_wireframe']) {
+
+    // “translate” ids: need users & wireframes in order to compute
+    let idToName = ['_user', '_wireframe']
+    idToName     = _.intersection( idToName, filterKeys )
+    for (let key of idToName) {
       const dataList = key === '_user' ? users : wireframes
       filterQuery[ key ] = filterQuery[ key ].map( id => {
         return _.find( dataList, value => `${value._id}` === id ).name
@@ -182,7 +188,7 @@ function customerList(req, res, next) {
       tags:       'filter.summary.tags',
     }
     let summary      = []
-    _.forIn(filterQuery, (value, key) => {
+    _.forIn( filterQuery, (value, key) => {
       let i18nKey = i18nKeys[ key ]
       if ( _.isString(value) ) return summary.push( { message: i18nKey, value} )
       if ( _.isArray(value) ) {
@@ -209,7 +215,7 @@ function customerList(req, res, next) {
       }
     })
 
-    // FINALLY RENDER \0/
+    // FINALLY RENDER \o/
     res.render('customer-home', {
       data: {
         pagination: pagination,
