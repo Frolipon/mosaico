@@ -4,8 +4,9 @@ import entries  from 'lodash.topairs'
 import logger from './_logger'
 import pubsub from './_pubsub'
 import cleanTagName from './../../shared/clean-tag-name'
+import tmpl   from './../../server/views/_tag-item.pug'
 
-const DEBUG     = init
+const DEBUG     = true
 const log       = logger('tags', DEBUG)
 
 const $ui       = {}
@@ -28,10 +29,9 @@ function bindUi() {
 }
 
 function bindEvents() {
-  // $ui.selectionContainer.on('change' , updateTagList)
   $('.js-open-tags-panel').on('click', openTagPanel)
   $('.js-close-tags-panel').on('click', closeTagPanel)
-  $('.js-check-tag').on('click', toggleTag)
+  $ui.tagsWrapper.on('click', '.js-check-tag', toggleTag)
   $('.js-open-tag-dialog').on('click', showModal)
   $('.js-hide-tag-dialog').on('click', hideModal)
   $('.js-add-tag').on('click', addTag)
@@ -118,7 +118,10 @@ function addTag() {
   log('add tag')
   const newTag = cleanTagName( $ui.newTagInput.val() )
   if (!newTag) return hideModal()
-  $ui.tagsWrapper.append( template({ newTag }) )
+  const $line   = $( tmpl({ tag: newTag }) )
+  $line.find('input:checked').prop('checked', false)
+  $line.find('input:last-of-type').prop('checked', true)
+  $ui.tagsWrapper.append( $line )
   setTimeout( _ => {
     bindUi()
     hideModal()
@@ -128,20 +131,6 @@ function addTag() {
 function hideModal() {
   log('close modal')
   $ui.modal[0].close()
-}
-
-// WARN
-// this markup is copied from the back-end
-// see customer-home_selection-actions.pug
-function template(data) {
-  return `
-    <li class="bsTagsPanel__item bs-tags-input js-check-tag">
-      <input type="radio" name="tag-${data.newTag}" value="remove">
-      <input type="radio" name="tag-${data.newTag}" value="unchange">
-      <input type="radio" name="tag-${data.newTag}" value="add" checked>
-      <span class="bs-tags-input__title">${data.newTag}</span>
-    </li>
-  `
 }
 
 init()

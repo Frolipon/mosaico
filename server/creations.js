@@ -215,8 +215,6 @@ function customerList(req, res, next) {
       }
     })
 
-    console.log(summary)
-
     // FINALLY RENDER \o/
     res.render('customer-home', {
       data: {

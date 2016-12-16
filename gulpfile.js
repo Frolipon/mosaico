@@ -159,7 +159,7 @@ gulp.task('lib', ['clean-lib'], function () {
 
 });
 
-//----- APPLICATION
+//----- MOSAICO APPLICATION
 
 var browserify  = require('browserify')
 var source      = require('vinyl-source-stream')
@@ -217,7 +217,7 @@ function bundleShare(b) {
   .pipe(gulp.dest(buildDir))
 }
 
-//----- TEMPLATES: see -> combineKOTemplates.js
+//----- MOSAICO'S KNOCKOUT TEMPLATES: see -> combineKOTemplates.js
 
 const path          = require('path')
 const through       = require('through2')
@@ -261,6 +261,8 @@ gulp.task('templates', _ => {
 
 //----- HOME JS (rename for now)
 
+const pugify = require('pugify')
+
 gulp.task('js-home', function () {
   var b = browserify({
     cache:        {},
@@ -269,12 +271,16 @@ gulp.task('js-home', function () {
     entries:      ['./src/js-backend/badsender-home.js']
   })
   .transform(babelify, {
-    presets: ['es2015'],
+    presets:      ['es2015'],
   })
+  .transform(pugify.pug({
+    pretty:       isDev,
+    compileDebug: isDev,
+  }))
   .transform(envify({
-    _:          'purge',
-    NODE_ENV:   env,
-    LOG:        isDev,
+    _:            'purge',
+    NODE_ENV:     env,
+    LOG:          isDev,
   }))
 
   if (isWatch) {

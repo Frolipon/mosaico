@@ -167,6 +167,7 @@
     "parallelshell": "^2.0.0",
     "phantomjs-prebuilt": "2.1.13",
     "pikaday": "^1.4.0",
+    "pugify": "^2.1.0",
     "run-sequence": "^1.2.2",
     "select2": "^4.0.3",
     "through2": "^2.0.0",

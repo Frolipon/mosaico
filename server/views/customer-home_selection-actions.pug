@@ -20,17 +20,7 @@
       i.material-icons close
     dd.bsTagsPanel__listWrapper: ul.bsTagsPanel__list.js-tags-list
       each tag in tagsList
-        //- WARN
-        //- this markup is copied in the front-end
-        //- see template function in tags.js
-        li.bsTagsPanel__item.bs-tags-input.js-check-tag
-          //- WARN
-          //- `tag-` prefix is used backend in creations.js
-          //- and frontend in tags.js
-          input(type="radio"  name=`tag-${tag}` value="remove" checked)
-          input(type="radio"  name=`tag-${tag}` value="unchange" )
-          input(type="radio"  name=`tag-${tag}` value="add" )
-          span.bs-tags-input__title= tag
+        include _tag-item.pug
 
     dd.bsTagsPanel__actions
       button.js-open-tag-dialog.mdl-button.mdl-js-button.mdl-js-ripple-effect(type="button")= __('tags.new')
