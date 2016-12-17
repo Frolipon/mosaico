@@ -286,7 +286,7 @@ function create(req, res, next) {
 //////
 
 function update(req, res, next) {
-  if (!req.xhr) next(createError(501)) // Not Implemented
+  if (!req.xhr) return next(createError(501)) // Not Implemented
   const { creationId } = req.params
 
   Creations
@@ -376,7 +376,7 @@ function remove(req, res, next) {
 }
 
 function rename(req, res, next) {
-  if (!req.xhr) next(createError(501)) // Not Implemented
+  if (!req.xhr) return next(createError(501)) // Not Implemented
   const { creationId }  = req.params
 
   Creations

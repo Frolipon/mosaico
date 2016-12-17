@@ -70,6 +70,8 @@ function creationUrls(creationId) {
     update:     `/editor/${creationId}`,
     delete:     `/editor/${creationId}/delete`,
     duplicate:  `/editor/${creationId}/duplicate`,
+    send:       `/creations/${creationId}/send`,
+    zip:        `/creations/${creationId}/zip`,
   }
 }
 

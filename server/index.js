@@ -265,7 +265,6 @@ module.exports = function () {
 
   //----- USER
 
-  app.post('/dl/',                          guard('user'), download.post)
   app.all('/editor*',                       guard('user'))
   app.get('/editor/:creationId/delete',     creations.remove)
   app.get('/editor/:creationId/upload',     creations.listImages)
@@ -276,12 +275,13 @@ module.exports = function () {
   app.put('/editor/:creationId',            creations.rename)
   app.get('/editor',                        creations.create)
   app.all('/creation*',                     guard('user'))
-  // app.all('/creations*',                     (req, res, next) => {
-  //   console.log(req.body)
-  //   next()
-  // })
-  app.delete('/creations',                  (req, res, next) => res.redirect('/'))
+  // This should replace /editor/:creationId/delete
+  // app.delete('/creations',                  (req, res, next) => res.redirect('/'))
+  // This should replace GET /editor
+  // app.post('/creations',                  (req, res, next) => res.redirect('/'))
   app.patch('/creations',                   creations.updateLabels)
+  app.post('/creations/:creationId/send',   download.send)
+  app.post('/creations/:creationId/zip',    download.zip)
   app.get('/new-creation',                  guard('user'), wireframes.customerList)
   app.get('/',                              guard('user'), creations.customerList)
 
