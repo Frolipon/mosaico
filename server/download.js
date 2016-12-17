@@ -109,10 +109,10 @@ function zip(req, res, next) {
       res.end()
     })
 
-    //set the archive name
+    // set the archive name
     res.attachment(`${name}.zip`)
 
-    //this is the streaming magic
+    // this is the streaming magic
     archive.pipe(res)
 
     // Add html with relatives url
@@ -123,8 +123,11 @@ function zip(req, res, next) {
 
     // Pipe all images
     imgUrls.forEach( (imageUrl, index) => {
-      let imageName = getImageName(imageUrl)
-      archive.append(request(imageUrl), {
+      let imageName   = getImageName(imageUrl)
+      // Broke with a self-signed certificate
+      // https://github.com/request/request#using-optionsagentoptions
+      let imgRequest  = request(imageUrl).on('error', err => { throw err } )
+      archive.append( imgRequest, {
         name:   imageName,
         prefix: `${name}/${imagesFolder}/`
       })
