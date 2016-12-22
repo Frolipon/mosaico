@@ -189,7 +189,7 @@ module.exports = function () {
 
   // take care of language query params
   // http://stackoverflow.com/questions/19539332/localization-nodejs-i18n
-  app.use(function(req, res, next) {
+  app.use( (req, res, next) => {
     if (req.query.lang) {
       res.setLocale(req.query.lang)
       res.cookie('badsender', req.query.lang, { maxAge: 900000, httpOnly: true })

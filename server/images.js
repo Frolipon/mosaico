@@ -51,6 +51,15 @@ function needResize(value, width, height) {
   return true
 }
 
+function handleFileStreamError(next) {
+  return function (err) {
+    const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
+    if (isNotFound) return next( createError(404) )
+    next(err)
+    console.log('resize error')
+  }
+}
+
 //////
 // IMAGE HANDLING
 //////
@@ -58,11 +67,16 @@ function needResize(value, width, height) {
 function resize(req, res, next) {
   const { imageName }     = req.params
   const [ width, height ] = getSizes( req.params.sizes )
-  let img                 = gm( streamImage(imageName) )
+  const imgStream         = streamImage(imageName)
+  let img
 
-  img
-  .autoOrient()
-  .format({ bufferStream: true }, onFormat)
+  imgStream.on('readable', _ => {
+    img = gm( streamImage(imageName) )
+    img
+    .autoOrient()
+    .format({ bufferStream: true }, onFormat)
+  })
+  imgStream.on('error', handleFileStreamError(next) )
 
   function onFormat(err, format) {
     if (err) return next(err)
@@ -92,11 +106,16 @@ function resize(req, res, next) {
 function cover(req, res, next) {
   const { imageName }     = req.params
   const [ width, height ] = getSizes( req.params.sizes )
-  const img               = gm( streamImage(imageName) )
+  const imgStream         = streamImage(imageName)
+  let img
 
-  img
-  .autoOrient()
-  .format({ bufferStream: true }, onFormat)
+  imgStream.on('readable', _ => {
+    img = gm( streamImage(imageName) )
+    img
+    .autoOrient()
+    .format({ bufferStream: true }, onFormat)
+  })
+  imgStream.on('error', handleFileStreamError(next) )
 
   function onFormat(err, format) {
     if (err) return next(err)

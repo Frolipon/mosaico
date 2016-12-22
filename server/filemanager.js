@@ -8,6 +8,7 @@ var AWS           = require('aws-sdk')
 var chalk         = require('chalk')
 var formidable    = require('formidable')
 var denodeify     = require('denodeify')
+const createError = require('http-errors')
 var readFile      = denodeify(fs.readFile)
 var readDir       = denodeify(fs.readdir)
 
@@ -17,12 +18,6 @@ var streamImage
 var writeStream
 var listImages
 var copyImages
-
-function printStreamError(err) {
-  // local not found
-  if (err.code === 'ENOENT') return
-  console.log(err)
-}
 
 //////
 // AWS
@@ -50,7 +45,6 @@ if (config.isAws) {
       Key:    imageName,
     })
     .createReadStream()
-    .on('error', printStreamError)
   }
   // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#upload-property
   writeStream = function writeStream(file) {
@@ -65,7 +59,7 @@ if (config.isAws) {
     })
   }
   // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#listObjectsV2-property
-  listImages = function(prefix) {
+  listImages = function (prefix) {
     return new Promise(function (resolve, reject) {
       s3.listObjectsV2({
         Bucket: config.storage.aws.bucketName,
@@ -80,7 +74,7 @@ if (config.isAws) {
 
   // copy always resolve
   // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#copyObject-property
-  copyImages = function(oldPrefix, newPrefix) {
+  copyImages = function (oldPrefix, newPrefix) {
     return new Promise(function (resolve) {
 
       listImages(oldPrefix)
@@ -119,7 +113,7 @@ if (config.isAws) {
   // https://docs.nodejitsu.com/articles/advanced/streams/how-to-use-fs-create-read-stream/
   streamImage = function streamImage(imageName) {
     var imagePath = path.join(config.images.uploadDir, imageName)
-    return fs.createReadStream(imagePath).on('error', printStreamError)
+    return fs.createReadStream(imagePath)
   }
   writeStream = function writeStream(file) {
     var filePath  = path.join(config.images.uploadDir, file.name)
@@ -127,7 +121,7 @@ if (config.isAws) {
     var dest      = fs.createWriteStream(filePath)
     return source.pipe(dest)
   }
-  listImages = function(prefix) {
+  listImages = function (prefix) {
     return new Promise(function(resolve, reject) {
       readDir(config.images.uploadDir)
       .then(onFiles)
@@ -143,7 +137,7 @@ if (config.isAws) {
   }
 
   // copy always resolve
-  copyImages = function(oldPrefix, newPrefix) {
+  copyImages = function (oldPrefix, newPrefix) {
     return new Promise(function (resolve) {
 
       listImages(oldPrefix)
@@ -312,7 +306,8 @@ function read(req, res, next) {
   imageStream.on('error', function (err) {
     console.log(chalk.red('read stream error'))
     // Local => ENOENT || S3 => NoSuchKey
-    if (err.code === 'ENOENT' || err.code === 'NoSuchKey') err.status = 404
+    const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
+    if (isNotFound) return next( createError(404) )
     next(err)
   })
   imageStream.on('readable', function () {
