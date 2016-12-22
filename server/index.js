@@ -273,13 +273,13 @@ module.exports = function () {
   app.put('/editor/:creationId',            creations.rename)
   app.get('/editor',                        creations.create)
 
-  app.all('/creation*',                     guard('user'))
+  app.all('/creation*',                       guard('user'))
   // This should replace GET /editor
   // app.post('/creations',                  (req, res, next) => res.redirect('/'))
-  app.delete('/creations/:creationId',        creations.remove)
   app.get('/creations/:creationId/duplicate', creations.duplicate)
   app.post('/creations/:creationId/send',     download.send)
   app.post('/creations/:creationId/zip',      download.zip)
+  app.delete('/creations',                    creations.bulkRemove)
   app.patch('/creations',                     creations.updateLabels)
 
   app.get('/new-creation',                    guard('user'), wireframes.customerList)

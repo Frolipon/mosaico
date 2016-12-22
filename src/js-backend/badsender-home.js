@@ -9,6 +9,7 @@ import select2        from 'select2'
 import pubsub from './_pubsub'
 import './creation-selection'
 import './tags'
+import './delete-creations'
 
 const dialogRename    = $('.js-dialog-rename')[0]
 const dialogDelete    = $('.js-dialog-delete')[0]
@@ -145,8 +146,10 @@ $paginationSelect.on('change', e => {
 })
 
 //////
-// SELECT2
+// COMPONENTS
 //////
+
+//----- SELECT2
 
 // https://select2.github.io/options.html
 
@@ -165,9 +168,7 @@ $('select[multiple').each( (index, el) => {
   }
 })
 
-//////
-// DATEPICKER
-//////
+//----- DATEPICKER
 
 // https://www.npmjs.com/package/pikaday
 

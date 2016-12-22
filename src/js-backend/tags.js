@@ -6,7 +6,7 @@ import pubsub from './_pubsub'
 import cleanTagName from './../../shared/clean-tag-name'
 import tmpl   from './../../server/views/_tag-item.pug'
 
-const DEBUG           = true
+const DEBUG           = false
 const log             = logger('tags', DEBUG)
 const $ui             = {}
 let isOpen            = false

@@ -71,6 +71,17 @@ function isFromCompany(user, companyId) {
   return user._company.toString() === companyId.toString()
 }
 
+function addCompanyFilter(user, filter) {
+  // admin content doesn't have a company
+  const _company  = user.isAdmin ? { $exists: false } : user._company
+  filter._company = _company
+  // // admin can access everything
+  // if (user.isAdmin) return filter
+  // // user share only same company content
+  // filter._company = user._company
+  return filter
+}
+
 //////
 // EXPORTS
 //////
@@ -85,6 +96,7 @@ module.exports    = {
   connectDB,
   formatErrors,
   isFromCompany,
+  addCompanyFilter,
   // Compiled schema
   Users,
   Wireframes,

@@ -10,8 +10,13 @@ const { Types }   = require('mongoose')
 
 const config        = require('./config')
 const filemanager   = require('./filemanager')
-const { Wireframes, Creations, Users,
-  isFromCompany, }  = require('./models')
+const {
+  Wireframes,
+  Creations,
+  Users,
+  isFromCompany,
+  addCompanyFilter,
+}                   = require('./models')
 const cleanTagName  = require('../shared/clean-tag-name')
 
 const translations  = {
@@ -315,7 +320,7 @@ function update(req, res, next) {
 }
 
 //////
-// HOME ACTIONS
+// BULK ACTIONS
 //////
 
 function updateLabels(req, res, next) {
@@ -340,7 +345,11 @@ function updateLabels(req, res, next) {
   } )
 
   Creations
-  .find({ _id: { $in: creations.map(Types.ObjectId) } })
+  .find({
+    _id: {
+      $in: creations.map(Types.ObjectId),
+    },
+  })
   .then(onCreations)
   .catch(next)
 
@@ -366,6 +375,31 @@ function updateLabels(req, res, next) {
     res.redirect( redirectUrl )
   }
 }
+
+function bulkRemove(req, res, next) {
+  if (!req.xhr) return next( createError(501) ) // Not Implemented
+  const { creations } = req.body
+  if (!creations.length) return next( createError(400) ) // Bad request
+  const filter = addCompanyFilter(req.user, {
+    _id: {
+      $in: creations.map(Types.ObjectId),
+    },
+  })
+  console.log(filter)
+  Creations
+  .find( filter )
+  .then(onCreations)
+  .catch(next)
+
+  function onCreations(creations) {
+    console.log(creations)
+    res.send('ok')
+  }
+}
+
+//////
+// OTHERS ACTIONS
+//////
 
 function remove(req, res, next) {
   const creationId  = req.params.creationId
@@ -450,6 +484,7 @@ module.exports = {
   update:       update,
   updateLabels: updateLabels,
   remove:       remove,
+  bulkRemove,
   rename:       rename,
   create:       create,
   upload:       upload,
