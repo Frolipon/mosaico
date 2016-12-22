@@ -266,24 +266,24 @@ module.exports = function () {
   //----- USER
 
   app.all('/editor*',                       guard('user'))
-  app.get('/editor/:creationId/delete',     creations.remove)
   app.get('/editor/:creationId/upload',     creations.listImages)
   app.post('/editor/:creationId/upload',    creations.upload)
-  app.get('/editor/:creationId/duplicate',  creations.duplicate)
   app.get('/editor/:creationId',            creations.show)
   app.post('/editor/:creationId',           creations.update)
   app.put('/editor/:creationId',            creations.rename)
   app.get('/editor',                        creations.create)
+
   app.all('/creation*',                     guard('user'))
-  // This should replace /editor/:creationId/delete
-  // app.delete('/creations',                  (req, res, next) => res.redirect('/'))
   // This should replace GET /editor
   // app.post('/creations',                  (req, res, next) => res.redirect('/'))
-  app.patch('/creations',                   creations.updateLabels)
-  app.post('/creations/:creationId/send',   download.send)
-  app.post('/creations/:creationId/zip',    download.zip)
-  app.get('/new-creation',                  guard('user'), wireframes.customerList)
-  app.get('/',                              guard('user'), creations.customerList)
+  app.delete('/creations/:creationId',        creations.remove)
+  app.get('/creations/:creationId/duplicate', creations.duplicate)
+  app.post('/creations/:creationId/send',     download.send)
+  app.post('/creations/:creationId/zip',      download.zip)
+  app.patch('/creations',                     creations.updateLabels)
+
+  app.get('/new-creation',                    guard('user'), wireframes.customerList)
+  app.get('/',                                guard('user'), creations.customerList)
 
   //////
   // ERROR HANDLING

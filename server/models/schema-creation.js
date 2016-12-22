@@ -68,8 +68,8 @@ CreationSchema.virtual('changed').get(function () {
 function creationUrls(creationId) {
   return {
     update:     `/editor/${creationId}`,
-    delete:     `/editor/${creationId}/delete`,
-    duplicate:  `/editor/${creationId}/duplicate`,
+    duplicate:  `/creations/${creationId}/duplicate`,
+    delete:     `/creations/${creationId}?_method=DELETE`,
     send:       `/creations/${creationId}/send`,
     zip:        `/creations/${creationId}/zip`,
   }
