@@ -210,7 +210,7 @@ function customerList(req, res, next) {
       if (value.$lte) {
         summary.push( {
           message: 'filter.summary.before',
-          value:    value.$gte
+          value:    value.$lte
         } )
       }
     })
