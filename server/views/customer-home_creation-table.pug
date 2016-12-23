@@ -21,7 +21,7 @@ table.mdl-data-table
       +reorder('/', 'updatedAt', 'home.saved.last-change')
     th.mdl-data-table__cell--action= __('home.saved.rename')
     th.mdl-data-table__cell--action= __('home.saved.duplicate')
-    th.mdl-data-table__cell--action= __('home.saved.delete')
+    //- th.mdl-data-table__cell--action= __('home.saved.delete')
 
   tbody.js-tbody-selection
     if !creations.length
@@ -33,8 +33,9 @@ table.mdl-data-table
       each creation, index in creations
         tr
           td.bsCheckbox
+            //- creations[] ensure that req.body.creation will always be an array
             input(
-              name="creations"
+              name="creations[]"
               type="checkbox"
               id=`line-${creation._id}`
               data-tags=creation.tags.join(',')
@@ -57,6 +58,6 @@ table.mdl-data-table
           td.mdl-data-table__cell--action
             a.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(href=creation.url.duplicate title="duplicate")
               i.material-icons content_copy
-          td.mdl-data-table__cell--action
-            a.js-delete.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(href=creation.url.delete title="delete")
-              i.material-icons delete
+          //- td.mdl-data-table__cell--action
+          //-   a.js-delete.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(href=creation.url.delete title="delete")
+          //-     i.material-icons delete

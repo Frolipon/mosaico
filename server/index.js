@@ -281,6 +281,7 @@ module.exports = function () {
   app.post('/creations/:creationId/zip',      download.zip)
   app.delete('/creations',                    creations.bulkRemove)
   app.patch('/creations',                     creations.updateLabels)
+  app.get('/creations',                       (req, res, next) => res.redirect('/') )
 
   app.get('/new-creation',                    guard('user'), wireframes.customerList)
   app.get('/',                                guard('user'), creations.customerList)

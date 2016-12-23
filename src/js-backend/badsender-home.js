@@ -91,52 +91,6 @@ const $filter = $('.js-filter')
 $('.js-toggle-filter').on('click', e => $filter.toggleClass('is-visible'))
 
 //////
-// DELETE CREATION
-//////
-
-let deleteRoute = false
-let $deleteRow  = false
-
-$('.js-delete').on('click', e => {
-  e.preventDefault()
-  const $target = $(e.currentTarget)
-  deleteRoute = $target.attr('href')
-  $deleteRow  = $target.parents('tr')
-  dialogDelete.showModal()
-})
-
-$('.js-close-delete-dialog').on('click', closeDeleteDialog)
-$('.js-delete-confirm').on('click', removeCreation)
-
-function removeCreation(e) {
-  console.log('removeCreation', deleteRoute, $deleteRow)
-  if (!deleteRoute || !$deleteRow ) return
-  console.log('delete', deleteRoute, $deleteRow)
-  $.ajax({
-    method: 'GET',
-    url:    deleteRoute,
-  })
-  .then( _ => {
-    $deleteRow.remove()
-    notif.MaterialSnackbar.showSnackbar({
-      message: window.badesenderI18n.snackbarDeleteMessage,
-    })
-    closeDeleteDialog()
-  })
-  .catch( _ => {
-    notif.MaterialSnackbar.showSnackbar({
-      message: window.badesenderI18n.snackbarError,
-    })
-  })
-}
-
-function closeDeleteDialog() {
-  deleteRoute = false
-  $deleteRow  = false
-  dialogDelete.close()
-}
-
-//////
 // PAGINATION
 //////
 

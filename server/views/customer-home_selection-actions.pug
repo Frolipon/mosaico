@@ -9,10 +9,12 @@
       i.material-icons label
     span(for="set-label").mdl-tooltip.mdl-tooltip--large= __('tags.set')
 
-    //- button#delete-creation.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(type="submit" formaction="/creations?_method=DELETE")
-    button#delete-creation.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent.js-delete-creations(type="button")
+    button#delete-creation.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent.js-delete-creations(
+      type="submit"
+      formaction=mergeQueries('/creations', _query, { _method: 'DELETE', })
+    )
       i.material-icons delete
-    span(for="delete-creation").mdl-tooltip.mdl-tooltip--large delete mailings
+    span(for="delete-creation").mdl-tooltip.mdl-tooltip--large= __('home.saved.delete')
 
   dl.bsTagsPanel.js-tags
     dt.bsTagsPanel__title

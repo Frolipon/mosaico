@@ -323,15 +323,18 @@ function update(req, res, next) {
 // BULK ACTIONS
 //////
 
-function updateLabels(req, res, next) {
-  const { body }    = req
-  const tagRegex    = /^tag-/
+function getRedirectUrl(req) {
   const query       = qs.stringify( _.omit(req.query, ['_method']) )
   const redirectUrl = query ? `/?${query}` : '/'
+  return redirectUrl
+}
 
-  let creations     = body.creations || []
-  creations         = Array.isArray( creations ) ? creations : [ creations ]
-  if (!creations.length ) return res.redirect( redirectUrl )
+function updateLabels(req, res, next) {
+  const { body }    = req
+  let { creations } = body
+  const tagRegex    = /^tag-/
+  const redirectUrl = getRedirectUrl(req)
+  if (!_.isArray( creations ) || !creations.length ) return res.redirect( redirectUrl )
 
   // Entries will be supported natively without flag in node 7+
   // use lodash for not bumping node version
@@ -345,11 +348,11 @@ function updateLabels(req, res, next) {
   } )
 
   Creations
-  .find({
+  .find( addCompanyFilter(req.user, {
     _id: {
       $in: creations.map(Types.ObjectId),
     },
-  })
+  }) )
   .then(onCreations)
   .catch(next)
 
@@ -364,7 +367,7 @@ function updateLabels(req, res, next) {
     tags.forEach( tagAction => {
       const [tag, action] = tagAction
       if (action === 'unchange') return
-      if (action === 'add')    doc.tags = _.union( doc.tags, [tag] )
+      if (action === 'add')    doc.tags = _.union( doc.tags, [ tag ] )
       if (action === 'remove') doc.tags = _.without( doc.tags, tag )
     })
     doc.tags = doc.tags.sort().map( cleanTagName )
@@ -377,23 +380,25 @@ function updateLabels(req, res, next) {
 }
 
 function bulkRemove(req, res, next) {
-  if (!req.xhr) return next( createError(501) ) // Not Implemented
   const { creations } = req.body
-  if (!creations.length) return next( createError(400) ) // Bad request
-  const filter = addCompanyFilter(req.user, {
+  if (!_.isArray( creations ) || !creations.length ) return res.redirect( redirectUrl )
+  const redirectUrl   = getRedirectUrl(req)
+  const filter        = addCompanyFilter(req.user, {
     _id: {
       $in: creations.map(Types.ObjectId),
     },
   })
-  console.log(filter)
   Creations
   .find( filter )
-  .then(onCreations)
-  .catch(next)
+  .then( onCreations )
+  .catch( next )
 
   function onCreations(creations) {
     console.log(creations)
-    res.send('ok')
+    Promise
+    .all( creations.map( creation => creation.remove()) )
+    .then( _ => res.redirect(redirectUrl) )
+    .catch( next )
   }
 }
 
@@ -482,8 +487,8 @@ module.exports = {
   customerList: customerList,
   show:         show,
   update:       update,
-  updateLabels: updateLabels,
   remove:       remove,
+  updateLabels,
   bulkRemove,
   rename:       rename,
   create:       create,

@@ -78,8 +78,8 @@ $header-height = 64px;
 }
 
 .bs-line-selection {
-  table-meta-block()
-  table-meta-block-header()
+  table-meta-block();
+  table-meta-block-header();
 }
 
 .bs-table-filter-row__action {
@@ -96,6 +96,10 @@ $header-height = 64px;
   align-items: baseline;
   padding-top: 1.2em;
   position: relative;
+
+  > div button ~ button {
+    margin-left: .5em;
+  }
 }
 
 .bs-table-header {
