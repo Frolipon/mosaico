@@ -66,6 +66,7 @@ First you have to build it using grunt, then you can read (https://github.com/vo
 
 ### Are you having issues with Mosaico?
 
+<<<<<<< HEAD
 Please make sure:
 
 - you understand you have to build it and to run a backend server (either the node.js version bundled with this project or the php backend referenced above or write your own)
@@ -95,6 +96,9 @@ if your problem is not with the building then when you open a GitHub issue:
 - tell which email client show the issue (version, name, operative system)
 - tell us which backend you are using (the bundled one ran with grunt, the php backend referenced above, or your custom backend).
 - if you are sending the email using a different way then most of the times the template gets broken by your way to send it: so try the same thing on mosaico.io and confirm you see the same rendering issues.
+=======
+See the [CONTRIBUTING file](https://github.com/voidlabs/mosaico/blob/master/CONTRIBUTING.md)
+>>>>>>> voidlabs/master
 
 ### Contact Us
 
