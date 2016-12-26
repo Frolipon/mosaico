@@ -11,9 +11,6 @@
     "Yannick Aivayan <yannick@goodenough.agency> (https://github.com/hiswe)"
   ],
   "main": "./server/workers.js",
-  "engines": {
-    "node": "6.9.1"
-  },
   "directories": {
     "test": "test"
   },
@@ -33,26 +30,6 @@
     "knockout": "global:ko",
     "knockout-jqueryui": "global:kojqui",
     "tinymce": "global:tinymce"
-  },
-  "scripts": {
-    "bower": "bower-npm-install --non-interactive",
-    "deps": "export NODE_ENV=development && npm install && bower-npm-install --non-interactive",
-    "test": "grunt jasmine_node",
-    "test-back": "tape 'tests/**/*.js' | tap-spec",
-    "build": "npm run deps && gulp build --prod",
-    "build-dev": "npm run deps && gulp build",
-    "start": "export NODE_ENV=production && node server/workers.js",
-    "prod": "npm run build && npm start",
-    "dev": "gulp dev --watch",
-    "release": "./bin/dist.sh",
-    "deploy": "npm run release",
-    "build-release-dev": "npm run build-dev && gulp bump",
-    "build-release": "npm run build && gulp bump",
-    "sync-db": "node ./bin/db-sync.js",
-    "backup-db": "node ./bin/db-backup.js",
-    "local-db": "node ./bin/db-manage-local.js",
-    "consolidate-creations": "node ./bin/db-consolidate-creations.js",
-    "toc": "gulp toc"
   },
   "dependencies": {
     "archiver": "^1.1.0",
@@ -184,5 +161,29 @@
     "yargs": "^6.0.0"
   },
   "author": "Stefano Bagnara",
-  "license": "GPL-3.0"
+  "license": "GPL-3.0",
+   "scripts": {
+    "postinstall": "./node_modules/bower-npm-install/bin/bower-npm-install --non-interactive",
+    "deps": "export NODE_ENV=development && npm install && bower-npm-install --non-interactive",
+    "test": "grunt jasmine_node",
+    "bower": "bower-npm-install --non-interactive",
+    "test-back": "tape 'tests/**/*.js' | tap-spec",
+    "build": "npm run deps && gulp build --prod",
+    "build-dev": "npm run deps && gulp build",
+    "start": "export NODE_ENV=production && node server/workers.js",
+    "prod": "npm run build && npm start",
+    "dev": "gulp dev --watch",
+    "release": "./bin/dist.sh",
+    "deploy": "npm run release",
+    "build-release-dev": "npm run build-dev && gulp bump",
+    "build-release": "npm run build && gulp bump",
+    "sync-db": "node ./bin/db-sync.js",
+    "backup-db": "node ./bin/db-backup.js",
+    "local-db": "node ./bin/db-manage-local.js",
+    "consolidate-creations": "node ./bin/db-consolidate-creations.js",
+    "toc": "gulp toc"
+  },
+  "engines": {
+    "node": "6.9.1"
+  }
 }
