@@ -1,37 +1,37 @@
 const test      = require('tape')
 const Nightmare = require('nightmare')
-const nightmare = Nightmare({ show: false })
+// const nightmare = Nightmare({ show: false })
 
-test('timing test', t => {
-    t.plan(2)
+function connectUser() {
+  return Nightmare({ show: false })
+  .goto('http://localhost:3000')
+  .insert('#email-field', 'p@p.com')
+  .insert('#password-field', 'p')
+  .click('form[action*="/login"] [type=submit]')
+  .wait('.customer-home')
+}
 
-    t.equal(typeof Date.now, 'function')
-    var start = Date.now()
-
-    setTimeout(function () {
-        t.equal(Date.now() - start, 100)
-    }, 100)
-})
-
-test('yahoo test', t => {
+test('connection success', t => {
   t.plan(1)
 
-  nightmare
-  .goto('http://yahoo.com')
-  .type('form[action*="/search"] [name=p]', 'github nightmare')
-  .click('form[action*="/search"] [type=submit]')
-  .wait('#main')
-  .evaluate(function () {
-    return document.querySelector('#main .searchCenterMiddle li a').href
-  })
+  connectUser()
   .end()
-  .then(function (result) {
-    console.log(result)
-    t.pass()
-  })
-  .catch(function (error) {
-    console.error('Search failed:', error);
-    t.fail(error)
-  });
+  .then( result => t.pass('user is connected') )
+  .catch( t.fail )
+})
+
+test('connection fail', t => {
+  t.plan(1)
+
+  Nightmare({ show: false })
+  .goto('http://localhost:3000')
+  .insert('#email-field', 'p@p.com')
+  .insert('#password-field', 'pp')
+  .click('form[action*="/login"] [type=submit]')
+  .exists('.is-invalid.is-dirty')
+  .wait('dl.message.error')
+  .end()
+  .then( result => t.pass('user has an error') )
+  .catch( t.fail )
 
 })
