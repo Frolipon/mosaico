@@ -183,6 +183,7 @@
     "db-test-teardown": "node ./bin/db-switch-to-data-test.js --restore",
     "test-back": "npm run db-test && tape 'tests/**/*.js' | tap-spec && npm run db-test-teardown",
     "consolidate-creations": "node ./bin/db-consolidate-creations.js",
+    "t": "tape 'tests/**/*.js'",
     "toc": "gulp toc"
   },
   "engines": {
