@@ -167,7 +167,6 @@
     "deps": "export NODE_ENV=development && npm install && bower-npm-install --non-interactive",
     "test": "grunt jasmine_node",
     "bower": "bower-npm-install --non-interactive",
-    "test-back": "tape 'tests/**/*.js' | tap-spec",
     "build": "npm run deps && gulp build --prod",
     "build-dev": "npm run deps && gulp build",
     "start": "export NODE_ENV=production && node server/workers.js",
@@ -180,6 +179,9 @@
     "sync-db": "node ./bin/db-sync.js",
     "backup-db": "node ./bin/db-backup.js",
     "local-db": "node ./bin/db-manage-local.js",
+    "db-test": "node ./bin/db-switch-to-data-test.js --set",
+    "db-test-teardown": "node ./bin/db-switch-to-data-test.js --restore",
+    "test-back": "npm run db-test && tape 'tests/**/*.js' | tap-spec && npm run db-test-teardown",
     "consolidate-creations": "node ./bin/db-consolidate-creations.js",
     "toc": "gulp toc"
   },

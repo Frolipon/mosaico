@@ -7,7 +7,7 @@ var reload          = browserSync.reload;
 var lazypipe        = require('lazypipe');
 var del             = require('del');
 var merge           = require('merge-stream');
-var args            = require('yargs').argv;
+const args          = require('yargs').argv
 var mainBowerFiles  = require('main-bower-files');
 var _               = require('lodash');
 
