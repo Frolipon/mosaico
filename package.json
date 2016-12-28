@@ -163,7 +163,6 @@
   "author": "Stefano Bagnara",
   "license": "GPL-3.0",
   "scripts": {
-    "postinstall": "./node_modules/bower-npm-install/bin/bower-npm-install --non-interactive",
     "deps": "export NODE_ENV=development && npm install && bower-npm-install --non-interactive",
     "test": "grunt jasmine_node",
     "bower": "bower-npm-install --non-interactive",
