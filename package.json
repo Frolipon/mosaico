@@ -92,6 +92,7 @@
     "del": "^2.2.2",
     "dialog-polyfill": "^0.4.4",
     "envify": "^3.4.1",
+    "faucet": "0.0.1",
     "grunt": "1.0.1",
     "grunt-bowercopy": "1.2.4",
     "grunt-browserify": "5.0.0",
@@ -150,7 +151,6 @@
     "pugify": "^2.1.0",
     "run-sequence": "^1.2.2",
     "select2": "^4.0.3",
-    "tap-spec": "^4.1.1",
     "tape": "^4.6.3",
     "through2": "^2.0.0",
     "uglifyify": "^3.0.3",
@@ -162,7 +162,7 @@
   },
   "author": "Stefano Bagnara",
   "license": "GPL-3.0",
-   "scripts": {
+  "scripts": {
     "postinstall": "./node_modules/bower-npm-install/bin/bower-npm-install --non-interactive",
     "deps": "export NODE_ENV=development && npm install && bower-npm-install --non-interactive",
     "test": "grunt jasmine_node",
@@ -181,9 +181,9 @@
     "local-db": "node ./bin/db-manage-local.js",
     "db-test": "node ./bin/db-switch-to-data-test.js --set",
     "db-test-teardown": "node ./bin/db-switch-to-data-test.js --restore",
-    "test-back": "npm run db-test && tape 'tests/**/*.js' | tap-spec && npm run db-test-teardown",
+    "tape": "tape './tests/functional/*.js' | faucet",
+    "test-back": "npm run db-test && npm run tape && npm run db-test-teardown",
     "consolidate-creations": "node ./bin/db-consolidate-creations.js",
-    "t": "tape 'tests/**/*.js'",
     "toc": "gulp toc"
   },
   "engines": {
