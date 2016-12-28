@@ -3,7 +3,7 @@ import $ from 'jquery'
 import logger from './_logger'
 import pubsub from './_pubsub'
 
-const DEBUG     = true
+const DEBUG     = false
 const log       = logger('delete creation', DEBUG)
 const $ui       = {}
 
