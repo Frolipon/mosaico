@@ -44,8 +44,8 @@
 		},
 		"welcome": "bienvenue",
 		"delete": {
-			"dialog-title": "Supprimer un mailing",
-			"dialog-content": "La suppression d'une création est définitive",
+			"dialog-title": "Suppression de mailings",
+			"dialog-content": "Cela supprimera définitivement :",
 			"dialog-confirm": "Supprimer",
 			"dialog-cancel": "Annuler"
 		},

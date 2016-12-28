@@ -43,10 +43,10 @@
 		},
 		"welcome": "Welcome",
 		"delete": {
-			"dialog-title": "Delete a creation",
+			"dialog-title": "Delete mailings",
 			"dialog-confirm": "Confirm deletion",
 			"dialog-cancel": "cancel",
-			"dialog-content": "This will remove"
+			"dialog-content": "This will definitely remove:"
 		},
 		"rename": {
 			"dialog-title": "Rename a mailing",
