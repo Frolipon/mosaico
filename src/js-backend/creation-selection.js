@@ -11,7 +11,7 @@ const messages  = window.badesenderI18n.table.selection
 function init() {
   log('init')
   $ui.container = $('.js-line-selection')
-  if (!$ui.container.length)  return log.warn('abort init')
+  if (!$ui.container.length) return log.warn('abort init')
   bindUi()
   bindEvents()
 }

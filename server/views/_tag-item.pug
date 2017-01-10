@@ -2,7 +2,7 @@ li.bsTagsPanel__item.bs-tags-input.js-check-tag
   //- WARN
   //- `tag-` prefix is used backend in creations.js
   //- and frontend in tags.js
-  input(type="radio"  name=`tag-${tag}` value="remove" checked)
-  input(type="radio"  name=`tag-${tag}` value="unchange" )
-  input(type="radio"  name=`tag-${tag}` value="add" )
+  input(type="radio"  name="tag-" + tag value="remove" checked)
+  input(type="radio"  name="tag-" + tag value="unchange" )
+  input(type="radio"  name="tag-" + tag value="add" )
   span.bs-tags-input__title= tag
