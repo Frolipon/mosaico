@@ -50,7 +50,7 @@ table.mdl-data-table
           td.mdl-data-table__cell--non-numeric: span= creation.wireframe
           if (!isAdmin)
             td.mdl-data-table__cell--non-numeric: span= creation.author
-          td.mdl-data-table__cell--non-numeric: span= creation.tags.join(', ')
+          td.mdl-data-table__cell--long-text: span= creation.tags.join(', ')
           td.mdl-data-table__cell--non-numeric: span= formatDate(creation.createdAt)
           td.mdl-data-table__cell--non-numeric: span= formatDate(creation.updatedAt)
           td.mdl-data-table__cell--action
