@@ -92,6 +92,8 @@ block content
                       td.mdl-data-table__cell--non-numeric
                         a(href=creation.url.update)= creation._id
                     td.mdl-data-table__cell--non-numeric
+                      //- keep alternative __('home.saved.noname')
+                      //- Should consolidate DB to always have a name before removing this
                       a(href=creation.url.update).js-name= creation.name || __('home.saved.noname')
                     td.mdl-data-table__cell--non-numeric: span= creation._wireframe.name
                     td.mdl-data-table__cell--non-numeric: span= formatDate(creation.createdAt)

@@ -270,10 +270,13 @@ function create(req, res, next) {
     if (!wireframe) return next(createError(404))
     if (!isFromCompany(req.user, wireframe._company)) return next(createError(401))
     const initParameters = {
+      // Always give a default name: needed for ordering & filtering
+      // use res.__ because (not req) it's where i18n is always up to date (index.js#192)
+      name:       res.__('home.saved.noname'),
       _wireframe: wireframe._id,
       wireframe:  wireframe.name,
     }
-    // admin doesn't have valid user id and company
+    // admin doesn't have valid user id & company
     if (!req.user.isAdmin) {
       initParameters._user    = req.user.id
       initParameters.author   = req.user.name
@@ -415,8 +418,11 @@ function remove(req, res, next) {
 }
 
 function rename(req, res, next) {
-  if (!req.xhr) return next(createError(501)) // Not Implemented
+  if (!req.xhr) return next( createError(501) ) // Not Implemented
   const { creationId }  = req.params
+
+  // TODO: use a proper _company query (see line #45)
+  // const _company        = isAdmin ? { $exists: false } : req.user._company
 
   Creations
   .findById(creationId)
@@ -424,10 +430,11 @@ function rename(req, res, next) {
   .catch(next)
 
   function handleCreation(creation) {
-    if (!creation) return next(createError(404))
+    if (!creation) return next( createError(404) )
     if (!isFromCompany(req.user, creation._company)) return next(createError(401))
 
-    creation.name = req.body.name || creation.name
+    // use res.__ because (not req) it's where i18n is always up to date (index.js#192)
+    creation.name = req.body.name || res.__('home.saved.noname')
 
     creation
     .save()
