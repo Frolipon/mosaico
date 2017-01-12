@@ -23,6 +23,31 @@ block content
         li.mdl-list__item: a.mdl-list__item-primary-content(href=user.url.company)
           .material-icons.mdl-list__item-icon group
           | #{user._company.name}
+
+        li.mdl-list__item
+          form(action='/users/reset' method="post")
+            input(type="hidden" name="redirect" value=user.url.show)
+            button.mdl-list__item-primary-content(type="submit" name="id" value=user._id)
+              .material-icons.mdl-list__item-icon vpn_key
+              if user.status === 'confirmed'
+                | Reset password
+              if user.status === 'to be initialized'
+                | Send password mail
+              if user.status === 'password mail sent'
+                | Resend password mail
+
+        li.mdl-list__item: span.mdl-list__item-primary-content: strong Status:
+
+        li.mdl-list__item: span.mdl-list__item-primary-content
+
+          if user.status === 'confirmed'
+            i.material-icons.mdl-list__item-icon check
+          if user.status === 'to be initialized'
+            i.material-icons.mdl-list__item-icon report_problem
+          if user.status === 'password mail sent'
+            i.material-icons.mdl-list__item-icon schedule
+          | #{user.status}
+
       else
         li.mdl-list__item: a.mdl-list__item-primary-content(href=data.company.url.show)
           .material-icons.mdl-list__item-icon group
