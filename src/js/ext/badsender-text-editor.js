@@ -126,12 +126,22 @@ tinymce.PluginManager.add('example', function(editor, url) {
 // CONFIGURATION
 //////
 
+var fsMin   = 8;
+var fsMax   = 31;
+var fsRange = fsMax - fsMin;
+var fsList  = [];
+for (var i  = 0 ; i <= fsRange ; i += 1 ) {
+  fsList.push( (i + fsMin) + 'px');
+}
+fsList      =  fsList.join(' ');
+
 var tinymceConfigFull = {
   // toolbar1: 'bold italic forecolor backcolor hr fontsizeselect styleselect letterspacingselect removeformat | link unlink | pastetext code',
   toolbar1: 'bold italic forecolor backcolor hr | examplebtn | fontsizeselect styleselect letterspacingselect removeformat | link unlink | pastetext code',
   //- font-size select
   //- https://www.tinymce.com/docs/configure/content-formatting/#fontsize_formats
-  fontsize_formats: '8px 10px 12px 14px 18px 24px 36px',
+  // fontsize_formats: '8px 10px 12px 14px 18px 24px 36px',
+  fontsize_formats: fsList,
   //- add colorpicker
   //- https://www.tinymce.com/docs/plugins/colorpicker/
   // plugins: ["link hr paste lists textcolor colorpicker code spacing"],
