@@ -1,0 +1,65 @@
+- const { creations }  = data
+
+table.mdl-data-table
+  thead: tr
+    th.bsCheckbox
+      input.js-creation-selection-all(type="checkbox" id="line-all")
+      label(for=`line-all`)
+    if _config.debug
+      th.mdl-data-table__cell--non-numeric Id
+    th.mdl-data-table__cell--non-numeric
+      +reorder('/', 'name', 'home.saved.name')
+    th.mdl-data-table__cell--non-numeric
+      +reorder('/', 'wireframe', 'home.saved.wireframe-name')
+    if (!isAdmin)
+      th.mdl-data-table__cell--non-numeric
+        +reorder('/', 'author', 'home.saved.created-by')
+    th.mdl-data-table__cell--non-numeric= __('home.saved.tags')
+    th.mdl-data-table__cell--non-numeric
+      +reorder('/', 'createdAt', 'home.saved.created')
+    th.mdl-data-table__cell--non-numeric
+      +reorder('/', 'updatedAt', 'home.saved.last-change')
+    th.mdl-data-table__cell--action= __('home.saved.rename')
+    th.mdl-data-table__cell--action= __('home.saved.duplicate')
+    //- th.mdl-data-table__cell--action= __('home.saved.delete')
+
+  tbody.js-tbody-selection
+    if !creations.length
+      - let length = 9
+      - length = isAdmin ? length + 1 : length
+      - length = _config.debug ? length + 1 : length
+      tr: td(style="text-align: center;" colspan=length)= __('home.no.creation')
+    else
+      each creation, index in creations
+        tr
+          td.bsCheckbox
+            //- creations[] ensure that req.body.creation will always be an array
+            input(
+              name="creations[]"
+              type="checkbox"
+              id=`line-${creation._id}`
+              data-tags=creation.tags.join(',')
+              value=creation._id
+            )
+            label(for=`line-${creation._id}`)
+          if _config.debug
+            td.mdl-data-table__cell--non-numeric
+              a(href=creation.url.update)= creation._id
+          td.mdl-data-table__cell--non-numeric
+            //- keep alternative __('home.saved.noname')
+            //- Should consolidate DB to always have a name before removing this
+            a(href=creation.url.update).js-name= creation.name || __('home.saved.noname')
+          td.mdl-data-table__cell--non-numeric: span= creation.wireframe
+          if (!isAdmin)
+            td.mdl-data-table__cell--non-numeric: span= creation.author
+          td.mdl-data-table__cell--long-text: span= creation.tags.join(', ')
+          td.mdl-data-table__cell--non-numeric: span= formatDate(creation.createdAt)
+          td.mdl-data-table__cell--non-numeric: span= formatDate(creation.updatedAt)
+          td.mdl-data-table__cell--action
+            a.js-rename.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(data-href=creation.url.update title="rename" href="#"): i.material-icons title
+          td.mdl-data-table__cell--action
+            a.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(href=creation.url.duplicate title="duplicate")
+              i.material-icons content_copy
+          //- td.mdl-data-table__cell--action
+          //-   a.js-delete.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(href=creation.url.delete title="delete")
+          //-     i.material-icons delete

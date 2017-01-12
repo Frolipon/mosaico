@@ -6,15 +6,26 @@ import Pikaday        from 'pikaday'
 import $              from 'jquery'
 import select2        from 'select2'
 
+import pubsub from './_pubsub'
+import './creation-selection'
+import './tags'
+import './delete-creations'
+
 const dialogRename    = $('.js-dialog-rename')[0]
 const dialogDelete    = $('.js-dialog-delete')[0]
+const dialogTag       = $('.js-dialog-add-tag')[0]
 const notif           = $('#notification')[0]
 
 // https://github.com/GoogleChrome/dialog-polyfill
 if (!dialogRename.showModal) {
   dialogPolyfill.registerDialog(dialogRename)
   dialogPolyfill.registerDialog(dialogDelete)
+  dialogPolyfill.registerDialog(dialogTag)
 }
+
+$(document).on('keyup', e => {
+  if (e.keyCode == 27) pubsub('key:escape').publish()
+})
 
 //////
 // RENAME CREATION
@@ -80,60 +91,19 @@ const $filter = $('.js-filter')
 $('.js-toggle-filter').on('click', e => $filter.toggleClass('is-visible'))
 
 //////
-// DELETE CREATION
-//////
-
-let deleteRoute = false
-let $deleteRow  = false
-
-$('.js-delete').on('click', e => {
-  e.preventDefault()
-  const $target = $(e.currentTarget)
-  deleteRoute = $target.attr('href')
-  $deleteRow  = $target.parents('tr')
-  dialogDelete.showModal()
-})
-
-$('.js-close-delete-dialog').on('click', closeDeleteDialog)
-$('.js-delete-confirm').on('click', removeCreation)
-
-function removeCreation(e) {
-  console.log('removeCreation', deleteRoute, $deleteRow)
-  if (!deleteRoute || !$deleteRow ) return
-  console.log('delete', deleteRoute, $deleteRow)
-  $.ajax({
-    method: 'GET',
-    url:    deleteRoute,
-  })
-  .then( _ => {
-    $deleteRow.remove()
-    notif.MaterialSnackbar.showSnackbar({
-      message: window.badesenderI18n.snackbarDeleteMessage,
-    })
-    closeDeleteDialog()
-  })
-  .catch( _ => {
-    notif.MaterialSnackbar.showSnackbar({
-      message: window.badesenderI18n.snackbarError,
-    })
-  })
-}
-
-function closeDeleteDialog() {
-  deleteRoute = false
-  $deleteRow  = false
-  dialogDelete.close()
-}
-
-//////
 // PAGINATION
 //////
 
-$('.js-pagination').on('change', e =>  e.currentTarget.submit()  )
+const $paginationSelect = $('.js-pagination')
+$paginationSelect.on('change', e => {
+  window.location.assign( $paginationSelect.val() )
+})
 
 //////
-// SELECT2
+// COMPONENTS
 //////
+
+//----- SELECT2
 
 // https://select2.github.io/options.html
 
@@ -152,9 +122,7 @@ $('select[multiple').each( (index, el) => {
   }
 })
 
-//////
-// DATEPICKER
-//////
+//----- DATEPICKER
 
 // https://www.npmjs.com/package/pikaday
 

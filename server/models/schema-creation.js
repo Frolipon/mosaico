@@ -36,6 +36,9 @@ const CreationSchema  = Schema({
     type:     ObjectId,
     ref:      CompanyModel,
   },
+  tags: {
+    type:     [],
+  },
   // http://mongoosejs.com/docs/schematypes.html#mixed
   data: { },
 
@@ -65,8 +68,10 @@ CreationSchema.virtual('changed').get(function () {
 function creationUrls(creationId) {
   return {
     update:     `/editor/${creationId}`,
-    delete:     `/editor/${creationId}/delete`,
-    duplicate:  `/editor/${creationId}/duplicate`,
+    duplicate:  `/creations/${creationId}/duplicate`,
+    delete:     `/creations/${creationId}?_method=DELETE`,
+    send:       `/creations/${creationId}/send`,
+    zip:        `/creations/${creationId}/zip`,
   }
 }
 
@@ -93,7 +98,7 @@ CreationSchema.methods.duplicate = function duplicate(_user) {
   var oldId       = this._id.toString()
   var newId       = Types.ObjectId()
   this._id        = newId
-  this.name       = `${this.name}  copy`
+  this.name       = `${this.name.trim()} copy`
   this.isNew      = true
   this.createdAt  = new Date()
   this.updatedAt  = new Date()

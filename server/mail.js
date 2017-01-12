@@ -1,12 +1,12 @@
 'use strict'
 
-const { extend }    = require('lodash')
-const chalk         = require('chalk')
-const nodemailer    = require('nodemailer')
-const wellknown     = require('nodemailer-wellknown')
-const createError   = require('http-errors')
+const { extend, pick }  = require('lodash')
+const chalk             = require('chalk')
+const nodemailer        = require('nodemailer')
+const wellknown         = require('nodemailer-wellknown')
+const createError       = require('http-errors')
 
-const config        = require('./config')
+const config            = require('./config')
 
 let mailConfig  = config.emailTransport
 if (mailConfig.service) {
@@ -29,7 +29,7 @@ transporter
 })
 
 function send(options) {
-  var mailOptions = extend({}, options, config.emailOptions)
+  var mailOptions = extend({}, options, pick( config.emailOptions, ['from'] ) )
   return new Promise(function (resolve, reject) {
     transporter
     .sendMail(mailOptions)

@@ -133,6 +133,7 @@ function update(req, res, next) {
       // form image name may differ from uploaded image name
       // make it coherent
       wireframe.images = wireframe.images.map( img => slugFilename(img) )
+      wireframe.images = wireframe.images.filter( img => img !== false )
 
       // copy wireframe name in creation
       if (wireId && nameChange) {

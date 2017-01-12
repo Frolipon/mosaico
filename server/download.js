@@ -11,14 +11,9 @@ const archiver      = require('archiver')
 const request       = require('request')
 const createError   = require('http-errors')
 
-var mail            = require('./mail')
-
-function postDownload(req, res, next) {
-  let action = req.body.action
-  if (action === 'download')  return downloadZip(req, res, next)
-  if (action === 'email')     return sendByMail(req, res, next)
-  return next(createError(404))
-}
+const mail          = require('./mail')
+const config        = require('./config')
+const { Creations, isFromCompany, } = require('./models')
 
 //----- UTILS
 
@@ -32,80 +27,115 @@ function secureHtml(html) {
   return html
 }
 
-//----- MAILING
+//////
+// MAIL
+//////
 
-function sendByMail(req, res, next) {
-  let html      = secureHtml(req.body.html)
-  mail
-  .send({
-    to:       req.body.rcpt,
-    subject:  req.body.subject,
-    html:     html,
-  })
-  .then(function (info) {
-    console.log('Message sent: ' + info.response)
-    res.send('OK: ' + info.response)
-  })
+function send(req, res, next) {
+  if (!req.xhr) return next(createError(501)) // Not Implemented
+  const { user, body }  = req
+  const { creationId }  = req.params
+
+  Creations
+  .findById(creationId)
+  .then(onCreation)
   .catch(next)
+
+  function onCreation(creation) {
+    if (!creation) return next(createError(404))
+    if (!isFromCompany(user, creation._company)) return next(createError(401))
+    const html = secureHtml(req.body.html)
+    mail
+    .send({
+      to:       body.rcpt,
+      replyTo:  user.email,
+      subject:  config.emailOptions.testSubjectPrefix + creation.name,
+      html:     html,
+    })
+    .then( info => {
+      console.log('Message sent: ', info.response)
+      res.send(`OK: ${info.response}` )
+    })
+    .catch(next)
+  }
 }
 
-//----- DOWNLOAD
+//////
+// DOWNLOAD
+//////
 
 const imagesFolder = 'images'
 // for doc see:
 // https://github.com/archiverjs/node-archiver/blob/master/examples/express.js
 
-function downloadZip(req, res, next) {
-  const archive = archiver('zip')
-  let html      = req.body.html
-  let $         = cheerio.load(html)
-  let name      = getName(req.body.filename)
+function zip(req, res, next) {
+  const { user, body }  = req
+  const { creationId }  = req.params
 
-  console.log('download zip', name)
+  Creations
+  .findById(creationId)
+  .then(onCreation)
+  .catch(next)
 
-  // We only take care of images in the HTML
-  // No <style> CSS parsing for now. May be implemented later
-  let $images   = $('img')
-  // will be used to download images
-  let imgUrls   = $images.map( (i, el) => $(el).attr('src')).get()
-  // make a relative path
-  // Don't use Cheerio as when exporting some mess are donne with ESP tags
-  let imgBases  = _.uniq(imgUrls.map(getImageUrlWithoutName))
-  imgBases.forEach( (imgBase) => {
-    let search  = new RegExp(`src="${imgBase}`, 'g')
-    html        = html.replace(search, `src="${imagesFolder}/`)
-  })
+  function onCreation(creation) {
+    if (!creation) return next(createError(404))
+    if (!isFromCompany(user, creation._company)) return next(createError(401))
 
-  archive.on('error', next)
+    const archive = archiver('zip')
+    let { html }  = body
+    let $         = cheerio.load(html)
+    let name      = getName(creation.name)
 
-  //on stream closed we can end the request
-  archive.on('end', () => {
-    console.log('Archive wrote %d bytes', archive.pointer())
-    res.end()
-  })
+    console.log('download zip', name)
 
-  //set the archive name
-  res.attachment(`${name}.zip`)
-
-  //this is the streaming magic
-  archive.pipe(res)
-
-  // Add html with relatives url
-  archive.append(secureHtml(html), {
-    name:   `${name}.html`,
-    prefix: `${name}/`,
-  })
-
-  // Pipe all images
-  imgUrls.forEach( (imageUrl, index) => {
-    let imageName = getImageName(imageUrl)
-    archive.append(request(imageUrl), {
-      name:   imageName,
-      prefix: `${name}/${imagesFolder}/`
+    // We only take care of images in the HTML
+    // No <style> CSS parsing for now. May be implemented later
+    let $images   = $('img')
+    // will be used to download images
+    let imgUrls   = $images.map( (i, el) => $(el).attr('src')).get()
+    // make a relative path
+    // Don't use Cheerio because when exporting some mess are donne with ESP tags
+    let imgBases  = _.uniq(imgUrls.map(getImageUrlWithoutName))
+    imgBases.forEach( (imgBase) => {
+      let search  = new RegExp(`src="${imgBase}`, 'g')
+      html        = html.replace(search, `src="${imagesFolder}/`)
     })
-  })
 
-  archive.finalize()
+    archive.on('error', next)
+
+    // on stream closed we can end the request
+    archive.on('end', () => {
+      console.log('Archive wrote %d bytes', archive.pointer())
+      res.end()
+    })
+
+    // set the archive name
+    res.attachment(`${name}.zip`)
+
+    // this is the streaming magic
+    archive.pipe(res)
+
+    // Add html with relatives url
+    archive.append(secureHtml(html), {
+      name:   `${name}.html`,
+      prefix: `${name}/`,
+    })
+
+    // Pipe all images
+    imgUrls.forEach( (imageUrl, index) => {
+      let imageName   = getImageName(imageUrl)
+      // Broke with a self-signed certificate
+      // https://github.com/request/request#using-optionsagentoptions
+      let imgRequest  = request(imageUrl).on('error', err => { throw err } )
+      archive.append( imgRequest, {
+        name:   imageName,
+        prefix: `${name}/${imagesFolder}/`
+      })
+    })
+
+    archive.finalize()
+
+  }
 }
 
 function getName(name) {
@@ -122,5 +152,6 @@ function getImageUrlWithoutName(imageUrl) {
 }
 
 module.exports = {
-  post: postDownload,
+  send,
+  zip,
 }

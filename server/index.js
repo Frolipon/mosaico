@@ -5,6 +5,7 @@ const path            = require('path')
 const chalk           = require('chalk')
 const express         = require('express')
 const bodyParser      = require('body-parser')
+const methodOverride  = require('method-override')
 const compression     = require('compression')
 const morgan          = require('morgan')
 const favicon         = require('serve-favicon')
@@ -27,6 +28,14 @@ module.exports = function () {
   var app = express()
 
   app.set('trust proxy', true)
+
+  function forcessl(req, res, next) {
+    if (req.header('x-forwarded-proto') === 'https') return next()
+    res.redirect(301, `https://${config.host}${req.url}`)
+  }
+
+  if (config.forcessl) app.use(forcessl)
+
   app.use(bodyParser.json({
     limit: '5mb'
   }))
@@ -34,6 +43,8 @@ module.exports = function () {
     limit: '5mb',
     extended: true,
   }))
+  // enable other methods from request (PUT, DELETE…)
+  app.use(methodOverride('_method', {methods: ['GET', 'POST']}))
   app.use(compression())
   app.use(favicon(path.join(__dirname, '../res/favicon.png')))
   app.use(cookieParser())
@@ -178,7 +189,7 @@ module.exports = function () {
 
   // take care of language query params
   // http://stackoverflow.com/questions/19539332/localization-nodejs-i18n
-  app.use(function(req, res, next) {
+  app.use( (req, res, next) => {
     if (req.query.lang) {
       res.setLocale(req.query.lang)
       res.cookie('badsender', req.query.lang, { maxAge: 900000, httpOnly: true })
@@ -254,18 +265,26 @@ module.exports = function () {
 
   //----- USER
 
-  app.post('/dl/',                          guard('user'), download.post)
   app.all('/editor*',                       guard('user'))
-  app.get('/editor/:creationId/delete',     creations.remove)
   app.get('/editor/:creationId/upload',     creations.listImages)
   app.post('/editor/:creationId/upload',    creations.upload)
-  app.get('/editor/:creationId/duplicate',  creations.duplicate)
   app.get('/editor/:creationId',            creations.show)
   app.post('/editor/:creationId',           creations.update)
   app.put('/editor/:creationId',            creations.rename)
   app.get('/editor',                        creations.create)
-  app.get('/new-creation',                  guard('user'), wireframes.customerList)
-  app.get('/',                              guard('user'), creations.customerList)
+
+  app.all('/creation*',                       guard('user'))
+  // This should replace GET /editor
+  // app.post('/creations',                  (req, res, next) => res.redirect('/'))
+  app.get('/creations/:creationId/duplicate', creations.duplicate)
+  app.post('/creations/:creationId/send',     download.send)
+  app.post('/creations/:creationId/zip',      download.zip)
+  app.delete('/creations',                    creations.bulkRemove)
+  app.patch('/creations',                     creations.updateLabels)
+  app.get('/creations',                       (req, res, next) => res.redirect('/') )
+
+  app.get('/new-creation',                    guard('user'), wireframes.customerList)
+  app.get('/',                                guard('user'), creations.customerList)
 
   //////
   // ERROR HANDLING

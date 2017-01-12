@@ -15,7 +15,8 @@
 			"delete": "delete",
 			"noname": "untitled",
 			"wireframe-name": "wireframe used",
-			"created-by": "author"
+			"created-by": "author",
+			"tags": "tags"
 		},
 		"more-info": "more info about the builder",
 		"footer": {
@@ -42,10 +43,10 @@
 		},
 		"welcome": "Welcome",
 		"delete": {
-			"dialog-title": "Delete a creation",
+			"dialog-title": "Delete mailings",
 			"dialog-confirm": "Confirm deletion",
 			"dialog-cancel": "cancel",
-			"dialog-content": "This will remove"
+			"dialog-content": "This will definitely remove:"
 		},
 		"rename": {
 			"dialog-title": "Rename a mailing",
@@ -95,8 +96,8 @@
 			"start": "updated between",
 			"end": "and"
 		},
-		"reset": "reset",
-		"submit": "submit",
+		"reset": "reset filters",
+		"submit": "filter",
 		"summary": {
 			"contain": "name contains",
 			"author": "author",
@@ -105,8 +106,11 @@
 			"after": "after the",
 			"updatedat": "updated",
 			"before": "before the",
-			"and": "and"
-		}
+			"and": "and",
+			"tags": "tags"
+		},
+		"tag": "tag",
+		"title": "filter"
 	},
 	"pikaday": {
 		"previousMonth": "Previous Month",
@@ -118,5 +122,23 @@
 	"pagination": {
 		"row": "rows per page:",
 		"of": "of"
+	},
+	"tags": {
+		"set": "Handle tags",
+		"title": "tags list",
+		"new": "new tag",
+		"apply": "apply",
+		"dialog": {
+			"title": "New tag",
+			"label": "tag name",
+			"apply": "add",
+			"cancel": "cancel"
+		}
+	},
+	"table": {
+		"selection": {
+			"singular": "item selected",
+			"plural": "items selected"
+		}
 	}
 }

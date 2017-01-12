@@ -15,7 +15,8 @@
 			"noname": "sans titre",
 			"duplicate": "dupliquer",
 			"wireframe-name": "modèle utilisé",
-			"created-by": "auteur"
+			"created-by": "auteur",
+			"tags": "labels"
 		},
 		"more-info": "en savoir plus à propos de l'éditeur",
 		"footer": {
@@ -43,8 +44,8 @@
 		},
 		"welcome": "bienvenue",
 		"delete": {
-			"dialog-title": "Supprimer un mailing",
-			"dialog-content": "La suppression d'une création est définitive",
+			"dialog-title": "Suppression de mailings",
+			"dialog-content": "Cela supprimera définitivement :",
 			"dialog-confirm": "Supprimer",
 			"dialog-cancel": "Annuler"
 		},
@@ -96,7 +97,7 @@
 			"start": "modifié entre le",
 			"end": "et le"
 		},
-		"reset": "réinitialiser",
+		"reset": "réinitialiser les filtres",
 		"submit": "filtrer",
 		"summary": {
 			"contain": "nom contenant",
@@ -106,8 +107,11 @@
 			"after": "après le",
 			"and": "et",
 			"before": "avant le",
-			"updatedat": "modifié"
-		}
+			"updatedat": "modifié",
+			"tags": "labels"
+		},
+		"tag": "label",
+		"title": "filtrer"
 	},
 	"pikaday": {
 		"previousMonth": "Mois précédent",
@@ -119,5 +123,23 @@
 	"pagination": {
 		"row": "lignes par pages :",
 		"of": "sur"
+	},
+	"tags": {
+		"set": "Gérer les labels",
+		"title": "Liste des labels",
+		"new": "nouveau label",
+		"apply": "appliquer",
+		"dialog": {
+			"title": "Nouveau label",
+			"label": "nom",
+			"apply": "ajouter",
+			"cancel": "annuler"
+		}
+	},
+	"table": {
+		"selection": {
+			"singular": "élément selectionné",
+			"plural": "éléments selectionnés"
+		}
 	}
 }

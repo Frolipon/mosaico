@@ -17,6 +17,10 @@ function getData(viewModel) {
 var loader = function (viewModel) {
   console.info('init server storage (save, test, download)')
 
+  //////
+  // SAVE
+  //////
+
   var saveCmd = {
     name: 'Save', // l10n happens in the template
     enabled: ko.observable(true)
@@ -60,12 +64,17 @@ var loader = function (viewModel) {
     }
   }
 
+  //////
+  // EMAIL
+  //////
+
   var testCmd = {
     name: 'Test', // l10n happens in the template
     enabled: ko.observable(true)
   }
   testCmd.execute = function() {
     console.info('TEST')
+    console.log(viewModel.metadata.url.send)
     testCmd.enabled(false)
     var email = viewModel.t('Insert here the recipient email address')
     email     = global.prompt(viewModel.t("Test email address"), email)
@@ -78,13 +87,11 @@ var loader = function (viewModel) {
     console.log("TODO testing...", email)
     var metadata  = ko.toJS(viewModel.metadata)
     var datas     = {
-      action:   'email',
       rcpt:     email,
-      subject:  '[test] ' + metadata.id,
-      html:     viewModel.exportHTML()
+      html:     viewModel.exportHTML(),
     }
     $.ajax({
-      url:          /dl/,
+      url:          viewModel.metadata.url.send,
       method:       'POST',
       data:         datas,
       success:      onTestSuccess,
@@ -108,9 +115,13 @@ var loader = function (viewModel) {
     }
   }
 
+  //////
+  // ZIP
+  //////
+
   var downloadCmd = {
-    name: 'Download', // l10n happens in the template
-    enabled: ko.observable(true)
+    name:   'Download', // l10n happens in the template
+    enabled: ko.observable(true),
   }
   downloadCmd.execute = function() {
     console.info('DOWNLOAD')
@@ -119,7 +130,7 @@ var loader = function (viewModel) {
     viewModel.exportHTMLtoTextarea('#downloadHtmlTextarea')
     $('#downloadHtmlFilename').val(viewModel.metadata.name())
     $('#downloadForm')
-    .attr('action', '/dl/')
+    .attr('action', viewModel.metadata.url.zip)
     .submit()
     downloadCmd.enabled(true)
   }

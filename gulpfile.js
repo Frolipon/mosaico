@@ -7,7 +7,7 @@ var reload          = browserSync.reload;
 var lazypipe        = require('lazypipe');
 var del             = require('del');
 var merge           = require('merge-stream');
-var args            = require('yargs').argv;
+const args          = require('yargs').argv
 var mainBowerFiles  = require('main-bower-files');
 var _               = require('lodash');
 
@@ -159,7 +159,7 @@ gulp.task('lib', ['clean-lib'], function () {
 
 });
 
-//----- APPLICATION
+//----- MOSAICO APPLICATION
 
 var browserify  = require('browserify')
 var source      = require('vinyl-source-stream')
@@ -217,7 +217,7 @@ function bundleShare(b) {
   .pipe(gulp.dest(buildDir))
 }
 
-//----- TEMPLATES: see -> combineKOTemplates.js
+//----- MOSAICO'S KNOCKOUT TEMPLATES: see -> combineKOTemplates.js
 
 const path          = require('path')
 const through       = require('through2')
@@ -261,16 +261,27 @@ gulp.task('templates', _ => {
 
 //----- HOME JS (rename for now)
 
+const pugify = require('pugify')
+
 gulp.task('js-home', function () {
   var b = browserify({
     cache:        {},
     packageCache: {},
     debug:        true,
-    entries:      ['./src/js/badsender-home.js']
+    entries:      ['./src/js-backend/badsender-home.js']
   })
   .transform(babelify, {
-    presets: ['es2015'],
+    presets:      ['es2015'],
   })
+  .transform(pugify.pug({
+    pretty:       isDev,
+    compileDebug: isDev,
+  }))
+  .transform(envify({
+    _:            'purge',
+    NODE_ENV:     env,
+    LOG:          isDev,
+  }))
 
   if (isWatch) {
     b = watchify(b);
@@ -356,7 +367,7 @@ gulp.task('nodemon', function (cb) {
     // https://gist.github.com/sogko/b53d33d4f3b40d3b4b2e#comment-1457582
     if (init) {
       init = false;
-      cb();
+      cb()
     }
   });
 });
@@ -364,7 +375,7 @@ gulp.task('nodemon', function (cb) {
 gulp.task('dev', ['build', 'nodemon'], function () {
 
   browserSync.init({
-    proxy: 'http://localhost:3000',
+    proxy: 'https://localhost',
     open: false,
     port: 7000,
     ghostMode: false,

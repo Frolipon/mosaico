@@ -4,9 +4,46 @@
 $primary    =  #ff9f00;
 $accent     = rgb(68,138,255);
 $c-grey-700 = #616161;
+$c-grey-100 = rgba(0,0,0,.12);
 
 panel-shadow() {
   box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.14), 0 1px 18px 0 rgba(0, 0, 0, 0.12), 0 3px 5px -1px rgba(0, 0, 0, 0.2);
+}
+
+hidden() {
+  border: 0 !important;
+  clip: rect(0 0 0 0) !important;
+  height: 1px !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  position: absolute !important;
+  width: 1px !important;
+}
+
+material-icon() {
+  font-family: 'Material Icons';
+  font-weight: 400;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  word-wrap: normal;
+  font-feature-settings: 'liga';
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+togglable($height = auto) {
+  visibility: hidden;
+  height: 0;
+
+  &.is-visible {
+    visibility: visible;
+    height: $height;
+  }
 }
 
 @import "./select2";
@@ -18,185 +55,27 @@ panel-shadow() {
   min-height: 100%;
 }
 
-////////
-// TABLE CARDS + PAGINATION + FILTER
-////////
+// simplified checkbox in tables
+.bsCheckbox {
+  width: 1px;
 
-.bs-table {
-  background: white;
-  margin-bottom: 56px;
-
-  .mdl-data-table {
-    border-left: 0;
-    border-right: 0;
-    border-top: 0;
+  input {
+    hidden();
   }
-
-  th a {
-    color: currentColor;
-    font-weight: inherit;
-    text-decoration: none;
-
-    .material-icons {
-      vertical-align: middle;
-    }
-  }
-
-  &__header,
-  &__header *,
-  &__footer,
-  &__footer *,
-  &__filter,
-  &__filter * {
-    box-sizing: border-box;
-  }
-  &__header,
-  &__footer {
-    padding: 0 14px 0 24px;
-    display: flex;
-    align-items: center;
-  }
-
-  &__header {
-    height: 64px;
-    justify-content: space-between;
-    align-items: baseline;
-    padding-top: 1.2em;
-  }
-
-  &__filter {
-    background: #FBFBFB;
-    visibility: hidden;
-    height: 0;
-
-    &.is-visible {
-      visibility: visible;
-      height: auto;
-    }
-  }
-
-  &__footer {
-    height: 56px;
-    justify-content: flex-end;
-    font-size: 14px;
-    color: rgba(black, .54)
-  }
-}
-
-.bs-table-filter__row {
-  display: flex;
-  align-items: center;
-
-  > div {
-    width: 'calc(%s - 48px)' % ( unit(100/3, '%') )
-    margin: 0 24px;
-  }
-}
-
-// contain date pickers
-.bs-table-filter-row__dual-field {
-  display: flex;
-  align-items: center;
-
-  > div {
-    width: calc(50% - 12px);
-    &:first-child { margin-right: 12px; }
-    &:last-child {  margin-left:  12px; }
-  }
-  // only date pickers have icons
-  i.material-icons {
-    position: absolute;
-    right: 0;
-    bottom: 24px;
-    pointer-events: none;
-    opacity: .5;
-  }
-}
-
-.bs-table-filter-row__action {
-  text-align: right;
-}
-
-.bs-table-header {
-  &__title {
-    font-size: 20px;
-    color: rgba(black, .87);
-    margin: 0;
-    font-weight: bold;
-    flex: 0 0 auto;
-  }
-  &__summary {
-    margin: 0;
-    padding: 0 24px;
-    flex: 1 1 auto;
-    white-space: nowrap;
-    font-size: 13px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    dt,
-    dd {
-      display: inline;
-      padding: 0;
-      margin: 0;
-    }
-    dt {
-      padding-left: 12px;
-      font-weight: normal;
-      color: #999999;
-
-      + dt {
-        padding-left: 0;
-        &::before { content: ' '}
-      }
-    }
-    dd {
-      padding-left: 6px;
-    }
-  }
-  &__filter {
-    color: currentColor;
+  label {
+    display: inline-block;
     cursor: pointer;
-    flex: 0 0 auto;
-    &:hover {
-      color: $accent;
-    }
-
-    ~ .bs-table-header__filter {
-      margin-left: 1em;
-    }
   }
-
-}
-
-.bs-table-footer {
-
-  &__limit {
-    width: 40px;
-    text-align: right;
-    margin-right: 24px;
-    font-family: inherit;
-    font-size: inherit;
-    color: inherit;
-    border: 0;
-    background: none;
-    border-radius: 0;
-    margin-left: 24px;
+  label::after {
+    material-icon();
+    // couldn't find another way to center them vertically :(
+    transform: translate(0, 3px);
+    content: 'check_box_outline_blank';
+    color: $c-grey-700;
   }
-
-  &__position {
-    margin: 0 8px;
-  }
-
-  &__nav {
-    width: 24px;
-    margin-left: @width;
-    color: currentColor;
-    // align icon
-    line-height: 0;
-    span& {
-      opacity: .5;
-    }
+  input:checked + label::after {
+    content: 'check_box';
+    color: $accent;
   }
 }
 
@@ -397,3 +276,5 @@ details {
 .material-icons.is-invalid {
   color: #d50000;
 }
+
+@import './table';
