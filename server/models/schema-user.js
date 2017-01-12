@@ -61,9 +61,28 @@ function encodePassword(password) {
 }
 
 UserSchema.virtual('status').get(function () {
-  if (this.password)  return 'confirmed'
-  if (this.token)     return 'password mail sent'
-  return 'to be initialized'
+  const status = this.password ? 1 : this.token ? 0 : -1
+  const values = {
+    '-1': {
+      value:          'to be initialized',
+      icon:           'report_problem',
+      actionMsg:      'send password mail',
+      actionMsgShort: 'send',
+    },
+    '0': {
+      value:          'password mail sent',
+      icon:           'schedule',
+      actionMsg:      'resend password mail',
+      actionMsgShort: 'resend',
+    },
+    '1': {
+      value:          'confirmed',
+      icon:           'check',
+      actionMsg:      'reset password',
+      actionMsgShort: 'reset',
+    },
+  }
+  return values[ status ]
 })
 
 UserSchema.virtual('fullname').get(function () {
