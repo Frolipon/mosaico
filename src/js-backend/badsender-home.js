@@ -17,7 +17,7 @@ const dialogTag       = $('.js-dialog-add-tag')[0]
 const notif           = $('#notification')[0]
 
 // https://github.com/GoogleChrome/dialog-polyfill
-if (!dialogRename.showModal) {
+if (dialogRename && !dialogRename.showModal) {
   dialogPolyfill.registerDialog(dialogRename)
   dialogPolyfill.registerDialog(dialogDelete)
   dialogPolyfill.registerDialog(dialogTag)
