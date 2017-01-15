@@ -37,7 +37,8 @@ function handleCreationName(viewModel) {
       data:   {
         name: viewModel.metadata.name(),
       },
-      success: function () {
+      success: function (creation) {
+        viewModel.metadata.name( creation.name )
         viewModel.notifier.success(viewModel.t('edit-title-ajax-success'))
       },
       error: function () {

@@ -6,39 +6,58 @@ const {
   teardownDB,
   teardownAndError,
 }                     = require('../_utils')
+const rename          = {
+  nameSelector:   `#toolbar > div.creation-name > p > span`,
+  inputSelector:  `#toolbar > form > input[type="text"]`,
+  submitSelector: `#toolbar > form > button[type="submit"]`,
+}
 
-test('rename from editor', t => {
-  const renameTestCreationTitle = 'larve'
+function gotToEditor(nightmare) {
+  return nightmare
+  .click('.js-tbody-selection tr:nth-child(2) > td:nth-child(2) > a')
+  .wait('#toolbar .creation-name')
+}
+
+function activateRename(nightmare) {
+  return nightmare
+  .evaluate( () => {
+    const btn = document.querySelector('#toolbar > div.creation-name > p')
+    const ev  = new MouseEvent('dblclick', {
+      'view': window,
+      'bubbles': true,
+      'cancelable': true,
+      'clientX': btn.getBoundingClientRect().left + 10,
+      'clientY': btn.getBoundingClientRect().top + 10,
+    })
+    btn.dispatchEvent(ev)
+    return true
+  })
+  .wait('#toolbar > form > input[type="text"]')
+  .insert('#toolbar > form > input[type="text"]', false)
+}
+
+function checkName(nightmare) {
+  return nightmare
+  .click( rename.submitSelector )
+  .wait( rename.nameSelector )
+  .evaluate( nameSelector => {
+    const name  = document.querySelector( nameSelector ).textContent
+    return { name }
+  }, rename.nameSelector)
+  .end()
+}
+
+test('rename from editor – can rename', t => {
+  const renameTestCreationTitle = 'new creation name'
   t.plan(1)
   setupDB().then(test).catch(t.end)
 
   function test() {
     connectUser(false)
-    .click('.js-tbody-selection tr:nth-child(2) > td:nth-child(2) > a')
-    .wait('#toolbar .creation-name')
-    .evaluate( () => {
-      const btn = document.querySelector('#toolbar > div.creation-name > p')
-      const ev  = new MouseEvent('dblclick', {
-        'view': window,
-        'bubbles': true,
-        'cancelable': true,
-        'clientX': btn.getBoundingClientRect().left + 10,
-        'clientY': btn.getBoundingClientRect().top + 10,
-      })
-      btn.dispatchEvent(ev)
-      return true
-    })
-    // .click('#toolbar > div.creation-name > p')
-    .wait('#toolbar > form > input[type="text"]')
-    .insert('#toolbar > form > input[type="text"]', false)
-    .insert('#toolbar > form > input[type="text"]', renameTestCreationTitle)
-    .click('#toolbar > form > button[type="submit"]')
-    .wait('#toolbar > div.creation-name > p')
-    .evaluate( () => {
-      const name  = document.querySelector('#toolbar > div.creation-name > p > span').textContent
-      return { name }
-    })
-    .end()
+    .use( gotToEditor )
+    .use( activateRename )
+    .insert( rename.inputSelector, renameTestCreationTitle )
+    .use( checkName )
     .then( result => {
       teardownDB(t, _ => {
         const { name  } = result
@@ -47,5 +66,45 @@ test('rename from editor', t => {
     } )
     .catch( teardownAndError(t) )
   }
+})
 
+test('rename from editor – empty rename get default title', t => {
+  t.plan(1)
+  setupDB().then(test).catch(t.end)
+
+  function test() {
+    connectUser(false)
+    .use( gotToEditor )
+    .use( activateRename )
+    .type( rename.inputSelector, 'p' )
+    .type( rename.inputSelector, '\u0008' )
+    .use( checkName )
+    .then( result => {
+      teardownDB(t, _ => {
+        const { name  } = result
+        t.equal(name, 'untitled')
+      })
+    } )
+    .catch( teardownAndError(t) )
+  }
+})
+
+test('rename from editor – name of 1 space behave like empty', t => {
+  t.plan(1)
+  setupDB().then(test).catch(t.end)
+
+  function test() {
+    connectUser(false)
+    .use( gotToEditor )
+    .use( activateRename )
+    .type( rename.inputSelector, ' ' )
+    .use( checkName )
+    .then( result => {
+      teardownDB(t, _ => {
+        const { name  } = result
+        t.equal(name, 'untitled')
+      })
+    } )
+    .catch( teardownAndError(t) )
+  }
 })

@@ -16,8 +16,9 @@ const {
   Users,
   isFromCompany,
   addCompanyFilter,
-}                   = require('./models')
-const cleanTagName  = require('../shared/clean-tag-name')
+}                         = require('./models')
+const cleanTagName        = require('../shared/clean-tag-name')
+const { normalizeString } = require('./models/utils')
 
 const translations  = {
   en: JSON.stringify(_.assign(
@@ -434,7 +435,7 @@ function rename(req, res, next) {
     if (!isFromCompany(req.user, creation._company)) return next(createError(401))
 
     // use res.__ because (not req) it's where i18n is always up to date (index.js#192)
-    creation.name = req.body.name || res.__('home.saved.noname')
+    creation.name = normalizeString( req.body.name ) || res.__('home.saved.noname')
 
     creation
     .save()
