@@ -422,8 +422,8 @@ function rename(req, res, next) {
   if (!req.xhr) return next( createError(501) ) // Not Implemented
   const { creationId }  = req.params
 
-  // TODO: use a proper _company query (see line #45)
-  // const _company        = isAdmin ? { $exists: false } : req.user._company
+  // a proper _company query can't be used: Admin should be able to rename everything
+  // TODO: make a new type of query for this case
 
   Creations
   .findById(creationId)
