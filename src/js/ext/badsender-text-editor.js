@@ -4,6 +4,8 @@
 // DEFINE TINYMCE CUSTOM PLUGINS
 //////
 
+//----- LETTER SPACING
+
 // convert a fibonacci suite to em
 var defaults = [0, 1, 2, 3, 5, 8, 13]
 .map(function (e) { return Math.round((e * 0.1) * 100) / 100 })
@@ -48,104 +50,143 @@ function addLetterSpacing(editor, url) {
   })
 }
 
+//----- FREE FONT SIZE
+
+// Util function copied from Tiny MCE
 function each(o, cb, s) {
-    var n, l;
+  var n, l;
 
-    if (!o) {
-      return 0;
+  if (!o) {
+    return 0;
+  }
+
+  s = s || o;
+
+  if (o.length !== undefined) {
+    // Indexed arrays, needed for Safari
+    for (n = 0, l = o.length; n < l; n++) {
+      if (cb.call(s, o[n], n, o) === false) {
+        return 0;
+      }
     }
-
-    s = s || o;
-
-    if (o.length !== undefined) {
-      // Indexed arrays, needed for Safari
-      for (n = 0, l = o.length; n < l; n++) {
+  } else {
+    // Hashtables
+    for (n in o) {
+      if (o.hasOwnProperty(n)) {
         if (cb.call(s, o[n], n, o) === false) {
           return 0;
         }
       }
-    } else {
-      // Hashtables
-      for (n in o) {
-        if (o.hasOwnProperty(n)) {
-          if (cb.call(s, o[n], n, o) === false) {
-            return 0;
-          }
-        }
-      }
     }
-
-    return 1;
   }
 
-// inspired by tinymce.js#44265
-// editor.addButton('fontsizeselect', function() {
-tinymce.PluginManager.add('example', function(editor, url) {
-    editor.addButton('examplebtn', {
-        text: 'Font Size',
-        icon: false,
-        onPostRender: function() {
-            var formatName = 'fontsize';
-            var self = this;
-            var $btnText = self.$el.find('.mce-txt')
-            console.log($btnText)
-            editor.on('nodeChange', function(e) {
-              var formatter = editor.formatter;
-              var value = null;
+  return 1;
+}
 
-              each(e.parents, function(node) {
-                if (node.style && node.style.fontSize) {
-                  console.log(node.style.fontSize);
-                  $btnText.text('Font Size: ' + node.style.fontSize)
-                  return false;
-                }
-                $btnText.text('Font Size')
-              });
-          });
-        },
-        onclick: function(btnEvent) {
-          // Open window
-          editor.windowManager.open({
-              title: 'Enter a font-size',
-              body: [
-                {
-                  type: 'textbox',
-                  name: 'fs',
-                  label: 'in pixel',
-                }
-              ],
-              onsubmit: function(e) {
-                editor.execCommand('FontSize', false, e.data.fs + 'px');
-              }
-          });
-        }
+// inspired by tinymce.js#44265
+tinymce.PluginManager.add('fontsizedialog', fontsizedialog);
+
+function fontsizedialog(editor, url) {
+  var fontSizeMin     = 8
+  var selectionFs     = false
+  var dialogHelpText  = [
+    'minimum size: 8px',
+    'no decimals',
+  ]
+  .map( function (t) { return '• ' + t} )
+  .join( '<br>' );
+
+  editor.addButton('fontsizedialogbutton', {
+    text:         'Font size',
+    tooltip:      'Font size',
+    icon:         false,
+    onPostRender: afterBtnInit,
+    onclick:      openFsDialog,
+  });
+
+  function afterBtnInit() {
+    var formatName  = 'fontsize';
+    var self        = this;
+    var $btnText    = self.$el.find('.mce-txt');
+
+    editor.on('nodeChange', function (e) {
+      each(e.parents, getFontSize);
+      if (!selectionFs) {
+        selectionFs = document.defaultView.getComputedStyle(e.parents[0], null)
+        .getPropertyValue('font-size')
+      }
     });
-});
+
+    function getFontSize(node) {
+      if (node.style && node.style.fontSize) {
+        $btnText.text('Font size: ' + node.style.fontSize)
+        selectionFs = node.style.fontSize
+        return false
+      }
+      selectionFs = false
+      $btnText.text('Font size')
+    }
+  }
+
+  function openFsDialog(btnEvent) {
+    var initValue = selectionFs ? /^(\d+)/.exec(selectionFs) : null
+    initValue     = Array.isArray(initValue) ? initValue[0] : ''
+
+    editor.windowManager.open({
+      title: 'Enter a font-size',
+      body: [
+        {
+          type:       'label',
+          multiline:  true,
+          text:       '',
+          // multiline “hack” from:
+          // http://www.devsumo.com/technotes/2014/07/tinymce-4-multi-line-labels-in-popup-dialogs/
+          onPostRender: function () {
+            this.getEl().innerHTML = dialogHelpText;
+          },
+        },
+        {
+          type:     'textbox',
+          name:     'bsdialogfontsize',
+          label:    'in pixel',
+          autofocus: true,
+          value:     initValue,
+          onPostRender: function () {
+            this.$el.attr({
+              type:   'number',
+              min:    fontSizeMin,
+              step:   1,
+            })
+          },
+        }
+      ],
+      onsubmit: function (e) {
+        var newFontSize = ~~e.data.bsdialogfontsize
+        if (newFontSize >= fontSizeMin) {
+          editor.execCommand('FontSize', false, newFontSize + 'px')
+        } else {
+          // tinyMCE notifications are very small…
+          // no need to put them for now
+          // editor.notificationManager.open({
+          //   text: 'Invalid font size',
+          //   type: 'error',
+          // })
+        }
+      },
+    })
+  }
+
+}
 
 //////
 // CONFIGURATION
 //////
 
-var fsMin   = 8;
-var fsMax   = 31;
-var fsRange = fsMax - fsMin;
-var fsList  = [];
-for (var i  = 0 ; i <= fsRange ; i += 1 ) {
-  fsList.push( (i + fsMin) + 'px');
-}
-fsList      =  fsList.join(' ');
-
 var tinymceConfigFull = {
-  // toolbar1: 'bold italic forecolor backcolor hr fontsizeselect styleselect letterspacingselect removeformat | link unlink | pastetext code',
-  toolbar1: 'bold italic forecolor backcolor hr | examplebtn | fontsizeselect styleselect letterspacingselect removeformat | link unlink | pastetext code',
-  //- font-size select
-  //- https://www.tinymce.com/docs/configure/content-formatting/#fontsize_formats
-  // fontsize_formats: '8px 10px 12px 14px 18px 24px 36px',
-  fontsize_formats: fsList,
-  //- add colorpicker
+  toolbar1: 'bold italic forecolor backcolor hr | fontsizedialogbutton styleselect letterspacingselect removeformat | link unlink | pastetext code',
+  //- add colorpicker & custom plugins
   //- https://www.tinymce.com/docs/plugins/colorpicker/
-  // plugins: ["link hr paste lists textcolor colorpicker code spacing"],
-  plugins: ["link hr paste lists textcolor colorpicker code spacing example"],
+  plugins: ["link hr paste lists textcolor colorpicker code spacing fontsizedialog"],
   //- https://www.tinymce.com/docs/configure/content-formatting/#style_formats
   style_formats: [
     {title: 'Inline', items: [
