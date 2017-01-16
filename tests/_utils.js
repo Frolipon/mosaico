@@ -82,7 +82,6 @@ function teardownDB(t, cb) {
     if (error !== null) return t.end(error)
     cb ? cb() : t.end()
   })
-
 }
 
 function teardownAndError(t) {

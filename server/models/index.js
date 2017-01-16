@@ -103,7 +103,6 @@ module.exports    = {
   isFromCompany,
   addCompanyFilter,
   addStrictCompanyFilter,
-
   // Compiled schema
   Users,
   Wireframes,

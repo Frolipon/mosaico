@@ -2,6 +2,7 @@ const test            = require('tape')
 
 const {
   connectUser,
+  connectAdmin,
   setupDB,
   teardownDB,
   teardownAndError,
@@ -103,6 +104,28 @@ test('rename from editor – name of 1 space behave like empty', t => {
       teardownDB(t, _ => {
         const { name  } = result
         t.equal(name, 'untitled')
+      })
+    } )
+    .catch( teardownAndError(t) )
+  }
+})
+
+test('rename from editor – admin can do it on a user creation', t => {
+  const renameTestCreationTitle = 'new creation name'
+  t.plan(1)
+  setupDB().then(test).catch(t.end)
+
+  function test() {
+    connectAdmin(true)
+    .goto( 'http://localhost:3000/editor/580c4d0ec3a29f4a1cd26083' )
+    .wait('#toolbar .creation-name')
+    .use( activateRename )
+    .insert( rename.inputSelector, renameTestCreationTitle )
+    .use( checkName )
+    .then( result => {
+      teardownDB(t, _ => {
+        const { name  } = result
+        t.equal(name, renameTestCreationTitle)
       })
     } )
     .catch( teardownAndError(t) )
