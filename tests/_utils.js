@@ -29,6 +29,14 @@ function connectUser(show = false) {
   .wait('.customer-home')
 }
 
+function connectAdmin(show = false) {
+  return Nightmare({ show })
+  .goto('http://localhost:3000/admin')
+  .insert('#password-field', 'toto')
+  .click('form[action*="/login"] [type=submit]')
+  .wait('.mdl-layout-title')
+}
+
 ////////
 // DB
 ////////
@@ -91,6 +99,7 @@ function teardownAndError(t) {
 
 module.exports = {
   connectUser,
+  connectAdmin,
   setupDB,
   teardownDB,
   teardownAndError,

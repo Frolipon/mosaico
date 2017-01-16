@@ -25,10 +25,10 @@ block content
           | #{user._company.name}
 
         li.mdl-list__item
-          form(action='/users/reset' method="post")
+          form.mdl-list__item-primary-content(action='/users/reset' method="post")
+            .material-icons.mdl-list__item-icon vpn_key
             input(type="hidden" name="redirect" value=user.url.show)
-            button.mdl-list__item-primary-content(type="submit" name="id" value=user._id)
-              .material-icons.mdl-list__item-icon vpn_key
+            button(type="submit" name="id" value=user._id)
               | #{user.status.actionMsg}
 
         li.mdl-list__item: span.mdl-list__item-primary-content: strong Status:

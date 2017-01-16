@@ -3,6 +3,7 @@ const test            = require('tape')
 
 const {
   connectUser,
+  connectAdmin,
   setupDB,
   teardownDB,
   teardownAndError,
@@ -38,6 +39,22 @@ test('connection fail', t => {
     .end()
     .then( result => {
       teardownDB(t, _ => t.pass('user has an auth error'))
+    } )
+    .catch( teardownAndError(t) )
+  }
+
+})
+
+test('admin connection – success', t => {
+  t.plan(1)
+  setupDB().then(test).catch(t.end)
+
+  function test() {
+    connectAdmin()
+    .url()
+    .end()
+    .then( url => {
+      teardownDB(t, _ => t.equal('http://localhost:3000/admin', url))
     } )
     .catch( teardownAndError(t) )
   }
