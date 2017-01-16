@@ -20,25 +20,32 @@ function defer() {
 // SHARED FUNCTIONNAL THINGS
 ////////
 
-function connectUser(show = false) {
+function createWindow(show = false) {
   return Nightmare({ show })
   .viewport(1024, 780)
-  .goto('http://localhost:3000')
-  .insert('#email-field', 'p@p.com')
-  .insert('#password-field', 'p')
-  .click('form[action*="/login"] [type=submit]')
-  .wait(10)
-  .wait('.customer-home')
 }
 
-function connectAdmin(show = false) {
-  return Nightmare({ show })
-  .viewport(1024, 780)
-  .goto('http://localhost:3000/admin')
-  .insert('#password-field', 'toto')
-  .click('form[action*="/login"] [type=submit]')
-  .wait(10)
-  .wait('.js-admin-home')
+function connectUser(email = 'p@p.com', password = 'p' ) {
+  return nightmare => {
+    return nightmare
+    .goto('http://localhost:3000')
+    .insert('#email-field', email)
+    .insert('#password-field', password)
+    .click('form[action*="/login"] [type=submit]')
+    .wait(10)
+    .wait('.customer-home')
+  }
+}
+
+function connectAdmin() {
+  return nightmare => {
+    return nightmare
+    .goto('http://localhost:3000/admin')
+    .insert('#password-field', 'toto')
+    .click('form[action*="/login"] [type=submit]')
+    .wait(10)
+    .wait('.js-admin-home')
+  }
 }
 
 ////////
@@ -80,31 +87,53 @@ function setupDB() {
 
 //----- TEARDOWN
 
-function teardownDB(t, cb = false) {
-  var copyCmd = `mongorestore --drop ${u.setDbParams(dbLocal)} ${dumpFolder}`
-  var dbCopy = exec(copyCmd, function onRestore(error, stdout, stderr) {
-    if (error !== null) return t.end(error)
-    cb ? cb() : t.end()
-  })
+// while using tape t.plan,
+// - calling the last test will end the current test
+// - next test will be called
+// - BUT we need to wait the DB to be restored
+// - AND we need to wait NIGHTMARE to close
+// https://github.com/segmentio/nightmare/issues/546
+
+const copyCmd = `mongorestore --drop ${u.setDbParams(dbLocal)} ${dumpFolder}`
+function teardownDBAndNightmare(t, nightmare) {
+  return function (tapeFinalTest) {
+    return function nightmarePromiseCallback(result) {
+      nightmare.end().then( _ => exec(copyCmd, onDBRestore) )
+      function onDBRestore(error, stdout, stderr) {
+        if (error) return t.end( error )
+        tapeFinalTest(result)
+      }
+    }
+  }
 }
 
 function teardownAndError(t, nightmareWindow) {
   return function(testError) {
-    teardownDB(t, _ => t.end(testError) )
-    // nightmare end need a callback
-    // https://github.com/segmentio/nightmare/issues/546
-    return nightmareWindow.end( _ => '' )
+    nightmare.end().then( _ => exec(copyCmd, onDBRestore) )
+    function onDBRestore(error, stdout, stderr) {
+      if (error) return t.end( error )
+      t.end( testError )
+    }
   }
 }
+
+function getTeardownHandlers(t, nightmareWindow) {
+  return {
+    onEnd:    teardownDBAndNightmare(t, nightmareWindow),
+    onError:  teardownAndError(t, nightmareWindow),
+  }
+}
+
+
 
 ////////
 // EXPORTS
 ////////
 
 module.exports = {
+  createWindow,
   connectUser,
   connectAdmin,
+  getTeardownHandlers,
   setupDB,
-  teardownDB,
-  teardownAndError,
 }

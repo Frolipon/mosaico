@@ -1,18 +1,23 @@
 const test            = require('tape')
-
 const {
+  createWindow,
   connectUser,
   setupDB,
   teardownDB,
   teardownAndError,
+  getTeardownHandlers
 }                     = require('../_utils')
 
 test('duplicate', t => {
-  t.plan(1)
-  setupDB().then(test).catch(t.end)
+  const nightmare           = createWindow(false)
+  const { onEnd, onError }  = getTeardownHandlers(t, nightmare)
 
-  function test() {
-    connectUser(false)
+  t.plan(1)
+  setupDB().then( start ).catch( onError )
+
+  function start() {
+    nightmare
+    .use( connectUser() )
     .click('.js-tbody-selection tr:first-child td:last-child a')
     .wait('.customer-home')
     .evaluate( () => {
@@ -21,25 +26,26 @@ test('duplicate', t => {
       return { originalName, copyName }
     })
     .end()
-    .then( result => {
-      teardownDB(t, _ => {
-        const { originalName,  copyName } = result
-        t.equal(copyName, `${originalName} copy`, 'CLAPOU')
-      })
-    } )
-    .catch( teardownAndError(t) )
-
+    .then( onEnd( result => {
+      const { originalName,  copyName } = result
+      t.equal(copyName, `${originalName} copy`, 'same name + copy suffix')
+    } ) )
+    .catch( onError )
   }
 
 })
 
 test('rename from home', t => {
+  const nightmare           = createWindow(false)
+  const { onEnd, onError }  = getTeardownHandlers(t, nightmare)
   const renameTestCreationTitle = 'new name'
-  t.plan(1)
-  setupDB().then(test).catch(t.end)
 
-  function test() {
-    connectUser(false)
+  t.plan(1)
+  setupDB().then( start ).catch( onError )
+
+  function start() {
+    nightmare
+    .use( connectUser() )
     .click('.js-tbody-selection tr:nth-child(2) .js-rename')
     .insert('#rename-field', false)
     .insert('#rename-field', 'new name')
@@ -49,14 +55,10 @@ test('rename from home', t => {
       const name  = document.querySelector('.js-tbody-selection tr:nth-child(2) > td:nth-child(2) > a').textContent
       return { name }
     })
-    .end()
-    .then( result => {
-      teardownDB(t, _ => {
-        const { name  } = result
-        t.equal(name, renameTestCreationTitle)
-      })
-    } )
-    .catch( teardownAndError(t) )
+    .then( onEnd( result => {
+      t.equal(result.name, renameTestCreationTitle)
+    } ) )
+    .catch( onError )
   }
 
 })

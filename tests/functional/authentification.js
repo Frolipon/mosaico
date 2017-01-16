@@ -1,62 +1,68 @@
-const Nightmare       = require('nightmare')
 const test            = require('tape')
-
 const {
+  createWindow,
   connectUser,
   connectAdmin,
   setupDB,
-  teardownDB,
-  teardownAndError,
+  getTeardownHandlers,
  }                    = require('../_utils')
 
 test('connection success', t => {
-  t.plan(1)
-  setupDB().then(test).catch(t.end)
+  const nightmare           = createWindow(false)
+  const { onEnd, onError }  = getTeardownHandlers(t, nightmare)
 
-  function test() {
-    connectUser()
-    .end()
-    .then( result => {
-      teardownDB(t, _ => t.pass('user is connected'))
-    } )
-    .catch( teardownAndError(t) )
+  t.plan(1)
+  setupDB().then( start ).catch( onError )
+
+  function  start() {
+    nightmare
+    .use( connectUser() )
+    .then( onEnd( result => t.pass('user is connected') ) )
+    .catch( onError )
   }
 
 })
 
 test('connection fail', t => {
-  t.plan(1)
-  setupDB().then(test).catch(t.end)
+  const nightmare           = createWindow(false)
+  const { onEnd, onError }  = getTeardownHandlers(t, nightmare)
 
-  function test() {
-    Nightmare({ show: false })
+  t.plan(1)
+  setupDB().then( start ).catch( onError )
+
+  function start() {
+    nightmare
     .goto('http://localhost:3000')
     .insert('#email-field', 'p@p.com')
     .insert('#password-field', 'pp')
     .click('form[action*="/login"] [type=submit]')
     .exists('.is-invalid.is-dirty')
     .wait('dl.message.error')
-    .end()
-    .then( result => {
-      teardownDB(t, _ => t.pass('user has an auth error'))
+    .evaluate( () => {
+      const errorEl = document.querySelector('.message.error p')
+      return { errorMessage: errorEl ? errorEl.textContent : false }
     } )
-    .catch( teardownAndError(t) )
+    .then( onEnd( result => {
+      t.equal(result.errorMessage, 'Incorrect password.', 'user has an auth error')
+    } ) )
+    .catch( onError )
   }
 
 })
 
 test('admin connection – success', t => {
-  t.plan(1)
-  setupDB().then(test).catch(t.end)
+  const nightmare           = createWindow(false)
+  const { onEnd, onError }  = getTeardownHandlers(t, nightmare)
 
-  function test() {
-    connectAdmin(false)
+  t.plan(1)
+  setupDB().then( start ).catch( onError )
+
+  function start() {
+    nightmare
+    .use( connectAdmin() )
     .url()
-    .end()
-    .then( url => {
-      teardownDB(t, _ => t.equal('http://localhost:3000/admin', url))
-    } )
-    .catch( teardownAndError(t) )
+    .then( onEnd( url => t.equal('http://localhost:3000/admin', url) ) )
+    .catch( onError )
   }
 
 })

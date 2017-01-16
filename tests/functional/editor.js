@@ -1,11 +1,10 @@
 const test            = require('tape')
-
 const {
+  createWindow,
   connectUser,
   connectAdmin,
   setupDB,
-  teardownDB,
-  teardownAndError,
+  getTeardownHandlers,
 }                     = require('../_utils')
 const rename          = {
   nameSelector:   `#toolbar > div.creation-name > p > span`,
@@ -49,86 +48,90 @@ function checkName(nightmare) {
 }
 
 test('rename from editor – can rename', t => {
+  const nightmare           = createWindow(false)
+  const { onEnd, onError }  = getTeardownHandlers(t, nightmare)
   const renameTestCreationTitle = 'new creation name'
-  t.plan(1)
-  setupDB().then(test).catch(t.end)
 
-  function test() {
-    connectUser(false)
+  t.plan(1)
+  setupDB().then( start ).catch( onError )
+
+  function start() {
+    nightmare
+    .use( connectUser() )
     .use( gotToEditor )
     .use( activateRename )
     .insert( rename.inputSelector, renameTestCreationTitle )
     .use( checkName )
-    .then( result => {
-      teardownDB(t, _ => {
-        const { name  } = result
-        t.equal(name, renameTestCreationTitle)
-      })
-    } )
-    .catch( teardownAndError(t) )
+    .then( onEnd( result => {
+      t.equal(result.name, renameTestCreationTitle)
+    } ) )
+    .catch( onError )
   }
 })
 
 test('rename from editor – empty rename get default title', t => {
+  const nightmare           = createWindow(false)
+  const { onEnd, onError }  = getTeardownHandlers(t, nightmare)
+
   t.plan(1)
-  setupDB().then(test).catch(t.end)
+  setupDB().then(test).catch( onError )
 
   function test() {
-    connectUser(false)
+    nightmare
+    .use( connectUser() )
     .use( gotToEditor )
     .use( activateRename )
     .type( rename.inputSelector, 'p' )
     .type( rename.inputSelector, '\u0008' )
     .use( checkName )
-    .then( result => {
-      teardownDB(t, _ => {
-        const { name  } = result
-        t.equal(name, 'untitled')
-      })
-    } )
-    .catch( teardownAndError(t) )
+    .then( onEnd( result => {
+      t.equal(result.name, 'untitled')
+    } ) )
+    .catch( onError )
   }
 })
 
 test('rename from editor – name of 1 space behave like empty', t => {
-  t.plan(1)
-  setupDB().then(test).catch(t.end)
+  const nightmare           = createWindow(false)
+  const { onEnd, onError }  = getTeardownHandlers(t, nightmare)
 
-  function test() {
-    connectUser(false)
+  t.plan(1)
+  setupDB().then( start ).catch( onError )
+
+  function start() {
+    nightmare
+    .use( connectUser() )
     .use( gotToEditor )
     .use( activateRename )
     .type( rename.inputSelector, ' ' )
     .use( checkName )
-    .then( result => {
-      teardownDB(t, _ => {
-        const { name  } = result
-        t.equal(name, 'untitled')
-      })
-    } )
-    .catch( teardownAndError(t) )
+    .then( onEnd( result => {
+      t.equal(result.name, 'untitled')
+    } ) )
+    .catch( onError )
   }
 })
 
 test('rename from editor – admin can do it on a user creation', t => {
+  const nightmare           = createWindow(false)
+  const { onEnd, onError }  = getTeardownHandlers(t, nightmare)
   const renameTestCreationTitle = 'admin name'
-  t.plan(1)
-  setupDB().then(test).catch(t.end)
 
-  function test() {
-    connectAdmin(false)
+  t.plan(1)
+  setupDB().then( start ).catch( onError )
+
+  function start() {
+    nightmare
+    .use( connectAdmin() )
     .goto( 'http://localhost:3000/editor/580c4d0ec3a29f4a1cd26083' )
     .wait('#toolbar .creation-name')
     .use( activateRename )
     .insert( rename.inputSelector, renameTestCreationTitle )
     .wait()
     .use( checkName )
-    .then( result => {
-      teardownDB(t, _ => {
-        const { name  } = result
-        t.equal(name, renameTestCreationTitle)
-      })
-    } )
-    .catch( teardownAndError(t) )
+    .then( onEnd( result => {
+      t.equal(result.name, renameTestCreationTitle)
+    } ) )
+    .catch( onError )
   }
 })
