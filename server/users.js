@@ -92,12 +92,20 @@ function update(req, res, next) {
   }
 }
 
-function remove(req, res, next) {
-  var userId = req.params.userId
+function deactivate(req, res, next) {
+  const { userId } = req.params
+
   Users
-  .findByIdAndRemove(userId)
-  .then( _ => res.redirect('/admin') )
-  .catch(next)
+  .findById( userId )
+  .then( handleUser )
+  .catch( next )
+
+  function handleUser(user) {
+    user
+    .deactivate()
+    .then( user => res.redirect('/admin') )
+    .catch( next )
+  }
 }
 
 function adminResetPassword(req, res, next) {
@@ -170,7 +178,7 @@ module.exports = {
   list:               list,
   show:               show,
   update:             update,
-  delete:             remove,
+  deactivate,
   adminResetPassword: adminResetPassword,
   userResetPassword:  userResetPassword,
   setPassword:        setPassword,

@@ -15,7 +15,7 @@ const WireframeSchema = Schema({
     set:        normalizeString,
   },
   description: {
-    type: String
+    type:       String,
   },
   _company: {
     type:       ObjectId,

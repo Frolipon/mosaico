@@ -1,4 +1,5 @@
 extends _layout-admin.pug
+include _user-list.pug
 
 block vars
   - var pageTitle = 'user list'
@@ -8,35 +9,5 @@ block content
     if !data.users.length
       h4.home-subtitle no user yet
     else
-      table.mdl-data-table.mdl-js-data-table.mdl-shadow--2dp
-        thead
-          tr
-            if _config.debug
-              th.mdl-data-table__cell--non-numeric id
-            th.mdl-data-table__cell--non-numeric email
-            th.mdl-data-table__cell--non-numeric user name
-            th.mdl-data-table__cell--non-numeric from company
-            th.mdl-data-table__cell--non-numeric(colspan="2") status
-            th.mdl-data-table__cell--action language
-            th.mdl-data-table__cell--non-numeric created at
-            th.mdl-data-table__cell--action password mail
-            //- th.mdl-data-table__cell--action delete
-        tbody
-          each user in data.users
-            tr
-              if _config.debug
-                td.mdl-data-table__cell--non-numeric: a(href=user.url.show)= user._id
-              td.mdl-data-table__cell--non-numeric: a(href=user.url.show)= user.email
-              td.mdl-data-table__cell--non-numeric= user.safename
-              td.mdl-data-table__cell--non-numeric
-                a(href=user.url.company) #{user._company.name}
-              td.mdl-data-table__cell--non-numeric: i.material-icons= user.status.icon
-              td.mdl-data-table__cell--non-numeric= user.status.value
-              td.mdl-data-table__cell--action= user.lang
-              td.mdl-data-table__cell--non-numeric= formatDate(user.createdAt)
-              td.mdl-data-table__cell--action: form(action='/users/reset' method="post")
-                input(type="hidden" name="redirect" value="/users")
-                button.mdl-button.mdl-js-button.mdl-button--accent(type="submit" name="id" value=user._id)= user.status.actionMsgShort
-              //- td.mdl-data-table__cell--action: form(action=user.url.delete method="post")
-              //-   button.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(type="submit")
-              //-     i.material-icons delete
+      +user-list().mdl-shadow--2dp
+
