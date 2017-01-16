@@ -244,13 +244,12 @@ function customerList(req, res, next) {
 
 function show(req, res, next) {
   var data = {
-    translations: translations[req.getLocale()],
+    translations: translations[ res.getLocale() ],
   }
   Creations
-  .findById(req.params.creationId)
-  .then( (creation) => {
+  .findOne( addCompanyFilter(req.user, { _id: req.params.creationId}) )
+  .then( creation => {
     if (!creation) return next(createError(404))
-    if (!isFromCompany(req.user, creation._company)) return next(createError(401))
     res.render('editor', { data: _.assign({}, data, creation.mosaico) })
   })
   .catch(next)

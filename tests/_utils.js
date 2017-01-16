@@ -26,6 +26,7 @@ function connectUser(show = false) {
   .insert('#email-field', 'p@p.com')
   .insert('#password-field', 'p')
   .click('form[action*="/login"] [type=submit]')
+  .wait()
   .wait('.customer-home')
 }
 
@@ -34,7 +35,8 @@ function connectAdmin(show = false) {
   .goto('http://localhost:3000/admin')
   .insert('#password-field', 'toto')
   .click('form[action*="/login"] [type=submit]')
-  .wait('.mdl-layout-title')
+  .wait()
+  .wait('.js-admin-home')
 }
 
 ////////

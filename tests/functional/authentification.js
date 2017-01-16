@@ -50,7 +50,7 @@ test('admin connection – success', t => {
   setupDB().then(test).catch(t.end)
 
   function test() {
-    connectAdmin()
+    connectAdmin(false)
     .url()
     .end()
     .then( url => {

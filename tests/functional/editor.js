@@ -111,16 +111,17 @@ test('rename from editor – name of 1 space behave like empty', t => {
 })
 
 test('rename from editor – admin can do it on a user creation', t => {
-  const renameTestCreationTitle = 'new creation name'
+  const renameTestCreationTitle = 'admin name'
   t.plan(1)
   setupDB().then(test).catch(t.end)
 
   function test() {
-    connectAdmin(true)
+    connectAdmin(false)
     .goto( 'http://localhost:3000/editor/580c4d0ec3a29f4a1cd26083' )
     .wait('#toolbar .creation-name')
     .use( activateRename )
     .insert( rename.inputSelector, renameTestCreationTitle )
+    .wait()
     .use( checkName )
     .then( result => {
       teardownDB(t, _ => {
