@@ -71,8 +71,17 @@ function isFromCompany(user, companyId) {
   return user._company.toString() === companyId.toString()
 }
 
+// users can access only same company content
+// admin everything
 function addCompanyFilter(user, filter) {
-  // admin content doesn't have a company
+  if (user.isAdmin) return filter
+  filter._company = user._company
+  return filter
+}
+
+// Strict difference from above:
+// Admin can't content with a company
+function addStrictCompanyFilter(user, filter) {
   const _company  = user.isAdmin ? { $exists: false } : user._company
   filter._company = _company
   return filter
@@ -93,6 +102,8 @@ module.exports    = {
   formatErrors,
   isFromCompany,
   addCompanyFilter,
+  addStrictCompanyFilter,
+
   // Compiled schema
   Users,
   Wireframes,

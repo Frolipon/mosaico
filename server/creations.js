@@ -16,6 +16,7 @@ const {
   Users,
   isFromCompany,
   addCompanyFilter,
+  addStrictCompanyFilter,
 }                         = require('./models')
 const cleanTagName        = require('../shared/clean-tag-name')
 const { normalizeString } = require('./models/utils')
@@ -352,7 +353,7 @@ function updateLabels(req, res, next) {
   } )
 
   Creations
-  .find( addCompanyFilter(req.user, {
+  .find( addStrictCompanyFilter(req.user, {
     _id: {
       $in: creations.map(Types.ObjectId),
     },
@@ -387,7 +388,7 @@ function bulkRemove(req, res, next) {
   const { creations } = req.body
   if (!_.isArray( creations ) || !creations.length ) return res.redirect( redirectUrl )
   const redirectUrl   = getRedirectUrl(req)
-  const filter        = addCompanyFilter(req.user, {
+  const filter        = addStrictCompanyFilter(req.user, {
     _id: {
       $in: creations.map(Types.ObjectId),
     },
@@ -422,25 +423,21 @@ function rename(req, res, next) {
   if (!req.xhr) return next( createError(501) ) // Not Implemented
   const { creationId }  = req.params
 
-  // a proper _company query can't be used: Admin should be able to rename everything
-  // TODO: make a new type of query for this case
-
   Creations
-  .findById(creationId)
-  .then(handleCreation)
-  .catch(next)
+  .findOne( addCompanyFilter(req.user, { _id: creationId}) )
+  .then( handleCreation )
+  .catch( next )
 
   function handleCreation(creation) {
     if (!creation) return next( createError(404) )
-    if (!isFromCompany(req.user, creation._company)) return next(createError(401))
-
     // use res.__ because (not req) it's where i18n is always up to date (index.js#192)
     creation.name = normalizeString( req.body.name ) || res.__('home.saved.noname')
 
     creation
     .save()
-    .then( creation => res.json(creation)  )
-    .catch(next)
+    // don't shortcut to .then( res.json ) it breaks app…
+    .then( creation => res.json(creation) )
+    .catch( next )
   }
 }
 
