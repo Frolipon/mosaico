@@ -14,7 +14,6 @@ const {
   Wireframes,
   Creations,
   Users,
-  isFromCompany,
   addCompanyFilter,
   addStrictCompanyFilter,
 }                         = require('./models')
@@ -260,16 +259,16 @@ function show(req, res, next) {
 //////
 
 function create(req, res, next) {
-  const wireframeId = req.query.wireframeId
+  const filter = addCompanyFilter(req.user, { _id: req.query.wireframeId})
 
   Wireframes
-  .findById(wireframeId, '_id _company name')
+  .findOne( filter, '_id _company name')
+  .lean()
   .then(onWireframe)
   .catch(next)
 
   function onWireframe(wireframe) {
     if (!wireframe) return next(createError(404))
-    if (!isFromCompany(req.user, wireframe._company)) return next(createError(401))
     const initParameters = {
       // Always give a default name: needed for ordering & filtering
       // use res.__ because (not req) it's where i18n is always up to date (index.js#192)
@@ -286,39 +285,6 @@ function create(req, res, next) {
     new Creations(initParameters)
     .save()
     .then( creation =>  res.redirect('/editor/' + creation._id) )
-    .catch(next)
-  }
-}
-
-//////
-// UPDATE CREATION IN EDITOR
-//////
-
-function update(req, res, next) {
-  if (!req.xhr) return next(createError(501)) // Not Implemented
-  const { creationId } = req.params
-
-  Creations
-  .findById(creationId)
-  .then(handleCreation)
-  .catch(next)
-
-  function handleCreation(creation) {
-    if (!creation) return next(createError(404))
-    if (!isFromCompany(req.user, creation._company)) return next(createError(401))
-    creation._wireframe = creation._wireframe
-    creation.userId     = creation.userId
-    creation.data       = req.body.data
-    // http://mongoosejs.com/docs/schematypes.html#mixed
-    creation.markModified('data')
-
-    return creation
-    .save()
-    .then( creation => {
-      const data2editor = creation.mosaico
-      if (!creationId) data2editor.meta.redirect = `/editor/${creation._id}`
-      res.json(data2editor)
-    })
     .catch(next)
   }
 }
@@ -398,7 +364,6 @@ function bulkRemove(req, res, next) {
   .catch( next )
 
   function onCreations(creations) {
-    console.log(creations)
     Promise
     .all( creations.map( creation => creation.remove()) )
     .then( _ => res.redirect(redirectUrl) )
@@ -410,20 +375,34 @@ function bulkRemove(req, res, next) {
 // OTHERS ACTIONS
 //////
 
-function remove(req, res, next) {
-  const creationId  = req.params.creationId
+
+// TODO merge update & rename
+function update(req, res, next) {
+  if (!req.xhr) return next(createError(501)) // Not Implemented
+
   Creations
-  .findByIdAndRemove(creationId)
-  .then( c => res.redirect('/') )
-  .catch(next)
+  .findOne( addCompanyFilter(req.user, { _id: req.params.creationId}) )
+  .then( handleCreation )
+  .catch( next )
+
+  function handleCreation(creation) {
+    if (!creation) return next(createError(404))
+    creation.data = req.body.data
+    // http://mongoosejs.com/docs/schematypes.html#mixed
+    creation.markModified('data')
+
+    return creation
+    .save()
+    .then( creation => res.json( creation.mosaico ) )
+    .catch(next)
+  }
 }
 
 function rename(req, res, next) {
   if (!req.xhr) return next( createError(501) ) // Not Implemented
-  const { creationId }  = req.params
 
   Creations
-  .findOne( addCompanyFilter(req.user, { _id: creationId}) )
+  .findOne( addCompanyFilter(req.user, { _id: req.params.creationId}) )
   .then( handleCreation )
   .catch( next )
 
@@ -438,6 +417,14 @@ function rename(req, res, next) {
     .then( creation => res.json(creation) )
     .catch( next )
   }
+}
+
+function remove(req, res, next) {
+  const creationId  = req.params.creationId
+  Creations
+  .findByIdAndRemove(creationId)
+  .then( c => res.redirect('/') )
+  .catch(next)
 }
 
 // should upload image on a specific client bucket
@@ -459,7 +446,7 @@ function upload(req, res, next) {
 
 function listImages(req, res, next) {
   filemanager
-  .list(req.params.creationId)
+  .list( req.params.creationId )
   .then( files => res.json({ files }) )
   .catch(next)
 }
@@ -467,22 +454,21 @@ function listImages(req, res, next) {
 function duplicate(req, res, next) {
 
   Creations
-  .findById(req.params.creationId)
-  .then(onCreation)
-  .catch(next)
+  .findOne( addCompanyFilter(req.user, { _id: req.params.creationId}) )
+  .then( onCreation )
+  .catch( next )
 
   function onCreation(creation) {
     if (!creation) return next(createError(404))
-    if (!isFromCompany(req.user, creation._company)) return next(createError(401))
     creation
-    .duplicate(req.user)
-    .then(onDuplicate)
-    .catch(next)
+    .duplicate( req.user )
+    .then( onDuplicate )
+    .catch( next )
   }
 
   function onDuplicate(newCreation) {
     filemanager
-    .copyImages(req.params.creationId, newCreation._id)
+    .copyImages( req.params.creationId, newCreation._id )
     .then( _ => res.redirect('/') )
   }
 }

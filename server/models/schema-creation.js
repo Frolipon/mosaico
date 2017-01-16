@@ -10,6 +10,7 @@ const CreationSchema  = Schema({
   name: {
     type:     String,
     set:      normalizeString,
+    required: true,
   },
   // _user can't be required: admin doesn't set a _user
   _user: {

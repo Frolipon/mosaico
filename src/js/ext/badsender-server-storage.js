@@ -47,9 +47,6 @@ var loader = function (viewModel) {
     // => Deprecation notice for .success(), .error(), and .complete()
     function onPostSuccess(data, textStatus, jqXHR) {
       console.log('save success')
-      if (data.meta.redirect) {
-        history.replaceState({}, 'editor', data.meta.redirect)
-      }
       viewModel.notifier.success(viewModel.t("Creation has been saved"))
     }
 
