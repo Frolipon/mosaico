@@ -176,11 +176,11 @@ function setPassword(req, res, next) {
 }
 
 module.exports = {
-  list:               list,
-  show:               show,
-  update:             update,
+  list,
+  show,
+  update,
   deactivate,
-  adminResetPassword: adminResetPassword,
-  userResetPassword:  userResetPassword,
-  setPassword:        setPassword,
+  adminResetPassword,
+  userResetPassword,
+  setPassword,
 }

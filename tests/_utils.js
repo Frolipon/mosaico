@@ -22,6 +22,7 @@ function defer() {
 
 function connectUser(show = false) {
   return Nightmare({ show })
+  .viewport(1024, 780)
   .goto('http://localhost:3000')
   .insert('#email-field', 'p@p.com')
   .insert('#password-field', 'p')
@@ -32,6 +33,7 @@ function connectUser(show = false) {
 
 function connectAdmin(show = false) {
   return Nightmare({ show })
+  .viewport(1024, 780)
   .goto('http://localhost:3000/admin')
   .insert('#password-field', 'toto')
   .click('form[action*="/login"] [type=submit]')
@@ -78,7 +80,7 @@ function setupDB() {
 
 //----- TEARDOWN
 
-function teardownDB(t, cb) {
+function teardownDB(t, cb = false) {
   var copyCmd = `mongorestore --drop ${u.setDbParams(dbLocal)} ${dumpFolder}`
   var dbCopy = exec(copyCmd, function onRestore(error, stdout, stderr) {
     if (error !== null) return t.end(error)
@@ -86,11 +88,12 @@ function teardownDB(t, cb) {
   })
 }
 
-function teardownAndError(t) {
+function teardownAndError(t, nightmareWindow) {
   return function(testError) {
-    teardownDB(t)
-    .then( _ => t.end(testError) )
-    .catch( t.end )
+    teardownDB(t, _ => t.end(testError) )
+    // nightmare end need a callback
+    // https://github.com/segmentio/nightmare/issues/546
+    return nightmareWindow.end( _ => '' )
   }
 }
 
