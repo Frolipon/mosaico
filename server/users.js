@@ -104,7 +104,7 @@ function deactivate(req, res, next) {
   function handleUser(user) {
     user
     .deactivate()
-    .then( user => res.redirect('/admin') )
+    .then( user => res.redirect('/users') )
     .catch( next )
   }
 }
