@@ -24,12 +24,14 @@ block content
           .material-icons.mdl-list__item-icon group
           | #{user._company.name}
 
-        li.mdl-list__item
-          form.mdl-list__item-primary-content(action='/users/reset' method="post")
-            .material-icons.mdl-list__item-icon vpn_key
-            input(type="hidden" name="redirect" value=user.url.show)
-            button(type="submit" name="id" value=user._id)
-              | #{user.status.actionMsg}
+        if !user.isDeactivated
+
+          li.mdl-list__item
+            form.mdl-list__item-primary-content(action='/users/reset' method="post")
+              .material-icons.mdl-list__item-icon vpn_key
+              input(type="hidden" name="redirect" value=user.url.show)
+              button(type="submit" name="id" value=user._id)
+                | #{user.status.actionMsg}
 
         li.mdl-list__item: span.mdl-list__item-primary-content: strong Status:
 

@@ -13,6 +13,7 @@ function list(req, res, next) {
   Users
   .find({})
   .populate('_company')
+  .sort({ isDeactivated: 1, createdAt: -1  })
   .then(function onUsers(users) {
     return res.render('user-list', {
       data: { users: users, }

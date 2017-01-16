@@ -29,7 +29,10 @@ passport.use(new LocalStrategy(
     }
     // user
     Users
-    .findOne({ email: username })
+    .findOne({
+      email:          username,
+      isDeactivated:  { $ne: true },
+    })
     .then(function (user) {
       if (!user) return done(null, false, {message: 'no user'})
       var isPasswordValid = user.comparePassword(password)
@@ -43,9 +46,6 @@ passport.use(new LocalStrategy(
 ))
 
 passport.serializeUser( (user, done) => {
-  console.log('serializeUser')
-  console.log(user)
-  // if (user.id === -1) return done(null, adminUser)
   done(null, user.id)
 })
 

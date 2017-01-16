@@ -11,7 +11,7 @@ mixin user-list()
         th.mdl-data-table__cell--action language
         th.mdl-data-table__cell--non-numeric created at
         th.mdl-data-table__cell--action password mail
-        //- th.mdl-data-table__cell--action delete
+        th.mdl-data-table__cell--action deactivate
     tbody
       each user in data.users
         tr
@@ -25,9 +25,17 @@ mixin user-list()
           td.mdl-data-table__cell--non-numeric= user.status.value
           td.mdl-data-table__cell--action= user.lang
           td.mdl-data-table__cell--non-numeric= formatDate(user.createdAt)
-          td.mdl-data-table__cell--action: form(action='/users/reset' method="post")
-            input(type="hidden" name="redirect" value="/users")
-            button.mdl-button.mdl-js-button.mdl-button--accent(type="submit" name="id" value=user._id)= user.status.actionMsgShort
-          //- td.mdl-data-table__cell--action: form(action=user.url.delete method="post")
-          //-   button.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(type="submit")
-          //-     i.material-icons delete
+          td.mdl-data-table__cell--action
+            if !user.isDeactivated
+              form(action='/users/reset' method="post")
+                input(type="hidden" name="redirect" value="/users")
+                button.mdl-button.mdl-js-button.mdl-button--accent(type="submit" name="id" value=user._id)= user.status.actionMsgShort
+          td.mdl-data-table__cell--action
+            if !user.isDeactivated
+              a(href=user.url.delete).mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent
+                i.material-icons airline_seat_individual_suite
+            else
+              //- no reactivation for now
+              //- a(href=user.url.delete).mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent
+              //-   i.material-icons accessibility
+
