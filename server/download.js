@@ -91,12 +91,9 @@ function zip(req, res, next) {
     // We only take care of images in the HTML
     // No <style> CSS parsing for now. May be implemented later
     const $images  = $('img')
-    // will be used to download images
     const imgUrls  = _.uniq( $images.map( (i, el) => $(el).attr('src') ).get() )
-    // console.log(imgUrls)
-    // make a relative path
+    // change path to match downloaded images
     // Don't use Cheerio because when exporting some mess are donne with ESP tags
-    // let imgBases  = _.uniq(imgUrls.map(getImageUrlWithoutName))
     imgUrls.forEach( (imgUrl) => {
       let search  = new RegExp(`src="${imgUrl}`, 'g')
       html        = html.replace(search, `src="${imagesFolder}/${getImageName(imgUrl)}`)
@@ -175,10 +172,6 @@ function getImageName(imageUrl) {
   .replace(/\//g, ' ')
   .trim()
   .replace(/\s/g, '-')
-}
-
-function getImageUrlWithoutName(imageUrl) {
-  return imageUrl.replace(getImageName(imageUrl), '')
 }
 
 module.exports = {
