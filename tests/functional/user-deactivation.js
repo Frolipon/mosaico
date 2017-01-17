@@ -20,7 +20,8 @@ test('admin – deactivate a user', t => {
     .use( connectAdmin() )
     .goto(`http://localhost:3000/users/${data._id}`)
     .evaluate( () => {
-      const icon = document.querySelector('.mdl-list li:nth-child(4) i').textContent
+      const iconEl  = document.querySelector('.mdl-list li:nth-child(5) i')
+      const icon    = iconEl ? iconEl.textContent : 'no icon to display on user card'
       return { icon }
     })
     .then( checkUserIsActive )

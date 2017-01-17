@@ -22,7 +22,7 @@ function defer() {
 
 function createWindow(show = false) {
   return Nightmare({ show })
-  .viewport(1024, 780)
+  .viewport(1280, 780)
 }
 
 function connectUser(email = 'p@p.com', password = 'p' ) {
@@ -107,7 +107,7 @@ function teardownDBAndNightmare(t, nightmare) {
   }
 }
 
-function teardownAndError(t, nightmareWindow) {
+function teardownAndError(t, nightmare) {
   return function(testError) {
     nightmare.end().then( _ => exec(copyCmd, onDBRestore) )
     function onDBRestore(error, stdout, stderr) {
@@ -117,14 +117,12 @@ function teardownAndError(t, nightmareWindow) {
   }
 }
 
-function getTeardownHandlers(t, nightmareWindow) {
+function getTeardownHandlers(t, nightmare) {
   return {
-    onEnd:    teardownDBAndNightmare(t, nightmareWindow),
-    onError:  teardownAndError(t, nightmareWindow),
+    onEnd:    teardownDBAndNightmare(t, nightmare),
+    onError:  teardownAndError(t, nightmare),
   }
 }
-
-
 
 ////////
 // EXPORTS
