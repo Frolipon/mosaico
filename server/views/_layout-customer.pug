@@ -13,6 +13,8 @@ html(lang=getLocale())
     .mdl-layout.mdl-js-layout
       header.mdl-layout__header.mdl-layout__header--scroll
         .mdl-layout__header-row
+          a.badsender-logo(href="/").site-header__root-link
+            include ../../res/logo-badsender-white.svg
           //- Title
           span.mdl-layout-title
             | #{__('home.welcome')} #{_user.name}
