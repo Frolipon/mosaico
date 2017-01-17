@@ -474,15 +474,15 @@ function duplicate(req, res, next) {
 }
 
 module.exports = {
-  customerList: customerList,
-  show:         show,
-  update:       update,
-  remove:       remove,
+  customerList,
+  show,
+  update,
+  remove,
   updateLabels,
   bulkRemove,
-  rename:       rename,
-  create:       create,
-  upload:       upload,
-  listImages:   listImages,
-  duplicate:    duplicate,
+  rename,
+  create,
+  upload,
+  listImages,
+  duplicate,
 }

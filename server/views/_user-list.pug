@@ -16,7 +16,7 @@ mixin user-list()
       each user in data.users
         tr
           if _config.debug
-            td.mdl-data-table__cell--non-numeric: a(href=user.url.show)= user._id
+            td.mdl-data-table__cell--non-numeric= user._id
           td.mdl-data-table__cell--non-numeric: a(href=user.url.show)= user.email
           td.mdl-data-table__cell--non-numeric= user.safename
           td.mdl-data-table__cell--non-numeric

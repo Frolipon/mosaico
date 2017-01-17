@@ -16,7 +16,8 @@
 			"noname": "untitled",
 			"wireframe-name": "wireframe used",
 			"created-by": "author",
-			"tags": "tags"
+			"tags": "tags",
+			"transfer": "transfer"
 		},
 		"more-info": "more info about the builder",
 		"footer": {

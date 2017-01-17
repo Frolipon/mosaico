@@ -121,15 +121,16 @@ module.exports = function () {
   // ROUTING
   //////
 
-  var download    = require('./download')
-  var images      = require('./images')
-  var render      = require('./render')
-  var users       = require('./users')
-  var companies   = require('./companies')
-  var wireframes  = require('./wireframes')
-  var creations   = require('./creations')
-  var filemanager = require('./filemanager')
-  var guard       = session.guard
+  var download          = require('./download')
+  var images            = require('./images')
+  var render            = require('./render')
+  var users             = require('./users')
+  var companies         = require('./companies')
+  var wireframes        = require('./wireframes')
+  var creations         = require('./creations')
+  var creationTransfer  = require('./creation-transfer')
+  var filemanager       = require('./filemanager')
+  var guard             = session.guard
 
   //----- EXPOSE DATAS TO VIEWS
 
@@ -242,10 +243,14 @@ module.exports = function () {
   app.get('/users',                               users.list)
 
   app.get('/wireframes/:wireId/delete',           guard('admin'), wireframes.remove)
-  app.get('/wireframes/:wireId/markup',           guard('user'), wireframes.getMarkup)
+  app.get('/wireframes/:wireId/markup',           guard('user'),  wireframes.getMarkup)
   app.get('/wireframes/:wireId',                  guard('admin'), wireframes.show)
   app.post('/wireframes/:wireId?',                guard('admin'), wireframes.update)
   app.get('/wireframes',                          guard('admin'), wireframes.list)
+
+  app.all('/transfer/:creationId',                guard('admin'))
+  app.get('/transfer/:creationId',                creationTransfer.get)
+  app.post('/transfer/:creationId',               creationTransfer.post)
 
   //----- PUBLIC
 

@@ -73,6 +73,7 @@ function creationUrls(creationId) {
     delete:     `/creations/${creationId}?_method=DELETE`,
     send:       `/creations/${creationId}/send`,
     zip:        `/creations/${creationId}/zip`,
+    transfer:   `/transfer/${creationId}`,
   }
 }
 
