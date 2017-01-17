@@ -110,7 +110,7 @@
     "grunt-parallel": "0.5.1",
     "grunt-postcss": "0.8.0",
     "gulp": "^3.9.0",
-    "gulp-bump": "^1.0.0",
+    "gulp-bump": "^2.5.1",
     "gulp-clean-css": "^2.3.2",
     "gulp-concat": "^2.6.0",
     "gulp-doctoc": "^0.1.4",
