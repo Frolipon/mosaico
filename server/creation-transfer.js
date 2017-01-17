@@ -1,3 +1,5 @@
+const createError           = require('http-errors')
+
 const {
   Creations,
   Users,
@@ -43,18 +45,15 @@ function post(req, res, next) {
   .catch( next )
 
   function onQueries( [ user, creation ] ) {
+    if (!user || !creation) return next( createError(404) )
     creation._user    = user._id
     creation.author   = user.name
     creation._company = user._company
 
     creation
     .save()
-    .then(onSave)
+    .then( creation => res.redirect('/') )
     .catch( next )
-  }
-
-  function onSave(creation) {
-    res.redirect('/')
   }
 }
 
