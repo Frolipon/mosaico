@@ -25,13 +25,20 @@ block content
           | #{user._company.name}
 
         if !user.isDeactivated
-
           li.mdl-list__item
             form.mdl-list__item-primary-content(action='/users/reset' method="post")
               .material-icons.mdl-list__item-icon vpn_key
               input(type="hidden" name="redirect" value=user.url.show)
               button(type="submit" name="id" value=user._id)
                 | #{user.status.actionMsg}
+
+          li.mdl-list__item
+            a.mdl-list__item-primary-content(
+              href=mergeQueries(user.url.delete, {redirect: user.url.show})
+              onclick="return confirm('Are you sure you want to deactivate this user')"
+            )
+              .material-icons.mdl-list__item-icon airline_seat_individual_suite
+              | deactivate
 
         li.mdl-list__item: span.mdl-list__item-primary-content: strong Status:
 

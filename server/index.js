@@ -1,6 +1,7 @@
 'use strict'
 
 const qs              = require('qs')
+const url             = require('url')
 const path            = require('path')
 const chalk           = require('chalk')
 const express         = require('express')
@@ -149,7 +150,10 @@ module.exports = function () {
   }
 
   app.locals.mergeQueries = function mergeQueries(route, _query, params = {}) {
-    params  = merge({}, _query, params)
+    const parsedroute = url.parse(route)
+    const initParams  = parsedroute.query ? qs.parse( parsedroute.query ) : {}
+    route             = parsedroute.pathname
+    params  = merge(initParams, _query, params)
     params  = qs.stringify(params, { filter: filterQuery })
     return Object.keys(params).length ? `${route}?${params}` : route
   }

@@ -94,7 +94,8 @@ function update(req, res, next) {
 }
 
 function deactivate(req, res, next) {
-  const { userId } = req.params
+  const { userId }    = req.params
+  const { redirect }  = req.query
 
   Users
   .findById( userId )
@@ -104,7 +105,7 @@ function deactivate(req, res, next) {
   function handleUser(user) {
     user
     .deactivate()
-    .then( user => res.redirect('/users') )
+    .then( user => res.redirect( redirect ? redirect : '/users' ) )
     .catch( next )
   }
 }
