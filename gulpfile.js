@@ -324,8 +324,8 @@ gulp.task('clean-maintenance', cb => del([`${maintenanceFolder}/*.html`], cb) )
 
 gulp.task('maintenance', ['clean-maintenance'], () => {
   return gulp
-  .src([`${maintenanceFolder}/*.jade`, `!${maintenanceFolder}/_*.jade`])
-  .pipe($.jade())
+  .src([`${maintenanceFolder}/*.pug`, `!${maintenanceFolder}/_*.pug`])
+  .pipe($.pug())
   .pipe(gulp.dest(maintenanceFolder))
 })
 
