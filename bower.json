@@ -75,11 +75,9 @@
     "knockout": "3.4.1"
   },
   "group": {
-    "main": [
-      "knockout",
-      "jquery"
-    ],
     "editor": [
+      "knockout",
+      "jquery",
       "jquery-ui",
       "jqueryui-touch-punch",
       "blueimp-load-image",

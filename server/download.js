@@ -133,7 +133,7 @@ function zip(req, res, next) {
         dfd.resolve()
       })
       imgRequest.on('error', imgError => {
-        console.log('[ZIP] errro during downloading', imageUrl)
+        console.log('[ZIP] error during downloading', imageUrl)
         console.log(imgError)
         // still resolve, just don't add this errored image to the archive
         dfd.resolve()

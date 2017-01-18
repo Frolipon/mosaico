@@ -104,14 +104,9 @@ gulp.task('clean-lib', function (cb) {
   return del(buildDir, '/**/*.js');
 });
 
+// Bundling libs is just a concat…
 gulp.task('lib', ['clean-lib'], function () {
 
-  // used in home and editor
-  var mainLibs   = gulp
-    .src(mainBowerFiles({ group:  'main', }))
-    .pipe($.concat('badsender-lib-core.js'));
-
-  // editor's only
   var bowerfiles = mainBowerFiles({
     group:  'editor',
     overrides: {
@@ -125,12 +120,14 @@ gulp.task('lib', ['clean-lib'], function () {
       },
     }
   });
-  // console.log(bowerfiles);
+
   var editorLibs = gulp
     .src(bowerfiles)
-    .pipe($.filter(['*', '**/*', '!**/*.css', '!**/jquery.js', '!**/knockout.js']))
+    .pipe($.filter(['*.js', '**/*.js']))
     .pipe($.order([
       // reorganize files we want to concat
+      'jquery.js',
+      'knockout.js',
       'jquery-ui*.js',
       'load-image.all.min.js',
       'jquery.fileupload.js',
@@ -153,7 +150,7 @@ gulp.task('lib', ['clean-lib'], function () {
     'bower_components/tinymce/plugins/code/plugin.js',
   ], { base: 'bower_components/tinymce' })
 
-  return merge(mainLibs, editorLibs, tinymce)
+  return merge(editorLibs, tinymce)
     .pipe($.if(!isDev, $.uglify()))
     .pipe(gulp.dest(buildDir + '/lib'));
 
