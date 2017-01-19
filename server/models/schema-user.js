@@ -119,13 +119,20 @@ UserSchema.virtual('url').get(function () {
   return {
     show:     `/users/${this._id}`,
     delete:   `/users/${this._id}?_method=DELETE`,
+    restore:  `/users/${this._id}/restore`,
     company:  `/companies/${companyId}`,
   }
 })
 
+UserSchema.methods.activate = function activate() {
+  var user            = this
+  user.isDeactivated  = false
+  return user.save()
+}
+
 UserSchema.methods.deactivate = function deactivate() {
   var user            = this
-  user.password       = randtoken.generate(30)
+  user.password       = void(0)
   user.token          = void(0)
   user.isDeactivated  = true
 

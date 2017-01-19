@@ -39,6 +39,9 @@ mixin user-list()
                 i.material-icons airline_seat_individual_suite
             else
               //- no reactivation for now
-              //- a(href=user.url.delete).mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent
-              //-   i.material-icons accessibility
+              a(
+                href=user.url.restore
+                onclick="return confirm('Are you sure you want to activate this user')"
+              ).mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent
+                i.material-icons accessibility
 

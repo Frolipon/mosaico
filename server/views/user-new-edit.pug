@@ -40,6 +40,15 @@ block content
               .material-icons.mdl-list__item-icon airline_seat_individual_suite
               | deactivate
 
+        else
+          li.mdl-list__item
+            a.mdl-list__item-primary-content(
+              href=mergeQueries(user.url.restore, {redirect: user.url.show})
+              onclick="return confirm('Are you sure you want to activate this user')"
+            )
+              .material-icons.mdl-list__item-icon accessibility
+              | activate
+
         li.mdl-list__item: span.mdl-list__item-primary-content: strong Status:
 
         li.mdl-list__item: span.mdl-list__item-primary-content

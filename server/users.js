@@ -93,6 +93,24 @@ function update(req, res, next) {
   }
 }
 
+function activate(req, res, next) {
+  const { userId }    = req.params
+  const { redirect }  = req.query
+
+  Users
+  .findById( userId )
+  .then( handleUser )
+  .catch( next )
+
+  function handleUser(user) {
+    user
+    .activate()
+    .then( user => res.redirect( redirect ? redirect : '/users' ) )
+    .catch( next )
+  }
+
+}
+
 function deactivate(req, res, next) {
   const { userId }    = req.params
   const { redirect }  = req.query
@@ -180,6 +198,7 @@ module.exports = {
   list,
   show,
   update,
+  activate,
   deactivate,
   adminResetPassword,
   userResetPassword,

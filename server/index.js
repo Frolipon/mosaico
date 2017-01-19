@@ -236,6 +236,7 @@ module.exports = function () {
   app.all('/users*',                              guard('admin'))
   app.get('/users/:userId/wireframe/:wireId?',    wireframes.show)
   // users
+  app.get('/users/:userId/restore',               users.activate)
   app.delete('/users/:userId',                    users.deactivate)
   app.post('/users/reset',                        users.adminResetPassword)
   app.get('/users/:userId',                       users.show)
