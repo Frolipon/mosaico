@@ -88,6 +88,7 @@ tinymce.PluginManager.add('fontsizedialog', fontsizedialog);
 
 function fontsizedialog(editor, url) {
   var fontSizeMin     = 8
+  var fontSizeMax     = 666
   var selectionFs     = false
   var dialogHelpText  = [
     'minimum size: 8px',
@@ -99,15 +100,20 @@ function fontsizedialog(editor, url) {
   editor.addButton('fontsizedialogbutton', {
     text:         'Font size',
     tooltip:      'Font size',
+    // add a class to fix button width
+    // Haven't found a way to update toolbar size dynamically
+    // iterating over https://www.tinymce.com/docs/api/tinymce.ui/tinymce.ui.button/#parents
+    // and calling .reflow() doesn't make the trick
+    classes:      'fontsizedialogbutton',
     icon:         false,
     onPostRender: afterBtnInit,
     onclick:      openFsDialog,
   });
 
-  function afterBtnInit() {
-    var formatName  = 'fontsize';
-    var self        = this;
-    var $btnText    = self.$el.find('.mce-txt');
+  function afterBtnInit(initEvent) {
+    var btnInstance = initEvent.control
+    var formatName  = 'fontsize'
+    var self        = this
 
     editor.on('nodeChange', function (e) {
       each(e.parents, getFontSize);
@@ -119,12 +125,12 @@ function fontsizedialog(editor, url) {
 
     function getFontSize(node) {
       if (node.style && node.style.fontSize) {
-        $btnText.text('Font size: ' + node.style.fontSize)
+        btnInstance.text('Font size: ' + node.style.fontSize)
         selectionFs = node.style.fontSize
         return false
       }
       selectionFs = false
-      $btnText.text('Font size')
+      btnInstance.text('Font size')
     }
   }
 
@@ -162,7 +168,7 @@ function fontsizedialog(editor, url) {
       ],
       onsubmit: function (e) {
         var newFontSize = ~~e.data.bsdialogfontsize
-        if (newFontSize >= fontSizeMin) {
+        if (newFontSize >= fontSizeMin && newFontSize <= fontSizeMax) {
           editor.execCommand('FontSize', false, newFontSize + 'px')
         } else {
           // tinyMCE notifications are very small…
