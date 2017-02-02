@@ -23,6 +23,38 @@ block content
         li.mdl-list__item: a.mdl-list__item-primary-content(href=user.url.company)
           .material-icons.mdl-list__item-icon group
           | #{user._company.name}
+
+        if !user.isDeactivated
+          li.mdl-list__item
+            form.mdl-list__item-primary-content(action='/users/reset' method="post")
+              .material-icons.mdl-list__item-icon vpn_key
+              input(type="hidden" name="redirect" value=user.url.show)
+              button(type="submit" name="id" value=user._id)
+                | #{user.status.actionMsg}
+
+          li.mdl-list__item
+            a.mdl-list__item-primary-content(
+              href=mergeQueries(user.url.delete, {redirect: user.url.show})
+              onclick="return confirm('Are you sure you want to deactivate this user')"
+            )
+              .material-icons.mdl-list__item-icon airline_seat_individual_suite
+              | deactivate
+
+        else
+          li.mdl-list__item
+            a.mdl-list__item-primary-content(
+              href=mergeQueries(user.url.restore, {redirect: user.url.show})
+              onclick="return confirm('Are you sure you want to activate this user')"
+            )
+              .material-icons.mdl-list__item-icon accessibility
+              | activate
+
+        li.mdl-list__item: span.mdl-list__item-primary-content: strong Status:
+
+        li.mdl-list__item: span.mdl-list__item-primary-content
+          i.material-icons.mdl-list__item-icon= user.status.icon
+          | #{user.status.value}
+
       else
         li.mdl-list__item: a.mdl-list__item-primary-content(href=data.company.url.show)
           .material-icons.mdl-list__item-icon group
@@ -92,9 +124,7 @@ block content
                       td.mdl-data-table__cell--non-numeric
                         a(href=creation.url.update)= creation._id
                     td.mdl-data-table__cell--non-numeric
-                      //- keep alternative __('home.saved.noname')
-                      //- Should consolidate DB to always have a name before removing this
-                      a(href=creation.url.update).js-name= creation.name || __('home.saved.noname')
+                      a(href=creation.url.update).js-name= creation.name
                     td.mdl-data-table__cell--non-numeric: span= creation._wireframe.name
                     td.mdl-data-table__cell--non-numeric: span= formatDate(creation.createdAt)
                     td.mdl-data-table__cell--non-numeric: span= formatDate(creation.updatedAt)

@@ -10,7 +10,7 @@ function handleCreationName(viewModel) {
   viewModel.metadata.name     = ko.observable(viewModel.metadata.name)
 
   viewModel.creationName      = ko.computed(function() {
-    return viewModel.metadata.name() || viewModel.t('title-empty')
+    return viewModel.metadata.name()
   }, viewModel)
 
   viewModel.enableEditCreationName  = function (data, event) {
@@ -37,7 +37,8 @@ function handleCreationName(viewModel) {
       data:   {
         name: viewModel.metadata.name(),
       },
-      success: function () {
+      success: function (creation) {
+        viewModel.metadata.name( creation.name )
         viewModel.notifier.success(viewModel.t('edit-title-ajax-success'))
       },
       error: function () {

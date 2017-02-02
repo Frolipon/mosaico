@@ -16,7 +16,8 @@
 			"duplicate": "dupliquer",
 			"wireframe-name": "modèle utilisé",
 			"created-by": "auteur",
-			"tags": "labels"
+			"tags": "labels",
+			"transfer": "transférer"
 		},
 		"more-info": "en savoir plus à propos de l'éditeur",
 		"footer": {

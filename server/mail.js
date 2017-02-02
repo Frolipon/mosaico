@@ -8,15 +8,13 @@ const createError       = require('http-errors')
 
 const config            = require('./config')
 
-let mailConfig  = config.emailTransport
+let mailConfig    = config.emailTransport
 if (mailConfig.service) {
-  mailConfig    = extend({}, mailConfig, wellknown(mailConfig.service))
+  mailConfig      = extend({}, mailConfig, wellknown(mailConfig.service))
   delete mailConfig.service
 }
-console.log('try to initalize nodemailer with config:')
-console.log(mailConfig)
 
-var transporter = nodemailer.createTransport(config.emailTransport)
+const transporter = nodemailer.createTransport(config.emailTransport)
 
 transporter
 .verify()
@@ -48,6 +46,6 @@ function send(options) {
 }
 
 module.exports = {
-  transporter:  transporter,
-  send:         send,
+  transporter,
+  send,
 }

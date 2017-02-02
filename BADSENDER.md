@@ -24,6 +24,7 @@
     - [sync-db](#sync-db)
     - [backup-db](#backup-db)
     - [local-db](#local-db)
+  - [Tests](#tests)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -227,3 +228,14 @@ npm run backup-db
 ```
 npm run local-db
 ```
+
+### Tests
+
+Run all backoffice's tests:
+
+- Open a working dev server `npm run dev`
+- run the test with `npm run tape`
+
+Run a specific test:
+
+`./node_modules/.bin/tape tests/functional/user-deactivation.js`

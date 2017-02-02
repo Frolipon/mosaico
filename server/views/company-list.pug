@@ -1,6 +1,7 @@
 extends _layout-admin.pug
 
 block vars
+  - var pageClass = 'js-admin-home'
   - var pageTitle = 'companies list'
 
 block content
@@ -20,7 +21,7 @@ block content
           each company in data.companies
             tr
               if _config.debug
-                td.mdl-data-table__cell--non-numeric: a(href=company.url.show)= company._id
+                td.mdl-data-table__cell--non-numeric= company._id
               td.mdl-data-table__cell--non-numeric: a(href=company.url.show)= company.name
               td.mdl-data-table__cell--non-numeric= formatDate(company.createdAt)
               //- td.mdl-data-table__cell--action: form(action=company.url.delete method="post")

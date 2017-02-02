@@ -13,6 +13,7 @@ function list(req, res, next) {
   Users
   .find({})
   .populate('_company')
+  .sort({ isDeactivated: 1, createdAt: -1  })
   .then(function onUsers(users) {
     return res.render('user-list', {
       data: { users: users, }
@@ -92,12 +93,39 @@ function update(req, res, next) {
   }
 }
 
-function remove(req, res, next) {
-  var userId = req.params.userId
+function activate(req, res, next) {
+  const { userId }    = req.params
+  const { redirect }  = req.query
+
   Users
-  .findByIdAndRemove(userId)
-  .then( _ => res.redirect('/admin') )
-  .catch(next)
+  .findById( userId )
+  .then( handleUser )
+  .catch( next )
+
+  function handleUser(user) {
+    user
+    .activate()
+    .then( user => res.redirect( redirect ? redirect : '/users' ) )
+    .catch( next )
+  }
+
+}
+
+function deactivate(req, res, next) {
+  const { userId }    = req.params
+  const { redirect }  = req.query
+
+  Users
+  .findById( userId )
+  .then( handleUser )
+  .catch( next )
+
+  function handleUser(user) {
+    user
+    .deactivate()
+    .then( user => res.redirect( redirect ? redirect : '/users' ) )
+    .catch( next )
+  }
 }
 
 function adminResetPassword(req, res, next) {
@@ -167,11 +195,12 @@ function setPassword(req, res, next) {
 }
 
 module.exports = {
-  list:               list,
-  show:               show,
-  update:             update,
-  delete:             remove,
-  adminResetPassword: adminResetPassword,
-  userResetPassword:  userResetPassword,
-  setPassword:        setPassword,
+  list,
+  show,
+  update,
+  activate,
+  deactivate,
+  adminResetPassword,
+  userResetPassword,
+  setPassword,
 }

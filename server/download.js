@@ -90,15 +90,13 @@ function zip(req, res, next) {
 
     // We only take care of images in the HTML
     // No <style> CSS parsing for now. May be implemented later
-    let $images   = $('img')
-    // will be used to download images
-    let imgUrls   = $images.map( (i, el) => $(el).attr('src')).get()
-    // make a relative path
+    const $images  = $('img')
+    const imgUrls  = _.uniq( $images.map( (i, el) => $(el).attr('src') ).get() )
+    // change path to match downloaded images
     // Don't use Cheerio because when exporting some mess are donne with ESP tags
-    let imgBases  = _.uniq(imgUrls.map(getImageUrlWithoutName))
-    imgBases.forEach( (imgBase) => {
-      let search  = new RegExp(`src="${imgBase}`, 'g')
-      html        = html.replace(search, `src="${imagesFolder}/`)
+    imgUrls.forEach( (imgUrl) => {
+      let search  = new RegExp(`src="${imgUrl}`, 'g')
+      html        = html.replace(search, `src="${imagesFolder}/${getImageName(imgUrl)}`)
     })
 
     archive.on('error', next)
@@ -121,21 +119,45 @@ function zip(req, res, next) {
       prefix: `${name}/`,
     })
 
-    // Pipe all images
-    imgUrls.forEach( (imageUrl, index) => {
+    // Pipe all images BUT don't add errored images
+    const imagesRequest = imgUrls.map( imageUrl => {
+      const dfd = defer()
       let imageName   = getImageName(imageUrl)
-      // Broke with a self-signed certificate
-      // https://github.com/request/request#using-optionsagentoptions
-      let imgRequest  = request(imageUrl).on('error', err => { throw err } )
-      archive.append( imgRequest, {
-        name:   imageName,
-        prefix: `${name}/${imagesFolder}/`
+      let imgRequest  = request(imageUrl)
+      imgRequest.on('response', response => {
+        if (response.statusCode !== 200) return
+        archive.append( imgRequest, {
+          name:   imageName,
+          prefix: `${name}/${imagesFolder}/`
+        })
+        dfd.resolve()
       })
+      imgRequest.on('error', imgError => {
+        console.log('[ZIP] error during downloading', imageUrl)
+        console.log(imgError)
+        // still resolve, just don't add this errored image to the archive
+        dfd.resolve()
+      })
+      return dfd
     })
 
-    archive.finalize()
-
+    // Wait for all images to be requested before closing archive
+    Promise
+    .all( imagesRequest )
+    .then( () => archive.finalize() )
   }
+}
+
+// http://lea.verou.me/2016/12/resolve-promises-externally-with-this-one-weird-trick/
+function defer() {
+  var res, rej
+  var promise = new Promise((resolve, reject) => {
+    res = resolve
+    rej = reject
+  })
+  promise.resolve = res
+  promise.reject  = rej
+  return promise
 }
 
 function getName(name) {
@@ -144,11 +166,12 @@ function getName(name) {
 }
 
 function getImageName(imageUrl) {
-  return path.basename( url.parse(imageUrl).pathname )
-}
-
-function getImageUrlWithoutName(imageUrl) {
-  return imageUrl.replace(getImageName(imageUrl), '')
+  return url
+  .parse(imageUrl)
+  .pathname
+  .replace(/\//g, ' ')
+  .trim()
+  .replace(/\s/g, '-')
 }
 
 module.exports = {

@@ -10,6 +10,7 @@ const CreationSchema  = Schema({
   name: {
     type:     String,
     set:      normalizeString,
+    required: true,
   },
   // _user can't be required: admin doesn't set a _user
   _user: {
@@ -65,18 +66,20 @@ CreationSchema.virtual('changed').get(function () {
   return this.updatedAt.getTime()
 })
 
-function creationUrls(creationId) {
+function creationUrls(creationId, wireId) {
   return {
     update:     `/editor/${creationId}`,
     duplicate:  `/creations/${creationId}/duplicate`,
     delete:     `/creations/${creationId}?_method=DELETE`,
     send:       `/creations/${creationId}/send`,
     zip:        `/creations/${creationId}/zip`,
+    transfer:   `/transfer/${creationId}`,
+    wireframe:  `/wireframes/${wireId}`
   }
 }
 
 CreationSchema.virtual('url').get(function () {
-  return creationUrls(this._id)
+  return creationUrls(this._id, this._wireframe)
 })
 
 CreationSchema.virtual('mosaico').get(function () {
@@ -86,7 +89,7 @@ CreationSchema.virtual('mosaico').get(function () {
       _wireframe:   this._wireframe,
       name:         this.name,
       template:     wireframeLoadingUrl(this._wireframe),
-      url:          creationUrls(this._id),
+      url:          creationUrls(this._id, this._wireframe),
     },
     data: this.data,
   }

@@ -24,7 +24,10 @@ function show(req, res, next) {
   var companyId     = req.params.companyId
   if (!companyId) return res.render('company-new-edit')
   var getCompany    = Companies.findById(companyId)
-  var getUsers      = Users.find({_company: companyId}).sort({ createdAt: -1 })
+  var getUsers      = Users.find({
+    _company:       companyId,
+    isDeactivated:  { $ne: true },
+  }).sort({ createdAt: -1 })
   var getWireframes = Wireframes.find({_company: companyId}).sort({ createdAt: -1 })
   var getCreations  = Creations
   .find({_company: companyId, }, '_id name _user _wireframe createdAt updatedAt')
@@ -33,13 +36,10 @@ function show(req, res, next) {
   .sort({ updatedAt: -1})
 
   Promise
-  .all([getCompany, getUsers, getWireframes, getCreations])
-  .then(function (dbResponse) {
-    var company     = dbResponse[0]
+  .all( [ getCompany, getUsers, getWireframes, getCreations ] )
+  .then( dbResponse => {
+    const [company, users, wireframes, creations] = dbResponse
     if (!company) return next(createError(404))
-    var users       = dbResponse[1]
-    var wireframes  = dbResponse[2]
-    var creations   = dbResponse[3]
     res.render('company-new-edit', {data: {
       company:    company,
       users:      users,

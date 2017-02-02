@@ -67,7 +67,7 @@ gulp.task('css-editor', ['clean-css'], function () {
   ]))
   .pipe(cssProd())
   .pipe($.rename('badsender-editor.css'))
-  .pipe($.if(!isDev, $.minifyCss()))
+  .pipe($.if(!isDev, $.cleanCss()))
   .pipe(gulp.dest(buildDir))
   .pipe($.if(isDev, reload({stream: true})))
 })
@@ -86,7 +86,7 @@ gulp.task('css-app', ['clean-css'], function () {
   .pipe($.replace('rgb(255,152,0)', '#ff9f00'))
   .pipe($.rename('badsender-app.css'))
   .pipe($.if(isDev, cssDev(), cssProd()))
-  .pipe($.if(!isDev, $.minifyCss()))
+  .pipe($.if(!isDev, $.cleanCss()))
   .pipe(gulp.dest(buildDir))
   .pipe($.if(isDev, reload({stream: true})))
 })
@@ -104,14 +104,9 @@ gulp.task('clean-lib', function (cb) {
   return del(buildDir, '/**/*.js');
 });
 
+// Bundling libs is just a concat…
 gulp.task('lib', ['clean-lib'], function () {
 
-  // used in home and editor
-  var mainLibs   = gulp
-    .src(mainBowerFiles({ group:  'main', }))
-    .pipe($.concat('badsender-lib-core.js'));
-
-  // editor's only
   var bowerfiles = mainBowerFiles({
     group:  'editor',
     overrides: {
@@ -125,12 +120,14 @@ gulp.task('lib', ['clean-lib'], function () {
       },
     }
   });
-  // console.log(bowerfiles);
+
   var editorLibs = gulp
     .src(bowerfiles)
-    .pipe($.filter(['*', '**/*', '!**/*.css', '!**/jquery.js', '!**/knockout.js']))
+    .pipe($.filter(['*.js', '**/*.js']))
     .pipe($.order([
       // reorganize files we want to concat
+      'jquery.js',
+      'knockout.js',
       'jquery-ui*.js',
       'load-image.all.min.js',
       'jquery.fileupload.js',
@@ -153,7 +150,7 @@ gulp.task('lib', ['clean-lib'], function () {
     'bower_components/tinymce/plugins/code/plugin.js',
   ], { base: 'bower_components/tinymce' })
 
-  return merge(mainLibs, editorLibs, tinymce)
+  return merge(editorLibs, tinymce)
     .pipe($.if(!isDev, $.uglify()))
     .pipe(gulp.dest(buildDir + '/lib'));
 
@@ -324,8 +321,8 @@ gulp.task('clean-maintenance', cb => del([`${maintenanceFolder}/*.html`], cb) )
 
 gulp.task('maintenance', ['clean-maintenance'], () => {
   return gulp
-  .src([`${maintenanceFolder}/*.jade`, `!${maintenanceFolder}/_*.jade`])
-  .pipe($.jade())
+  .src([`${maintenanceFolder}/*.pug`, `!${maintenanceFolder}/_*.pug`])
+  .pipe($.pug())
   .pipe(gulp.dest(maintenanceFolder))
 })
 

@@ -1,29 +1,68 @@
-const Nightmare       = require('nightmare')
 const test            = require('tape')
-
-const { connectUser } = require('../_utils')
+const {
+  createWindow,
+  connectUser,
+  connectAdmin,
+  setupDB,
+  getTeardownHandlers,
+ }                    = require('../_utils')
 
 test('connection success', t => {
-  t.plan(1)
+  const nightmare           = createWindow(false)
+  const { onEnd, onError }  = getTeardownHandlers(t, nightmare)
 
-  connectUser()
-  .end()
-  .then( result => t.pass('user is connected') )
-  .catch( t.fail )
+  t.plan(1)
+  setupDB().then( start ).catch( onError )
+
+  function  start() {
+    nightmare
+    .use( connectUser() )
+    .then( onEnd( result => t.pass('user is connected') ) )
+    .catch( onError )
+  }
+
 })
 
 test('connection fail', t => {
-  t.plan(1)
+  const nightmare           = createWindow(false)
+  const { onEnd, onError }  = getTeardownHandlers(t, nightmare)
 
-  Nightmare({ show: false })
-  .goto('http://localhost:3000')
-  .insert('#email-field', 'p@p.com')
-  .insert('#password-field', 'pp')
-  .click('form[action*="/login"] [type=submit]')
-  .exists('.is-invalid.is-dirty')
-  .wait('dl.message.error')
-  .end()
-  .then( result => t.pass('user has an auth error') )
-  .catch( t.fail )
+  t.plan(1)
+  setupDB().then( start ).catch( onError )
+
+  function start() {
+    nightmare
+    .goto('http://localhost:3000')
+    .insert('#email-field', 'p@p.com')
+    .insert('#password-field', 'pp')
+    .click('form[action*="/login"] [type=submit]')
+    .exists('.is-invalid.is-dirty')
+    .wait('dl.message.error')
+    .evaluate( () => {
+      const errorEl = document.querySelector('.message.error p')
+      return { errorMessage: errorEl ? errorEl.textContent : false }
+    } )
+    .then( onEnd( result => {
+      t.equal(result.errorMessage, 'Incorrect password.', 'user has an auth error')
+    } ) )
+    .catch( onError )
+  }
+
+})
+
+test('admin connection – success', t => {
+  const nightmare           = createWindow(false)
+  const { onEnd, onError }  = getTeardownHandlers(t, nightmare)
+
+  t.plan(1)
+  setupDB().then( start ).catch( onError )
+
+  function start() {
+    nightmare
+    .use( connectAdmin() )
+    .url()
+    .then( onEnd( url => t.equal('http://localhost:3000/admin', url) ) )
+    .catch( onError )
+  }
 
 })

@@ -38,9 +38,9 @@ const UserSchema    = Schema({
     set:      normalizeString,
   },
   _company: {
-    type:       ObjectId,
-    ref:        CompanyModel,
-    required:   [true, 'Company is required'],
+    type:     ObjectId,
+    ref:      CompanyModel,
+    required: [true, 'Company is required'],
   },
   password:   {
     type:     String,
@@ -53,6 +53,10 @@ const UserSchema    = Schema({
   token: {
     type:     String,
   },
+  isDeactivated: {
+    type:     Boolean,
+    default:  false,
+  },
 }, { timestamps: true })
 
 function encodePassword(password) {
@@ -61,9 +65,34 @@ function encodePassword(password) {
 }
 
 UserSchema.virtual('status').get(function () {
-  if (this.password)  return 'confirmed'
-  if (this.token)     return 'password mail sent'
-  return 'to be initialized'
+  const status = this.isDeactivated ? '-2' : this.password ? 1 : this.token ? 0 : -1
+  const values = {
+    '-2': {
+      value:          'deactivated',
+      icon:           'airline_seat_individual_suite',
+      actionMsg:      'activate',
+      actionMsgShort: 'activate',
+    },
+    '-1': {
+      value:          'to be initialized',
+      icon:           'report_problem',
+      actionMsg:      'send password mail',
+      actionMsgShort: 'send',
+    },
+    '0': {
+      value:          'password mail sent',
+      icon:           'schedule',
+      actionMsg:      'resend password mail',
+      actionMsgShort: 'resend',
+    },
+    '1': {
+      value:          'confirmed',
+      icon:           'check',
+      actionMsg:      'reset password',
+      actionMsgShort: 'reset',
+    },
+  }
+  return values[ status ]
 })
 
 UserSchema.virtual('fullname').get(function () {
@@ -89,10 +118,26 @@ UserSchema.virtual('url').get(function () {
   let companyId   = this._company && this._company._id ? this._company._id : this._company
   return {
     show:     `/users/${this._id}`,
-    delete:   `/users/${this._id}/delete`,
+    delete:   `/users/${this._id}?_method=DELETE`,
+    restore:  `/users/${this._id}/restore`,
     company:  `/companies/${companyId}`,
   }
 })
+
+UserSchema.methods.activate = function activate() {
+  var user            = this
+  user.isDeactivated  = false
+  return user.save()
+}
+
+UserSchema.methods.deactivate = function deactivate() {
+  var user            = this
+  user.password       = void(0)
+  user.token          = void(0)
+  user.isDeactivated  = true
+
+  return user.save()
+}
 
 UserSchema.methods.resetPassword = function resetPassword(lang, type) {
   var user      = this

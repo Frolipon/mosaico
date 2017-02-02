@@ -14,10 +14,11 @@ const {
   Wireframes,
   Creations,
   Users,
-  isFromCompany,
   addCompanyFilter,
-}                   = require('./models')
-const cleanTagName  = require('../shared/clean-tag-name')
+  addStrictCompanyFilter,
+}                         = require('./models')
+const cleanTagName        = require('../shared/clean-tag-name')
+const { normalizeString } = require('./models/utils')
 
 const translations  = {
   en: JSON.stringify(_.assign(
@@ -242,13 +243,12 @@ function customerList(req, res, next) {
 
 function show(req, res, next) {
   var data = {
-    translations: translations[req.getLocale()],
+    translations: translations[ res.getLocale() ],
   }
   Creations
-  .findById(req.params.creationId)
-  .then( (creation) => {
+  .findOne( addCompanyFilter(req.user, { _id: req.params.creationId}) )
+  .then( creation => {
     if (!creation) return next(createError(404))
-    if (!isFromCompany(req.user, creation._company)) return next(createError(401))
     res.render('editor', { data: _.assign({}, data, creation.mosaico) })
   })
   .catch(next)
@@ -259,16 +259,16 @@ function show(req, res, next) {
 //////
 
 function create(req, res, next) {
-  const wireframeId = req.query.wireframeId
+  const filter = addCompanyFilter(req.user, { _id: req.query.wireframeId})
 
   Wireframes
-  .findById(wireframeId, '_id _company name')
+  .findOne( filter, '_id _company name')
+  .lean()
   .then(onWireframe)
   .catch(next)
 
   function onWireframe(wireframe) {
     if (!wireframe) return next(createError(404))
-    if (!isFromCompany(req.user, wireframe._company)) return next(createError(401))
     const initParameters = {
       // Always give a default name: needed for ordering & filtering
       // use res.__ because (not req) it's where i18n is always up to date (index.js#192)
@@ -285,39 +285,6 @@ function create(req, res, next) {
     new Creations(initParameters)
     .save()
     .then( creation =>  res.redirect('/editor/' + creation._id) )
-    .catch(next)
-  }
-}
-
-//////
-// UPDATE CREATION IN EDITOR
-//////
-
-function update(req, res, next) {
-  if (!req.xhr) return next(createError(501)) // Not Implemented
-  const { creationId } = req.params
-
-  Creations
-  .findById(creationId)
-  .then(handleCreation)
-  .catch(next)
-
-  function handleCreation(creation) {
-    if (!creation) return next(createError(404))
-    if (!isFromCompany(req.user, creation._company)) return next(createError(401))
-    creation._wireframe = creation._wireframe
-    creation.userId     = creation.userId
-    creation.data       = req.body.data
-    // http://mongoosejs.com/docs/schematypes.html#mixed
-    creation.markModified('data')
-
-    return creation
-    .save()
-    .then( creation => {
-      const data2editor = creation.mosaico
-      if (!creationId) data2editor.meta.redirect = `/editor/${creation._id}`
-      res.json(data2editor)
-    })
     .catch(next)
   }
 }
@@ -351,7 +318,7 @@ function updateLabels(req, res, next) {
   } )
 
   Creations
-  .find( addCompanyFilter(req.user, {
+  .find( addStrictCompanyFilter(req.user, {
     _id: {
       $in: creations.map(Types.ObjectId),
     },
@@ -386,7 +353,7 @@ function bulkRemove(req, res, next) {
   const { creations } = req.body
   if (!_.isArray( creations ) || !creations.length ) return res.redirect( redirectUrl )
   const redirectUrl   = getRedirectUrl(req)
-  const filter        = addCompanyFilter(req.user, {
+  const filter        = addStrictCompanyFilter(req.user, {
     _id: {
       $in: creations.map(Types.ObjectId),
     },
@@ -397,7 +364,6 @@ function bulkRemove(req, res, next) {
   .catch( next )
 
   function onCreations(creations) {
-    console.log(creations)
     Promise
     .all( creations.map( creation => creation.remove()) )
     .then( _ => res.redirect(redirectUrl) )
@@ -409,38 +375,56 @@ function bulkRemove(req, res, next) {
 // OTHERS ACTIONS
 //////
 
+
+// TODO merge update & rename
+function update(req, res, next) {
+  if (!req.xhr) return next(createError(501)) // Not Implemented
+
+  Creations
+  .findOne( addCompanyFilter(req.user, { _id: req.params.creationId}) )
+  .then( handleCreation )
+  .catch( next )
+
+  function handleCreation(creation) {
+    if (!creation) return next(createError(404))
+    creation.data = req.body.data
+    // http://mongoosejs.com/docs/schematypes.html#mixed
+    creation.markModified('data')
+
+    return creation
+    .save()
+    .then( creation => res.json( creation.mosaico ) )
+    .catch(next)
+  }
+}
+
+function rename(req, res, next) {
+  if (!req.xhr) return next( createError(501) ) // Not Implemented
+
+  Creations
+  .findOne( addCompanyFilter(req.user, { _id: req.params.creationId}) )
+  .then( handleCreation )
+  .catch( next )
+
+  function handleCreation(creation) {
+    if (!creation) return next( createError(404) )
+    // use res.__ because (not req) it's where i18n is always up to date (index.js#192)
+    creation.name = normalizeString( req.body.name ) || res.__('home.saved.noname')
+
+    creation
+    .save()
+    // don't shortcut to .then( res.json ) it breaks app…
+    .then( creation => res.json(creation) )
+    .catch( next )
+  }
+}
+
 function remove(req, res, next) {
   const creationId  = req.params.creationId
   Creations
   .findByIdAndRemove(creationId)
   .then( c => res.redirect('/') )
   .catch(next)
-}
-
-function rename(req, res, next) {
-  if (!req.xhr) return next( createError(501) ) // Not Implemented
-  const { creationId }  = req.params
-
-  // TODO: use a proper _company query (see line #45)
-  // const _company        = isAdmin ? { $exists: false } : req.user._company
-
-  Creations
-  .findById(creationId)
-  .then(handleCreation)
-  .catch(next)
-
-  function handleCreation(creation) {
-    if (!creation) return next( createError(404) )
-    if (!isFromCompany(req.user, creation._company)) return next(createError(401))
-
-    // use res.__ because (not req) it's where i18n is always up to date (index.js#192)
-    creation.name = req.body.name || res.__('home.saved.noname')
-
-    creation
-    .save()
-    .then( creation => res.json(creation)  )
-    .catch(next)
-  }
 }
 
 // should upload image on a specific client bucket
@@ -462,7 +446,7 @@ function upload(req, res, next) {
 
 function listImages(req, res, next) {
   filemanager
-  .list(req.params.creationId)
+  .list( req.params.creationId )
   .then( files => res.json({ files }) )
   .catch(next)
 }
@@ -470,36 +454,35 @@ function listImages(req, res, next) {
 function duplicate(req, res, next) {
 
   Creations
-  .findById(req.params.creationId)
-  .then(onCreation)
-  .catch(next)
+  .findOne( addCompanyFilter(req.user, { _id: req.params.creationId}) )
+  .then( onCreation )
+  .catch( next )
 
   function onCreation(creation) {
     if (!creation) return next(createError(404))
-    if (!isFromCompany(req.user, creation._company)) return next(createError(401))
     creation
-    .duplicate(req.user)
-    .then(onDuplicate)
-    .catch(next)
+    .duplicate( req.user )
+    .then( onDuplicate )
+    .catch( next )
   }
 
   function onDuplicate(newCreation) {
     filemanager
-    .copyImages(req.params.creationId, newCreation._id)
+    .copyImages( req.params.creationId, newCreation._id )
     .then( _ => res.redirect('/') )
   }
 }
 
 module.exports = {
-  customerList: customerList,
-  show:         show,
-  update:       update,
-  remove:       remove,
+  customerList,
+  show,
+  update,
+  remove,
   updateLabels,
   bulkRemove,
-  rename:       rename,
-  create:       create,
-  upload:       upload,
-  listImages:   listImages,
-  duplicate:    duplicate,
+  rename,
+  create,
+  upload,
+  listImages,
+  duplicate,
 }

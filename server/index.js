@@ -1,6 +1,7 @@
 'use strict'
 
 const qs              = require('qs')
+const url             = require('url')
 const path            = require('path')
 const chalk           = require('chalk')
 const express         = require('express')
@@ -120,15 +121,16 @@ module.exports = function () {
   // ROUTING
   //////
 
-  var download    = require('./download')
-  var images      = require('./images')
-  var render      = require('./render')
-  var users       = require('./users')
-  var companies   = require('./companies')
-  var wireframes  = require('./wireframes')
-  var creations   = require('./creations')
-  var filemanager = require('./filemanager')
-  var guard       = session.guard
+  var download          = require('./download')
+  var images            = require('./images')
+  var render            = require('./render')
+  var users             = require('./users')
+  var companies         = require('./companies')
+  var wireframes        = require('./wireframes')
+  var creations         = require('./creations')
+  var creationTransfer  = require('./creation-transfer')
+  var filemanager       = require('./filemanager')
+  var guard             = session.guard
 
   //----- EXPOSE DATAS TO VIEWS
 
@@ -149,7 +151,10 @@ module.exports = function () {
   }
 
   app.locals.mergeQueries = function mergeQueries(route, _query, params = {}) {
-    params  = merge({}, _query, params)
+    const parsedroute = url.parse(route)
+    const initParams  = parsedroute.query ? qs.parse( parsedroute.query ) : {}
+    route             = parsedroute.pathname
+    params  = merge(initParams, _query, params)
     params  = qs.stringify(params, { filter: filterQuery })
     return Object.keys(params).length ? `${route}?${params}` : route
   }
@@ -231,17 +236,22 @@ module.exports = function () {
   app.all('/users*',                              guard('admin'))
   app.get('/users/:userId/wireframe/:wireId?',    wireframes.show)
   // users
-  app.post('/users/:userId/delete',               users.delete)
+  app.get('/users/:userId/restore',               users.activate)
+  app.delete('/users/:userId',                    users.deactivate)
   app.post('/users/reset',                        users.adminResetPassword)
   app.get('/users/:userId',                       users.show)
   app.post('/users/:userId?',                     users.update)
   app.get('/users',                               users.list)
 
   app.get('/wireframes/:wireId/delete',           guard('admin'), wireframes.remove)
-  app.get('/wireframes/:wireId/markup',           guard('user'), wireframes.getMarkup)
+  app.get('/wireframes/:wireId/markup',           guard('user'),  wireframes.getMarkup)
   app.get('/wireframes/:wireId',                  guard('admin'), wireframes.show)
   app.post('/wireframes/:wireId?',                guard('admin'), wireframes.update)
   app.get('/wireframes',                          guard('admin'), wireframes.list)
+
+  app.all('/transfer/:creationId',                guard('admin'))
+  app.get('/transfer/:creationId',                creationTransfer.get)
+  app.post('/transfer/:creationId',               creationTransfer.post)
 
   //----- PUBLIC
 
@@ -256,7 +266,7 @@ module.exports = function () {
   app.get('/password/:token',               guard('no-session'), render.reset)
   app.post('/password/:token',              guard('no-session'), users.setPassword)
 
-  app.get('/logout',                        session.logout)
+  app.get('/logout',                        guard('user'), session.logout)
   app.get('/img/:imageName',                filemanager.read)
   app.get('/placeholder/:imageName',        images.placeholder)
   app.get('/resize/:sizes/:imageName',      images.resize)
