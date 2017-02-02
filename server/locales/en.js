@@ -88,7 +88,7 @@
 	"filter": {
 		"name": "name",
 		"author": "author",
-		"wireframe": "wireframe",
+		"wireframe": "template",
 		"createdat": {
 			"start": "created between",
 			"end": "and"

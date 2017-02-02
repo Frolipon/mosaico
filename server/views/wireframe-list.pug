@@ -1,13 +1,13 @@
 extends _layout-admin.pug
 
 block vars
-  - var pageTitle = 'wireframes list'
+  - var pageTitle = 'templates list'
 
 block content
   .page-content
 
     if !data.wireframes.length
-      h4.home-subtitle no wireframes yet
+      h4.home-subtitle no templates yet
     else
 
       table.mdl-data-table.mdl-js-data-table.mdl-shadow--2dp
@@ -15,7 +15,7 @@ block content
           tr
             if _config.debug
               th.mdl-data-table__cell--non-numeric id
-            th.mdl-data-table__cell--non-numeric wireframe name
+            th.mdl-data-table__cell--non-numeric template name
             th.mdl-data-table__cell--non-numeric of company
             th.mdl-data-table__cell--action markup?
             th.mdl-data-table__cell--action create new mailing
