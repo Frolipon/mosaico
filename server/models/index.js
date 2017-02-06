@@ -11,7 +11,8 @@ const UserSchema        = require('./schema-user')
 const WireframeSchema   = require('./schema-wireframe')
 const CreationSchema    = require('./schema-creation')
 const CompanySchema     = require('./schema-company')
-const { UserModel, WireframeModel, CreationModel, CompanyModel } = require('./names')
+const CacheimageSchema  = require('./schema-cache-image')
+const { UserModel, WireframeModel, CreationModel, CompanyModel, CacheimageModel } = require('./names')
 
 mongoose.connection.on('error', console.error.bind(console, chalk.red('[DB] connection error:')))
 mongoose.connection.once('open', e =>  {
@@ -91,10 +92,11 @@ function addStrictCompanyFilter(user, filter) {
 // EXPORTS
 //////
 
-const Users       = mongoose.model(UserModel, UserSchema)
-const Wireframes  = mongoose.model(WireframeModel, WireframeSchema)
-const Creations   = mongoose.model(CreationModel, CreationSchema)
-const Companies   = mongoose.model(CompanyModel, CompanySchema)
+const Users       = mongoose.model( UserModel, UserSchema )
+const Wireframes  = mongoose.model( WireframeModel, WireframeSchema )
+const Creations   = mongoose.model( CreationModel, CreationSchema )
+const Companies   = mongoose.model( CompanyModel, CompanySchema )
+const Cacheimages = mongoose.model( CacheimageModel, CacheimageSchema )
 
 module.exports    = {
   connection:       mongoose.connection,
@@ -108,4 +110,5 @@ module.exports    = {
   Wireframes,
   Creations,
   Companies,
+  Cacheimages,
 }

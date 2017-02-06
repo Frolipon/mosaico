@@ -1,20 +1,21 @@
 'use strict'
 
-var _             = require('lodash')
-var fs            = require('fs-extra')
-var url           = require('url')
-var path          = require('path')
-var AWS           = require('aws-sdk')
-var chalk         = require('chalk')
-var formidable    = require('formidable')
-var denodeify     = require('denodeify')
+const _           = require('lodash')
+const fs          = require('fs-extra')
+const url         = require('url')
+const path        = require('path')
+const AWS         = require('aws-sdk')
+const chalk       = require('chalk')
+const formidable  = require('formidable')
+const denodeify   = require('denodeify')
 const createError = require('http-errors')
-var readFile      = denodeify(fs.readFile)
-var readDir       = denodeify(fs.readdir)
+const readFile    = denodeify( fs.readFile )
+const readDir     = denodeify( fs.readdir )
 
-var config        = require('./config')
-var slugFilename  = require('../shared/slug-filename.js')
+const config        = require('./config')
+const slugFilename  = require('../shared/slug-filename.js')
 var streamImage
+var writeFromPath
 var writeStream
 var listImages
 var copyImages
@@ -47,7 +48,7 @@ if (config.isAws) {
     .createReadStream()
   }
   // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#upload-property
-  writeStream = function writeStream(file) {
+  writeFromPath = function writeFromPath(file) {
     var source  = fs.createReadStream(file.path)
     return s3
     .upload({
@@ -56,6 +57,19 @@ if (config.isAws) {
       Body:   source,
     }, function(err, data) {
       console.log(err, data)
+    })
+  }
+  writeStream = function writeStream(source, name) {
+    return new Promise( (resolve, reject) => {
+      s3
+      .upload({
+        Bucket: config.storage.aws.bucketName,
+        Key:    file.name,
+        Body:   source,
+      }, (err, data) => {
+        if (err) return reject( err )
+        resolve( data )
+      })
     })
   }
   // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#listObjectsV2-property
@@ -115,14 +129,26 @@ if (config.isAws) {
     var imagePath = path.join(config.images.uploadDir, imageName)
     return fs.createReadStream(imagePath)
   }
-  writeStream = function writeStream(file) {
-    var filePath  = path.join(config.images.uploadDir, file.name)
-    var source    = fs.createReadStream(file.path)
-    var dest      = fs.createWriteStream(filePath)
+  writeFromPath = function writeFromPath(file) {
+    var filePath  = path.join( config.images.uploadDir, file.name )
+    var source    = fs.createReadStream( file.path )
+    var dest      = fs.createWriteStream( filePath )
     return source.pipe(dest)
   }
+  writeStream = function writeStream(source, name) {
+    console.log('WRITESTREAM', name)
+    var filePath  = path.join( config.images.uploadDir, name )
+    var dest      = fs.createWriteStream( filePath )
+    return new Promise( (resolve, reject) => {
+      source
+      .pipe(dest)
+      .on('error', reject)
+      .on('close', resolve)
+
+    })
+  }
   listImages = function (prefix) {
-    return new Promise(function(resolve, reject) {
+    return new Promise( (resolve, reject) => {
       readDir(config.images.uploadDir)
       .then(onFiles)
       .catch(reject)
@@ -289,7 +315,7 @@ function handleEditorUpload(fields, files, resolve) {
 
 function write(file) {
   console.log('write', config.isAws ? 'S3' : 'local', chalk.green(file.name))
-  var uploadStream = writeStream(file)
+  var uploadStream = writeFromPath(file)
   return new Promise(function(resolve, reject) {
     uploadStream.on('close', resolve)
     // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3/ManagedUpload.html
@@ -316,10 +342,11 @@ function read(req, res, next) {
 }
 
 module.exports = {
-  streamImage:    streamImage,
-  read:           read,
-  write:          write,
-  list:           listImages,
-  parseMultipart: parseMultipart,
-  copyImages:     copyImages,
+  streamImage,
+  read,
+  write,
+  list: listImages,
+  parseMultipart,
+  copyImages,
+  writeStream,
 }

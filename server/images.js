@@ -5,10 +5,15 @@ const url         = require('url')
 const path        = require('path')
 const gm          = require('gm').subClass({imageMagick: true})
 const createError = require('http-errors')
+const util        = require('util')
+const { green, red, bgGreen,
+}                 =  require('chalk')
 
-const config      = require('./config')
-const filemanager = require('./filemanager')
-const streamImage = filemanager.streamImage
+const config          = require('./config')
+const {
+  streamImage,
+  writeStream, }      = require('./filemanager')
+const { Cacheimages } = require('./models')
 
 //////
 // OLD IMAGE HANDLING
@@ -104,18 +109,51 @@ function resize(req, res, next) {
 }
 
 function cover(req, res, next) {
+  const { path }          = req
   const { imageName }     = req.params
   const [ width, height ] = getSizes( req.params.sizes )
-  const imgStream         = streamImage(imageName)
   let img
 
-  imgStream.on('readable', _ => {
-    img = gm( streamImage(imageName) )
-    img
-    .autoOrient()
-    .format({ bufferStream: true }, onFormat)
-  })
-  imgStream.on('error', handleFileStreamError(next) )
+
+  console.log('COVER', req.path)
+
+  Cacheimages
+  .findOne( { path })
+  .lean()
+  .then( cacheDoc => {
+    if (cacheDoc === null) return initResize()
+    console.log( bgGreen.black('already in cache') )
+    console.log( util.inspect(cacheDoc) )
+    // TODO should be read from cache
+    var imageStream = streamImage(cacheDoc.name)
+    imageStream.on('error', function (err) {
+      console.log(chalk.red('read stream error'))
+      // Local => ENOENT || S3 => NoSuchKey
+      const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
+      if (isNotFound) return next( createError(404) )
+      next(err)
+    })
+    imageStream.on('readable', function () {
+      imageStream.pipe(res)
+    })
+    // initResize()
+  } )
+  .catch( e => {
+    console.log('error in image cache check')
+    console.log( util.inspect(e) )
+    initResize()
+  } )
+
+  function initResize() {
+    const imgStream         = streamImage(imageName)
+    imgStream.on('readable', _ => {
+      img = gm( streamImage(imageName) )
+      img
+      .autoOrient()
+      .format({ bufferStream: true }, onFormat)
+    })
+    imgStream.on('error', handleFileStreamError(next) )
+  }
 
   function onFormat(err, format) {
     if (err) return next(err)
@@ -129,16 +167,35 @@ function cover(req, res, next) {
     if (err) return next(err)
     if (!needResize(value, width, height)) return img.stream( streamToResponse )
     img
-    .resize(width, height + '^')
-    .gravity('Center')
-    .extent(width, height + '>')
-    .stream(streamToResponse)
+    .resize( width, height + '^' )
+    .gravity( 'Center')
+    .extent( width, height + '>' )
+    .stream( streamToResponse )
   }
 
   function streamToResponse (err, stdout, stderr) {
     if (err) return next(err)
+    writeStream(stdout, path.replace(/\//g, '_'))
+    .then( i => {
+      new Cacheimages({
+        path,
+        name: path.replace(/\//g, '_'),
+      })
+      .save()
+      .then( ci => console.log( green('cache image infos saved in DB', path )) )
+      .catch( e => {
+        console.log( red(`can't save cache image infos in DB`), path )
+        console.log( util.inspect( e ) )
+      })
+    })
+    .catch( e => {
+      console.log(`writeStream doesn't work`)
+      console.log( util.inspect( e ) )
+    })
     stdout.pipe(res)
   }
+
+  // function ()
 
 }
 
@@ -160,7 +217,7 @@ function placeholder(req, res, next) {
     if (x > width) { x = 0; y = y + size*2 }
   }
   // text
-  out = out.fill('#B0B0B0').fontSize(20).drawText(0, 0, width + ' x ' + height, 'center')
+  out = out.fill('#B0B0B0').fontSize(20).drawText(0, 0, `${width} x ${height}`, 'center')
   return out.stream('png').pipe(res);
 }
 
