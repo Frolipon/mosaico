@@ -6,6 +6,7 @@ const path        = require('path')
 const gm          = require('gm').subClass({imageMagick: true})
 const createError = require('http-errors')
 const util        = require('util')
+const stream      = require('stream')
 const { green, red, bgGreen,
 }                 =  require('chalk')
 
@@ -70,12 +71,17 @@ function streamToResponseAndCacheImage(req, res, next) {
 
   return function streamToResponse(err, stdout, stderr) {
     if (err) return next(err)
+    // clone stream
+    // https://github.com/nodejs/readable-stream/issues/202
+    const streamToResponse  = stdout.pipe( new stream.PassThrough() )
+    const streamToS3        = stdout.pipe( new stream.PassThrough() )
     // stream asset to response
-    stdout.pipe(res)
+    streamToResponse.pipe(res)
+
     // save asset for further use
     const { path }  = req
     const name      = path.replace(/^\//, '').replace(/\//g, '_')
-    writeStream( stdout, name )
+    writeStream( streamToS3, name )
     .then( onWriteEnd)
     .catch( onWriteError )
 
