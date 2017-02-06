@@ -65,9 +65,74 @@ function handleFileStreamError(next) {
   }
 }
 
+function streamToResponseAndCacheImage(req, res, next) {
+
+  return function streamToResponse(err, stdout, stderr) {
+    if (err) return next(err)
+    // stream asset to response
+    stdout.pipe(res)
+    // save asset for further use
+    const { path }  = req
+    const name      = path.replace(/\//g, '_')
+    writeStream( stdout, name )
+    .then( onWriteEnd)
+    .catch( onWriteError )
+
+    function onWriteEnd() {
+      new Cacheimages({
+        path,
+        name,
+      })
+      .save()
+      .then( ci => console.log( green('cache image infos saved in DB', path )) )
+      .catch( e => {
+        console.log( red(`[IMAGE] can't save cache image infos in DB`), path )
+        console.log( util.inspect( e ) )
+      })
+    }
+
+    function onWriteError( e ) {
+      console.log(`[IMAGE] can't upload resize/placeholder result`, path)
+      console.log( util.inspect( e ) )
+    }
+  }
+
+}
+
 //////
 // IMAGE HANDLING
 //////
+
+function checkImageCache(req, res, next) {
+  const { path } = req
+
+  Cacheimages
+  .findOne( { path } )
+  .lean()
+  .then( onCacheimage )
+  .catch( e => {
+    console.log('[IMAGE] error in image cache check')
+    console.log( util.inspect(e) )
+    next()
+  } )
+
+  function onCacheimage( cacheInformations ) {
+    if (cacheInformations === null) return next()
+    // TODO should be using the same code as filemanager#read
+    console.log( bgGreen.black(path), 'already in cache' )
+    var imageStream = streamImage( cacheInformations.name )
+    imageStream.on('error', err => {
+      console.log( red('read stream error') )
+      // Local => ENOENT || S3 => NoSuchKey
+      const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
+      if (isNotFound) return next( createError(404) )
+      next( err )
+    })
+    imageStream.on('readable', e => imageStream.pipe(res) )
+  }
+
+
+}
 
 function resize(req, res, next) {
   const { imageName }     = req.params
@@ -98,7 +163,7 @@ function resize(req, res, next) {
     if (!needResize(value, width, height)) return img.stream( streamToResponse )
     img
     .resize( width, height )
-    .stream( streamToResponse )
+    .stream( streamToResponseAndCacheImage(req, res, next) )
   }
 
   function streamToResponse (err, stdout, stderr) {
@@ -112,48 +177,17 @@ function cover(req, res, next) {
   const { path }          = req
   const { imageName }     = req.params
   const [ width, height ] = getSizes( req.params.sizes )
+  const imgStream         = streamImage( imageName )
   let img
 
+  imgStream.on('readable', _ => {
+    img = gm( streamImage(imageName) )
+    img
+    .autoOrient()
+    .format({ bufferStream: true }, onFormat)
+  })
+  imgStream.on('error', handleFileStreamError(next) )
 
-  console.log('COVER', req.path)
-
-  Cacheimages
-  .findOne( { path })
-  .lean()
-  .then( cacheDoc => {
-    if (cacheDoc === null) return initResize()
-    console.log( bgGreen.black('already in cache') )
-    console.log( util.inspect(cacheDoc) )
-    // TODO should be read from cache
-    var imageStream = streamImage(cacheDoc.name)
-    imageStream.on('error', function (err) {
-      console.log(chalk.red('read stream error'))
-      // Local => ENOENT || S3 => NoSuchKey
-      const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
-      if (isNotFound) return next( createError(404) )
-      next(err)
-    })
-    imageStream.on('readable', function () {
-      imageStream.pipe(res)
-    })
-    // initResize()
-  } )
-  .catch( e => {
-    console.log('error in image cache check')
-    console.log( util.inspect(e) )
-    initResize()
-  } )
-
-  function initResize() {
-    const imgStream         = streamImage(imageName)
-    imgStream.on('readable', _ => {
-      img = gm( streamImage(imageName) )
-      img
-      .autoOrient()
-      .format({ bufferStream: true }, onFormat)
-    })
-    imgStream.on('error', handleFileStreamError(next) )
-  }
 
   function onFormat(err, format) {
     if (err) return next(err)
@@ -170,32 +204,13 @@ function cover(req, res, next) {
     .resize( width, height + '^' )
     .gravity( 'Center')
     .extent( width, height + '>' )
-    .stream( streamToResponse )
+    .stream( streamToResponseAndCacheImage(req, res, next) )
   }
 
   function streamToResponse (err, stdout, stderr) {
     if (err) return next(err)
-    writeStream(stdout, path.replace(/\//g, '_'))
-    .then( i => {
-      new Cacheimages({
-        path,
-        name: path.replace(/\//g, '_'),
-      })
-      .save()
-      .then( ci => console.log( green('cache image infos saved in DB', path )) )
-      .catch( e => {
-        console.log( red(`can't save cache image infos in DB`), path )
-        console.log( util.inspect( e ) )
-      })
-    })
-    .catch( e => {
-      console.log(`writeStream doesn't work`)
-      console.log( util.inspect( e ) )
-    })
     stdout.pipe(res)
   }
-
-  // function ()
 
 }
 
@@ -222,8 +237,9 @@ function placeholder(req, res, next) {
 }
 
 module.exports = {
-  getResized:   getResized,
-  cover:        cover,
-  resize:       resize,
-  placeholder:  placeholder,
+  getResized,
+  cover,
+  resize,
+  placeholder,
+  checkImageCache,
 }

@@ -327,10 +327,10 @@ function write(file) {
 }
 
 function read(req, res, next) {
-  console.log('read', config.isAws ? 'S3' : 'local', chalk.green(req.params.imageName))
+  // console.log('read', config.isAws ? 'S3' : 'local', chalk.green(req.params.imageName))
   var imageStream = streamImage(req.params.imageName)
   imageStream.on('error', function (err) {
-    console.log(chalk.red('read stream error'))
+    console.log(chalk.red('read stream error'), req.params.imageName)
     // Local => ENOENT || S3 => NoSuchKey
     const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
     if (isNotFound) return next( createError(404) )
