@@ -36,7 +36,7 @@ test('admin – deactivate a user', t => {
   function checkUserIsActive(result) {
     t.equal(result.icon, 'check', 'use is active to begin with')
     return nightmare
-    .click(`a[title="users"]`)
+    .click(`a[href="/users"]`)
     .wait()
     .click(`a[href="/users/${data._id}?_method=DELETE"]`)
     .wait()
