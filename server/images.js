@@ -65,6 +65,7 @@ function handleFileStreamError(next) {
   }
 }
 
+// used to stream an resize/placeholder result
 function streamToResponseAndCacheImage(req, res, next) {
 
   return function streamToResponse(err, stdout, stderr) {
@@ -73,7 +74,7 @@ function streamToResponseAndCacheImage(req, res, next) {
     stdout.pipe(res)
     // save asset for further use
     const { path }  = req
-    const name      = path.replace(/\//g, '_')
+    const name      = path.replace(/^\//, '').replace(/\//g, '_')
     writeStream( stdout, name )
     .then( onWriteEnd)
     .catch( onWriteError )
@@ -95,6 +96,16 @@ function streamToResponseAndCacheImage(req, res, next) {
       console.log(`[IMAGE] can't upload resize/placeholder result`, path)
       console.log( util.inspect( e ) )
     }
+  }
+
+}
+
+// used when image don't need a resize
+function streamToResponseWithoutCaching(req, res, next) {
+
+  return function streamToResponse(err, stdout, stderr) {
+    if (err) return next(err)
+    stdout.pipe( res )
   }
 
 }
@@ -131,7 +142,6 @@ function checkImageCache(req, res, next) {
     imageStream.on('readable', e => imageStream.pipe(res) )
   }
 
-
 }
 
 function resize(req, res, next) {
@@ -160,15 +170,12 @@ function resize(req, res, next) {
 
   function onSize(err, value) {
     if (err) return next(err)
-    if (!needResize(value, width, height)) return img.stream( streamToResponse )
+    if (!needResize(value, width, height)) {
+      return img.stream( streamToResponseWithoutCaching( req, res, next) )
+    }
     img
     .resize( width, height )
     .stream( streamToResponseAndCacheImage(req, res, next) )
-  }
-
-  function streamToResponse (err, stdout, stderr) {
-    if (err) return next(err)
-    stdout.pipe(res)
   }
 
 }
@@ -188,7 +195,6 @@ function cover(req, res, next) {
   })
   imgStream.on('error', handleFileStreamError(next) )
 
-
   function onFormat(err, format) {
     if (err) return next(err)
     format = format.toLowerCase()
@@ -199,7 +205,10 @@ function cover(req, res, next) {
 
   function onSize(err, value) {
     if (err) return next(err)
-    if (!needResize(value, width, height)) return img.stream( streamToResponse )
+    if (!needResize(value, width, height)) {
+      return img.stream( streamToResponseWithoutCaching( req, res, next) )
+    }
+
     img
     .resize( width, height + '^' )
     .gravity( 'Center')
@@ -207,18 +216,14 @@ function cover(req, res, next) {
     .stream( streamToResponseAndCacheImage(req, res, next) )
   }
 
-  function streamToResponse (err, stdout, stderr) {
-    if (err) return next(err)
-    stdout.pipe(res)
-  }
-
 }
 
 function placeholder(req, res, next) {
-  var sizes   = /(\d+)x(\d+)\.png/.exec(req.params.imageName)
-  var width   = ~~sizes[1]
-  var height  = ~~sizes[2]
-  var out     = gm(width, height, '#707070')
+  var sizes               = /(\d+)x(\d+)\.png/.exec(req.params.imageName)
+  var width               = ~~sizes[1]
+  var height              = ~~sizes[2]
+  const streamPlaceholder = streamToResponseAndCacheImage( req, res, next )
+  var out                 = gm(width, height, '#707070')
   res.set('Content-Type', 'image/png')
   var x = 0, y = 0
   var size = 40
@@ -233,7 +238,7 @@ function placeholder(req, res, next) {
   }
   // text
   out = out.fill('#B0B0B0').fontSize(20).drawText(0, 0, `${width} x ${height}`, 'center')
-  return out.stream('png').pipe(res);
+  streamPlaceholder( null, out.stream('png'), null)
 }
 
 module.exports = {
