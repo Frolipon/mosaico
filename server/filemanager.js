@@ -9,6 +9,7 @@ const chalk       = require('chalk')
 const formidable  = require('formidable')
 const denodeify   = require('denodeify')
 const createError = require('http-errors')
+const util        = require('util')
 const readFile    = denodeify( fs.readFile )
 const readDir     = denodeify( fs.readdir )
 
@@ -49,7 +50,7 @@ if (config.isAws) {
   }
   // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#upload-property
   writeFromPath = function writeFromPath(file) {
-    var source  = fs.createReadStream(file.path)
+    var source  = fs.createReadStream( file.path )
     return s3
     .upload({
       Bucket: config.storage.aws.bucketName,
@@ -64,12 +65,18 @@ if (config.isAws) {
       s3
       .upload({
         Bucket: config.storage.aws.bucketName,
-        Key:    file.name,
+        Key:    name,
         Body:   source,
       }, (err, data) => {
-        if (err) return reject( err )
-        resolve( data )
+        console.log(err, data)
+        // if (err) return reject( err )
+        // resolve( data )
       })
+      .on('httpUploadProgress', progress => {
+        console.log('httpUploadProgress', progress.loaded, progress.total)
+        if (progress.loaded >= progress.total) resolve()
+      })
+      .on('error', reject)
     })
   }
   // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#listObjectsV2-property
