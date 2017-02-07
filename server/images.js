@@ -48,6 +48,7 @@ cacheControl      = cacheControl.asSeconds()
 
 // https://devcenter.heroku.com/articles/increasing-application-performance-with-http-cache-headers#http-cache-headers
 function addCacheControl(res) {
+  if (!config.images.cache) return
   res.set('Cache-Control', `public, max-age=${ cacheControl }`)
 }
 
@@ -207,6 +208,46 @@ function read(req, res, next) {
   imageStream.once('readable', e => imageStream.pipe(res) )
 }
 
+// function resize(req, res, next) {
+//   const { imageName }     = req.params
+//   const [ width, height ] = getTargetDimensions( req.params.sizes )
+//   const imgStream         = streamImage( imageName )
+//   let img
+
+//   imgStream.once('readable', _ => {
+//     console.log(`[RESIZE] readable`)
+//     img = gm( streamImage(imageName) )
+//     img
+//     .autoOrient()
+//     .format({ bufferStream: true }, onFormat)
+//   })
+//   imgStream.on('error', handleFileStreamError(next) )
+
+//   function onFormat(err, format) {
+//     if (err) return next(err)
+//     format = format.toLowerCase()
+//     res.set('Content-Type', `image/${ format }`)
+//     // Gif frames with differents size can be buggy to resize
+//     // http://stackoverflow.com/questions/12293832/problems-when-resizing-cinemagraphs-animated-gifs
+//     if (format === 'gif') img.coalesce()
+//     img.size(onSize)
+//   }
+
+//   function onSize(err, value) {
+//     if (err) return next(err)
+//     if (!needResize(value, width, height)) return img.stream( streamToResponse )
+//     img
+//     .resize( width, height )
+//     .stream( streamToResponse )
+//   }
+
+//   function streamToResponse (err, stdout, stderr) {
+//     if (err) return next(err)
+//     stdout.pipe(res)
+//   }
+
+// }
+
 function resize(req, res, next) {
   const { imageDatas }    = req
   const { imageName }     = req.params
@@ -218,7 +259,6 @@ function resize(req, res, next) {
   img
   .resize( width, height )
   .stream( streamToResponseAndCacheImage(req, res, next) )
-
 }
 
 function cover(req, res, next) {
