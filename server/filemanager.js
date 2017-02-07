@@ -187,7 +187,6 @@ if (config.isAws) {
       }
 
       function copyAndAlwaysResolve(file) {
-        console.log(file)
         return new Promise( function (done) {
           var srcPath = path.join(config.images.uploadDir, file.name)
           var dstPath = srcPath.replace(oldPrefix, newPrefix)
@@ -334,24 +333,8 @@ function write(file) {
   })
 }
 
-function read(req, res, next) {
-  // console.log('read', config.isAws ? 'S3' : 'local', chalk.green(req.params.imageName))
-  var imageStream = streamImage(req.params.imageName)
-  imageStream.on('error', function (err) {
-    console.log(chalk.red('read stream error'), req.params.imageName)
-    // Local => ENOENT || S3 => NoSuchKey
-    const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
-    if (isNotFound) return next( createError(404) )
-    next(err)
-  })
-  imageStream.on('readable', function () {
-    imageStream.pipe(res)
-  })
-}
-
 module.exports = {
   streamImage,
-  read,
   write,
   list: listImages,
   parseMultipart,

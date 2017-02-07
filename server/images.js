@@ -60,6 +60,7 @@ function needResize(value, width, height) {
 
 function handleFileStreamError(next) {
   return function (err) {
+    // Local => ENOENT || S3 => NoSuchKey
     const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
     if (isNotFound) return next( createError(404) )
     next(err)
@@ -78,8 +79,7 @@ function streamToResponseAndCacheImage(req, res, next) {
     // const streamToS3        = stdout.pipe( new stream.PassThrough() )
     // stream asset to response
     streamToResponse.pipe(res)
-
-    return
+    if (!config.images.cache) return
 
     // save asset for further use
     const { path }  = req
@@ -109,25 +109,17 @@ function streamToResponseAndCacheImage(req, res, next) {
 
 }
 
-// used when image don't need a resize
-function streamToResponseWithoutCaching(req, res, next) {
-
-  return function streamToResponse(err, stdout, stderr) {
-    if (err) return next(err)
-    stdout.pipe( res )
-  }
-
-}
-
 //////
 // IMAGE HANDLING
 //////
 
+// TODO gif can be optimized by using image-min
+// https://www.npmjs.com/package/image-min
+
 function checkImageCache(req, res, next) {
+  if (!config.images.cache) return next()
+
   const { path } = req
-
-  return next()
-
   Cacheimages
   .findOne( { path } )
   .lean()
@@ -150,7 +142,7 @@ function checkImageCache(req, res, next) {
       if (isNotFound) return next( createError(404) )
       next( err )
     })
-    imageStream.on('readable', e => imageStream.pipe(res) )
+    imageStream.once('readable', e => imageStream.pipe(res) )
   }
 
 }
@@ -176,6 +168,8 @@ function checkSizes(req, res, next) {
     req.imageDatas = imageDatas
     res.set('Content-Type', imageDatas.mime )
 
+    // Cache-Control:public, max-age=31536000
+
     // console.log( imageDatas )
     // console.log( 'needResize:', needResize(imageDatas, width, height) )
     console.log(`[CHECKSIZES] continue to resize`)
@@ -183,6 +177,19 @@ function checkSizes(req, res, next) {
     next()
   })
   .catch( handleFileStreamError( next ) )
+}
+
+function read(req, res, next) {
+  const { imageName }     = req.params
+  var imageStream = streamImage( imageName )
+  imageStream.on('error', err => {
+    console.log( red('read stream error') )
+    // Local => ENOENT || S3 => NoSuchKey
+    const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
+    if (isNotFound) return next( createError(404) )
+    next( err )
+  })
+  imageStream.once('readable', e => imageStream.pipe(res) )
 }
 
 function resize(req, res, next) {
@@ -245,4 +252,5 @@ module.exports = {
   placeholder,
   checkImageCache,
   checkSizes,
+  read,
 }

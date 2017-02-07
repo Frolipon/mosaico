@@ -1,11 +1,12 @@
 'use strict';
 
-var os        = require('os')
-var path      = require('path')
-var rc        = require('rc')
-var _         = require('lodash')
-var denodeify = require('denodeify')
-var mkdirp    = denodeify(require('fs-extra').mkdirs)
+var os          = require('os')
+var path        = require('path')
+var rc          = require('rc')
+var _           = require('lodash')
+var denodeify   = require('denodeify')
+var { inspect } = require('util')
+var mkdirp      = denodeify( require('fs-extra').mkdirs )
 
 // default config is made for easy use on local dev
 var config  = rc('badsender', {
@@ -18,7 +19,7 @@ var config  = rc('badsender', {
     port:         1025,
   },
   emailOptions: {
-    from:           'Badsender local test <info@badsender-local-test.name>',
+    from:               'Badsender local test <info@badsender-local-test.name>',
     // last space is needed
     testSubjectPrefix:  '[badsender email builder] ',
   },
@@ -28,6 +29,7 @@ var config  = rc('badsender', {
   images: {
     uploadDir:    'uploads',
     tmpDir:       'tmp',
+    cache:        true,
   },
   admin: {
     id:           '576b90a441ceadc005124896',
@@ -52,6 +54,7 @@ config.isProd     = config.NODE_ENV === 'production'
 config.isPreProd  = !config.isDev && !config.isProd
 config.isAws      = config.storage.type === 'aws'
 
+if ( config.isDev ) console.log( inspect(config) )
 // http://stackoverflow.com/questions/12416738/how-to-use-herokus-ephemeral-filesystem
 config.setup    = new Promise( (resolve, reject) => {
   var tmpPath     = path.join(__dirname, '/../', config.images.tmpDir)

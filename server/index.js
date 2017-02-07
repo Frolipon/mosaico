@@ -267,7 +267,7 @@ module.exports = function () {
   app.post('/password/:token',              guard('no-session'), users.setPassword)
 
   app.get('/logout',                        guard('user'), session.logout)
-  app.get('/img/:imageName',                filemanager.read)
+  app.get('/img/:imageName',                images.read)
   app.get('/placeholder/:imageName',        images.checkImageCache, images.placeholder)
   app.get('/resize/:sizes/:imageName',      images.checkImageCache, images.checkSizes, images.resize)
   app.get('/cover/:sizes/:imageName',       images.checkImageCache, images.checkSizes, images.cover)
