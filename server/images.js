@@ -18,6 +18,8 @@ const {
   writeStream, }      = require('./filemanager')
 const { Cacheimages } = require('./models')
 
+console.log('[IMAGES] config.images.cache', config.images.cache)
+
 //////
 // OLD IMAGE HANDLING
 //////
@@ -88,11 +90,12 @@ function streamToResponseAndCacheImage(req, res, next) {
     // clone stream
     // https://github.com/nodejs/readable-stream/issues/202
     const streamToResponse  = stdout.pipe( new stream.PassThrough() )
-    // const streamToS3        = stdout.pipe( new stream.PassThrough() )
+
     // stream asset to response
     streamToResponse.pipe( res )
 
     if (!config.images.cache) return
+    const streamToS3        = stdout.pipe( new stream.PassThrough() )
 
     // save asset for further use
     const { path }  = req
