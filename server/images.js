@@ -1,15 +1,16 @@
 'use strict';
 
-const fs          = require('fs')
-const url         = require('url')
-const path        = require('path')
-const gm          = require('gm').subClass({imageMagick: true})
-const createError = require('http-errors')
-const util        = require('util')
-const stream      = require('stream')
-const probe       = require('probe-image-size')
+const fs            = require('fs')
+const url           = require('url')
+const path          = require('path')
+const gm            = require('gm').subClass({imageMagick: true})
+const createError   = require('http-errors')
+const util          = require('util')
+const stream        = require('stream')
+const probe         = require('probe-image-size')
+const { duration }  = require('moment')
 const { green, red, bgGreen,
-}                 =  require('chalk')
+}                   =  require('chalk')
 
 const config          = require('./config')
 const {
@@ -42,6 +43,14 @@ function getResized(req, res, next) {
 // IMAGE UTILS
 //////
 
+let cacheControl  = config.isDev ? duration( 10, 'minutes') : duration( 1, 'years')
+cacheControl      = cacheControl.asSeconds()
+
+// https://devcenter.heroku.com/articles/increasing-application-performance-with-http-cache-headers#http-cache-headers
+function addCacheControl(res) {
+  res.set('Cache-Control', `public, max-age=${ cacheControl }`)
+}
+
 function getTargetDimensions(sizes) {
   sizes = sizes.split('x')
   sizes = sizes.map( s => s === 'null' ? null : ~~s )
@@ -73,12 +82,15 @@ function streamToResponseAndCacheImage(req, res, next) {
 
   return function streamToResponse(err, stdout, stderr) {
     if (err) return next(err)
+    console.log( 'streamToResponse')
+    addCacheControl( res )
     // clone stream
     // https://github.com/nodejs/readable-stream/issues/202
     const streamToResponse  = stdout.pipe( new stream.PassThrough() )
     // const streamToS3        = stdout.pipe( new stream.PassThrough() )
     // stream asset to response
-    streamToResponse.pipe(res)
+    streamToResponse.pipe( res )
+
     if (!config.images.cache) return
 
     // save asset for further use
@@ -125,7 +137,7 @@ function checkImageCache(req, res, next) {
   .lean()
   .then( onCacheimage )
   .catch( e => {
-    console.log('[IMAGE] error in image cache check')
+    console.log('[CHECKSIZES] error in image cache check')
     console.log( util.inspect(e) )
     next()
   } )
@@ -134,6 +146,7 @@ function checkImageCache(req, res, next) {
     if (cacheInformations === null) return next()
     // TODO should be using the same code as filemanager#read
     console.log( bgGreen.black(path), 'already in cache' )
+    addCacheControl( res )
     var imageStream = streamImage( cacheInformations.name )
     imageStream.on('error', err => {
       console.log( red('read stream error') )
@@ -142,7 +155,7 @@ function checkImageCache(req, res, next) {
       if (isNotFound) return next( createError(404) )
       next( err )
     })
-    imageStream.once('readable', e => imageStream.pipe(res) )
+    imageStream.once('readable', e => imageStream.pipe( res ) )
   }
 
 }
@@ -162,10 +175,11 @@ function checkSizes(req, res, next) {
     // imgStream.destroy()
     if ( !needResize( imageDatas, width, height ) ) {
       console.log(`[CHECKSIZES] don't need resize`)
+      addCacheControl( res )
       return streamImage( imageName ).pipe( res )
     }
 
-    req.imageDatas = imageDatas
+    req.imageDatas  = imageDatas
     res.set('Content-Type', imageDatas.mime )
 
     // Cache-Control:public, max-age=31536000
@@ -189,6 +203,7 @@ function read(req, res, next) {
     if (isNotFound) return next( createError(404) )
     next( err )
   })
+  addCacheControl( res )
   imageStream.once('readable', e => imageStream.pipe(res) )
 }
 
