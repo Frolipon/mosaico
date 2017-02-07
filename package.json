@@ -63,6 +63,7 @@
     "nodemailer-wellknown": "^0.2.1",
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
+    "probe-image-size": "^3.0.0",
     "pug": "^2.0.0-beta6",
     "qs": "^6.3.0",
     "rand-token": "^0.3.0",

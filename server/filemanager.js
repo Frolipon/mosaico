@@ -41,12 +41,13 @@ if (config.isAws) {
   // http://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-examples.html#Amazon_Simple_Storage_Service__Amazon_S3_
   // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#getObject-property
   streamImage = function streamImage(imageName) {
-    return s3
-    .getObject({
+    const awsRequest = s3.getObject({
       Bucket: config.storage.aws.bucketName,
       Key:    imageName,
     })
-    .createReadStream()
+    const awsStream   = awsRequest.createReadStream()
+    awsStream.destroy = awsRequest.abort
+    return awsStream
   }
   // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#upload-property
   writeFromPath = function writeFromPath(file) {
@@ -133,8 +134,8 @@ if (config.isAws) {
 } else {
   // https://docs.nodejitsu.com/articles/advanced/streams/how-to-use-fs-create-read-stream/
   streamImage = function streamImage(imageName) {
-    var imagePath = path.join(config.images.uploadDir, imageName)
-    return fs.createReadStream(imagePath)
+    var imagePath = path.join( config.images.uploadDir, imageName )
+    return fs.createReadStream( imagePath )
   }
   writeFromPath = function writeFromPath(file) {
     var filePath  = path.join( config.images.uploadDir, file.name )

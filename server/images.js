@@ -7,6 +7,7 @@ const gm          = require('gm').subClass({imageMagick: true})
 const createError = require('http-errors')
 const util        = require('util')
 const stream      = require('stream')
+const probe       = require('probe-image-size')
 const { green, red, bgGreen,
 }                 =  require('chalk')
 
@@ -41,7 +42,7 @@ function getResized(req, res, next) {
 // IMAGE UTILS
 //////
 
-function getSizes(sizes) {
+function getTargetDimensions(sizes) {
   sizes = sizes.split('x')
   sizes = sizes.map( s => s === 'null' ? null : ~~s )
   return sizes
@@ -74,9 +75,11 @@ function streamToResponseAndCacheImage(req, res, next) {
     // clone stream
     // https://github.com/nodejs/readable-stream/issues/202
     const streamToResponse  = stdout.pipe( new stream.PassThrough() )
-    const streamToS3        = stdout.pipe( new stream.PassThrough() )
+    // const streamToS3        = stdout.pipe( new stream.PassThrough() )
     // stream asset to response
     streamToResponse.pipe(res)
+
+    return
 
     // save asset for further use
     const { path }  = req
@@ -123,6 +126,8 @@ function streamToResponseWithoutCaching(req, res, next) {
 function checkImageCache(req, res, next) {
   const { path } = req
 
+  return next()
+
   Cacheimages
   .findOne( { path } )
   .lean()
@@ -150,77 +155,63 @@ function checkImageCache(req, res, next) {
 
 }
 
-function resize(req, res, next) {
+function checkSizes(req, res, next) {
+  const [ width, height ] = getTargetDimensions( req.params.sizes )
   const { imageName }     = req.params
-  const [ width, height ] = getSizes( req.params.sizes )
-  const imgStream         = streamImage(imageName)
-  let img
+  console.log('[CHECKSIZES]', imageName, { width, height } )
+  const imgStream         = streamImage( imageName )
 
-  imgStream.on('readable', _ => {
-    img = gm( streamImage(imageName) )
-    img
-    .autoOrient()
-    .format({ bufferStream: true }, onFormat)
-  })
-  imgStream.on('error', handleFileStreamError(next) )
-
-  function onFormat(err, format) {
-    if (err) return next(err)
-    format = format.toLowerCase()
-    res.set('Content-Type', `image/${ format }`)
-    // Gif frames with differents size can be buggy to resize
-    // http://stackoverflow.com/questions/12293832/problems-when-resizing-cinemagraphs-animated-gifs
-    if (format === 'gif') img.coalesce()
-    img.size(onSize)
-  }
-
-  function onSize(err, value) {
-    if (err) return next(err)
-    if (!needResize(value, width, height)) {
-      return img.stream( streamToResponseWithoutCaching( req, res, next) )
+  probe( imgStream )
+  .then( imageDatas => {
+    console.log(`[CHECKSIZES] success`)
+    // TODO abort connection;
+    // terminate input, depends on stream type,
+    // this example is for fs streams only.
+    // imgStream.destroy()
+    if ( !needResize( imageDatas, width, height ) ) {
+      console.log(`[CHECKSIZES] don't need resize`)
+      return streamImage( imageName ).pipe( res )
     }
-    img
-    .resize( width, height )
-    .stream( streamToResponseAndCacheImage(req, res, next) )
-  }
+
+    req.imageDatas = imageDatas
+    res.set('Content-Type', imageDatas.mime )
+
+    // console.log( imageDatas )
+    // console.log( 'needResize:', needResize(imageDatas, width, height) )
+    console.log(`[CHECKSIZES] continue to resize`)
+
+    next()
+  })
+  .catch( handleFileStreamError( next ) )
+}
+
+function resize(req, res, next) {
+  const { imageDatas }    = req
+  const { imageName }     = req.params
+  const [ width, height ] = getTargetDimensions( req.params.sizes )
+  const img               = gm( streamImage( imageName ) ).autoOrient()
+
+  console.log('[RESIZE]', imageName)
+  if ( imageDatas.type === 'gif' ) img.coalesce()
+  img
+  .resize( width, height )
+  .stream( streamToResponseAndCacheImage(req, res, next) )
 
 }
 
 function cover(req, res, next) {
-  const { path }          = req
+  const { imageDatas }    = req
   const { imageName }     = req.params
-  const [ width, height ] = getSizes( req.params.sizes )
-  const imgStream         = streamImage( imageName )
-  let img
+  const [ width, height ] = getTargetDimensions( req.params.sizes )
+  const img               = gm( streamImage( imageName ) ).autoOrient()
 
-  imgStream.on('readable', _ => {
-    img = gm( streamImage(imageName) )
-    img
-    .autoOrient()
-    .format({ bufferStream: true }, onFormat)
-  })
-  imgStream.on('error', handleFileStreamError(next) )
-
-  function onFormat(err, format) {
-    if (err) return next(err)
-    format = format.toLowerCase()
-    res.set('Content-Type', `image/${ format }`)
-    if (format === 'gif') img.coalesce() // Gif frames (see resize ^^)
-    img.size(onSize)
-  }
-
-  function onSize(err, value) {
-    if (err) return next(err)
-    if (!needResize(value, width, height)) {
-      return img.stream( streamToResponseWithoutCaching( req, res, next) )
-    }
-
-    img
-    .resize( width, height + '^' )
-    .gravity( 'Center')
-    .extent( width, height + '>' )
-    .stream( streamToResponseAndCacheImage(req, res, next) )
-  }
+  console.log('[COVER]', imageName)
+  if ( imageDatas.type === 'gif' ) img.coalesce()
+  img
+  .resize( width, height + '^' )
+  .gravity( 'Center')
+  .extent( width, height + '>' )
+  .stream( streamToResponseAndCacheImage(req, res, next) )
 
 }
 
@@ -253,4 +244,5 @@ module.exports = {
   resize,
   placeholder,
   checkImageCache,
+  checkSizes,
 }
