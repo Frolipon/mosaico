@@ -3,19 +3,8 @@
 
   h4.bs-table-header__title.bs-table-header__title.js-selection-count
 
-  div
-
-    button#set-label.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent.js-open-tags-panel(type="button")
-      i.material-icons label
-    span(for="set-label").mdl-tooltip.mdl-tooltip--large= __('tags.set')
-
-    button#delete-creation.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent.js-delete-creations(
-      type="submit"
-      formaction=mergeQueries('/creations', _query, { _method: 'DELETE', })
-    )
-      i.material-icons delete
-    span(for="delete-creation").mdl-tooltip.mdl-tooltip--large= __('home.saved.delete')
-
+  //- put it here for FireFox bug
+  //- http://stackoverflow.com/questions/32991051/absolutely-positioned-flex-item-not-being-removed-from-normal-flow-in-firefox
   dl.bsTagsPanel.js-tags
     dt.bsTagsPanel__title
      span= __('tags.title')
@@ -32,4 +21,15 @@
         formaction=mergeQueries('/creations', _query, { _method: 'PATCH', })
       )= __('tags.apply')
 
+  div
 
+    button#set-label.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent.js-open-tags-panel(type="button")
+      i.material-icons label
+    span(for="set-label").mdl-tooltip.mdl-tooltip--large= __('tags.set')
+
+    button#delete-creation.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent.js-delete-creations(
+      type="submit"
+      formaction=mergeQueries('/creations', _query, { _method: 'DELETE', })
+    )
+      i.material-icons delete
+    span(for="delete-creation").mdl-tooltip.mdl-tooltip--large= __('home.saved.delete')
