@@ -44,14 +44,16 @@ function handleOldImageUrl(req, res, next) {
 // IMAGE UTILS
 //////
 
-let cacheControl  = config.isDev ? duration( 10, 'minutes') : duration( 1, 'years')
+// let cacheControl  = config.isDev ? duration( 10, 'minutes') : duration( 1, 'years')
+let cacheControl  = config.isDev ? duration( 10, 'minutes') : duration( 1, 'days')
 cacheControl      = cacheControl.asSeconds()
 
+// TODO better handling of Cache-Control
+  // => what happend when somebody reupload an image with the same name?
 // https://devcenter.heroku.com/articles/increasing-application-performance-with-http-cache-headers#http-cache-headers
 function addCacheControl(res) {
-  // TODO handle Cache-Control
-  // => what happend when somebody reupload an image with the same name?
-  // res.set('Cache-Control', `public, max-age=${ cacheControl }`)
+  if (!config.images.cache) return
+  res.set('Cache-Control', `public, max-age=${ cacheControl }`)
 }
 
 function getTargetDimensions(sizes) {
