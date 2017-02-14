@@ -85,7 +85,9 @@ function streamToResponseAndCacheImage(req, res, next) {
 
   return function streamToResponse(err, stdout, stderr) {
     if (err) return next(err)
-    console.log( 'streamToResponse')
+    const { path }      = req
+    const { imageName } = req.params
+    console.log( '[IMAGE] after resize – ', path)
     // clone stream
     // https://github.com/nodejs/readable-stream/issues/202
     const streamToResponse  = stdout.pipe( new stream.PassThrough() )
@@ -98,8 +100,6 @@ function streamToResponseAndCacheImage(req, res, next) {
     if (!config.images.cache) return
 
     // stream to S3/folder
-    const { path }      = req
-    const { imageName } = req.params
     const streamToS3    = stdout.pipe( new stream.PassThrough() )
     const name          = path.replace(/^\//, '').replace(/\//g, '_')
 
