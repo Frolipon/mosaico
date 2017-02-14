@@ -24,10 +24,9 @@ console.log('[IMAGES] config.images.cache', config.images.cache)
 // OLD IMAGE HANDLING
 //////
 
-// Check logs on february
+// Check logs on march
 // if no more `[IMAGE] old url for path` => remove
-
-function getResized(req, res, next) {
+function handleOldImageUrl(req, res, next) {
   if (!req.query.src)     return next( createError(404) )
   if (!req.query.method)  return next( createError(404) )
   let imageName = /([^/]*)$/.exec( req.query.src )
@@ -50,8 +49,9 @@ cacheControl      = cacheControl.asSeconds()
 
 // https://devcenter.heroku.com/articles/increasing-application-performance-with-http-cache-headers#http-cache-headers
 function addCacheControl(res) {
-  if (!config.images.cache) return
-  res.set('Cache-Control', `public, max-age=${ cacheControl }`)
+  // TODO handle Cache-Control
+  // => what happend when somebody reupload an image with the same name?
+  // res.set('Cache-Control', `public, max-age=${ cacheControl }`)
 }
 
 function getTargetDimensions(sizes) {
@@ -86,28 +86,33 @@ function streamToResponseAndCacheImage(req, res, next) {
   return function streamToResponse(err, stdout, stderr) {
     if (err) return next(err)
     console.log( 'streamToResponse')
-    addCacheControl( res )
     // clone stream
     // https://github.com/nodejs/readable-stream/issues/202
     const streamToResponse  = stdout.pipe( new stream.PassThrough() )
 
-    // stream asset to response
+    // STREAM ASSET TO RESPONSE
+    addCacheControl( res )
     streamToResponse.pipe( res )
 
+    // SAVE ASSET FOR FURTHER USE
     if (!config.images.cache) return
-    const streamToS3        = stdout.pipe( new stream.PassThrough() )
 
-    // save asset for further use
-    const { path }  = req
-    const name      = path.replace(/^\//, '').replace(/\//g, '_')
+    // stream to S3/folder
+    const { path }      = req
+    const { imageName } = req.params
+    const streamToS3    = stdout.pipe( new stream.PassThrough() )
+    const name          = path.replace(/^\//, '').replace(/\//g, '_')
+
     writeStream( streamToS3, name )
     .then( onWriteEnd)
     .catch( onWriteError )
 
     function onWriteEnd() {
+      // save in DB for cataloging
       new Cacheimages({
         path,
         name,
+        imageName,
       })
       .save()
       .then( ci => console.log( green('cache image infos saved in DB', path )) )
@@ -122,8 +127,23 @@ function streamToResponseAndCacheImage(req, res, next) {
       console.log( util.inspect( e ) )
     }
   }
-
 }
+
+const bareStreamToResponse = (req, res, next) => imageName => {
+  const imageStream = streamImage( imageName )
+  imageStream.on('error', err => {
+    console.log( red('read stream error') )
+    // Local => ENOENT || S3 => NoSuchKey
+    const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
+    if (isNotFound) return next( createError(404) )
+    next( err )
+  })
+  imageStream.once('readable', e => {
+    addCacheControl( res )
+    imageStream.pipe( res )
+  } )
+}
+
 
 //////
 // IMAGE HANDLING
@@ -148,18 +168,8 @@ function checkImageCache(req, res, next) {
 
   function onCacheimage( cacheInformations ) {
     if (cacheInformations === null) return next()
-    // TODO should be using the same code as filemanager#read
     console.log( bgGreen.black(path), 'already in cache' )
-    addCacheControl( res )
-    var imageStream = streamImage( cacheInformations.name )
-    imageStream.on('error', err => {
-      console.log( red('read stream error') )
-      // Local => ENOENT || S3 => NoSuchKey
-      const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
-      if (isNotFound) return next( createError(404) )
-      next( err )
-    })
-    imageStream.once('readable', e => imageStream.pipe( res ) )
+    bareStreamToResponse(req, res, next)( cacheInformations.name )
   }
 
 }
@@ -173,23 +183,17 @@ function checkSizes(req, res, next) {
   probe( imgStream )
   .then( imageDatas => {
     console.log(`[CHECKSIZES] success`)
-    // TODO abort connection;
-    // terminate input, depends on stream type,
-    // this example is for fs streams only.
-    // imgStream.destroy()
+    // abort connection;
+    // https://github.com/nodeca/probe-image-size/blob/master/README.md#example
+    imgStream.destroy()
     if ( !needResize( imageDatas, width, height ) ) {
       console.log(`[CHECKSIZES] don't need resize`)
-      addCacheControl( res )
-      return streamImage( imageName ).pipe( res )
+      return bareStreamToResponse( req, res, next )( imageName )
     }
 
     req.imageDatas  = imageDatas
     res.set('Content-Type', imageDatas.mime )
 
-    // Cache-Control:public, max-age=31536000
-
-    // console.log( imageDatas )
-    // console.log( 'needResize:', needResize(imageDatas, width, height) )
     console.log(`[CHECKSIZES] continue to resize`)
 
     next()
@@ -198,58 +202,15 @@ function checkSizes(req, res, next) {
 }
 
 function read(req, res, next) {
-  const { imageName }     = req.params
-  var imageStream = streamImage( imageName )
-  imageStream.on('error', err => {
-    console.log( red('read stream error') )
-    // Local => ENOENT || S3 => NoSuchKey
-    const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
-    if (isNotFound) return next( createError(404) )
-    next( err )
-  })
-  addCacheControl( res )
-  imageStream.once('readable', e => imageStream.pipe(res) )
+  const { imageName }   = req.params
+  bareStreamToResponse(req, res, next)( imageName )
 }
 
-// function resize(req, res, next) {
-//   const { imageName }     = req.params
-//   const [ width, height ] = getTargetDimensions( req.params.sizes )
-//   const imgStream         = streamImage( imageName )
-//   let img
-
-//   imgStream.once('readable', _ => {
-//     console.log(`[RESIZE] readable`)
-//     img = gm( streamImage(imageName) )
-//     img
-//     .autoOrient()
-//     .format({ bufferStream: true }, onFormat)
-//   })
-//   imgStream.on('error', handleFileStreamError(next) )
-
-//   function onFormat(err, format) {
-//     if (err) return next(err)
-//     format = format.toLowerCase()
-//     res.set('Content-Type', `image/${ format }`)
-//     // Gif frames with differents size can be buggy to resize
-//     // http://stackoverflow.com/questions/12293832/problems-when-resizing-cinemagraphs-animated-gifs
-//     if (format === 'gif') img.coalesce()
-//     img.size(onSize)
-//   }
-
-//   function onSize(err, value) {
-//     if (err) return next(err)
-//     if (!needResize(value, width, height)) return img.stream( streamToResponse )
-//     img
-//     .resize( width, height )
-//     .stream( streamToResponse )
-//   }
-
-//   function streamToResponse (err, stdout, stderr) {
-//     if (err) return next(err)
-//     stdout.pipe(res)
-//   }
-
-// }
+// about resizing GIF
+// only speek about scaling & not cropping…
+// http://stackoverflow.com/questions/6098441/resizing-animated-gif-using-graphicsmagick
+// http://www.imagemagick.org/Usage/anim_opt/#frame_opt
+// http://www.graphicsmagick.org/Magick++/Image.html
 
 function resize(req, res, next) {
   const { imageDatas }    = req
@@ -304,7 +265,7 @@ function placeholder(req, res, next) {
 }
 
 module.exports = {
-  getResized,
+  handleOldImageUrl,
   cover,
   resize,
   placeholder,

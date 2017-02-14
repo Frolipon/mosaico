@@ -46,7 +46,8 @@ if (config.isAws) {
       Key:    imageName,
     })
     const awsStream   = awsRequest.createReadStream()
-    awsStream.destroy = awsRequest.abort
+    // break if no bind…
+    awsStream.destroy = awsRequest.abort.bind( awsRequest )
     return awsStream
   }
   // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#upload-property
