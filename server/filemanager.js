@@ -47,6 +47,7 @@ if (config.isAws) {
     })
     const awsStream   = awsRequest.createReadStream()
     // break if no bind…
+    // mirror fs stream method name
     awsStream.destroy = awsRequest.abort.bind( awsRequest )
     return awsStream
   }
@@ -153,7 +154,6 @@ if (config.isAws) {
       .pipe(dest)
       .on('error', reject)
       .on('close', resolve)
-
     })
   }
   listImages = function (prefix) {

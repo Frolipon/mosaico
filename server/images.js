@@ -49,7 +49,7 @@ let cacheControl  = config.isDev ? duration( 10, 'minutes') : duration( 1, 'days
 cacheControl      = cacheControl.asSeconds()
 
 // TODO better handling of Cache-Control
-  // => what happend when somebody reupload an image with the same name?
+// => what happend when somebody reupload an image with the same name?
 // https://devcenter.heroku.com/articles/increasing-application-performance-with-http-cache-headers#http-cache-headers
 function addCacheControl(res) {
   if (!config.images.cache) return
@@ -90,7 +90,7 @@ function streamToResponseAndCacheImage(req, res, next) {
     const { path }      = req
     const { imageName } = req.params
     console.log( '[IMAGE] after resize – ', path)
-    // clone stream
+    // “clone” stream
     // https://github.com/nodejs/readable-stream/issues/202
     const streamToResponse  = stdout.pipe( new stream.PassThrough() )
 
@@ -140,12 +140,21 @@ const bareStreamToResponse = (req, res, next) => imageName => {
     if (isNotFound) return next( createError(404) )
     next( err )
   })
+  // We have to end stream manually on res stream error (can happen if user close connection before end)
+  // If not done, we will have a memory leaks
+  // https://groups.google.com/d/msg/nodejs/wtmIzV0lh8o/cz3wqBtDc-MJ
+  // https://groups.google.com/forum/#!topic/nodejs/A8wbaaPmmBQ
   imageStream.once('readable', e => {
     addCacheControl( res )
-    imageStream.pipe( res )
-  } )
+    imageStream
+    .pipe( res )
+    // response doens't have a 'close' event but a finish one
+    // this shouldn't be usefull because at this point stream would be entirely consumed and released
+    .on('finish', imageStream.destroy.bind(imageStream) )
+    // this is mandatory
+    .on('error', imageStream.destroy.bind(imageStream) )
+  })
 }
-
 
 //////
 // IMAGE HANDLING
