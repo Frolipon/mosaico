@@ -14,7 +14,7 @@
 			"duplicate": "duplicate",
 			"delete": "delete",
 			"noname": "untitled",
-			"wireframe-name": "wireframe used",
+			"wireframe-name": "template used",
 			"created-by": "author",
 			"tags": "tags",
 			"transfer": "transfer"
