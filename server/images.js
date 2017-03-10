@@ -4,6 +4,7 @@ const fs            = require('fs')
 const url           = require('url')
 const path          = require('path')
 const gm            = require('gm').subClass({imageMagick: true})
+const sharp         = require('sharp')
 const createError   = require('http-errors')
 const util          = require('util')
 const stream        = require('stream')
@@ -81,6 +82,14 @@ function handleFileStreamError(next) {
     console.log('resize error')
   }
 }
+
+// function streamResizedToResponse() {
+
+// }
+
+// function saveResizedToCache() {
+
+// }
 
 // used to stream an resize/placeholder result
 function streamToResponseAndCacheImage(req, res, next) {
@@ -188,24 +197,20 @@ function checkImageCache(req, res, next) {
 function checkSizes(req, res, next) {
   const [ width, height ] = getTargetDimensions( req.params.sizes )
   const { imageName }     = req.params
-  console.log('[CHECKSIZES]', imageName, { width, height } )
+  // console.log('[CHECKSIZES]', imageName, { width, height } )
   const imgStream         = streamImage( imageName )
 
   probe( imgStream )
   .then( imageDatas => {
-    console.log(`[CHECKSIZES] success`)
     // abort connection;
     // https://github.com/nodeca/probe-image-size/blob/master/README.md#example
     imgStream.destroy()
     if ( !needResize( imageDatas, width, height ) ) {
-      console.log(`[CHECKSIZES] don't need resize`)
       return bareStreamToResponse( req, res, next )( imageName )
     }
 
     req.imageDatas  = imageDatas
     res.set('Content-Type', imageDatas.mime )
-
-    console.log(`[CHECKSIZES] continue to resize`)
 
     next()
   })
@@ -227,13 +232,61 @@ function resize(req, res, next) {
   const { imageDatas }    = req
   const { imageName }     = req.params
   const [ width, height ] = getTargetDimensions( req.params.sizes )
-  const img               = gm( streamImage( imageName ) ).autoOrient()
+  // const img               = gm( streamImage( imageName ) ).autoOrient()
 
   console.log('[RESIZE]', imageName)
-  if ( imageDatas.type === 'gif' ) img.coalesce()
-  img
-  .resize( width, height )
-  .stream( streamToResponseAndCacheImage(req, res, next) )
+
+  if ( imageDatas.type === 'gif' ) {
+    return gm( streamImage( imageName ) )
+    .autoOrient()
+    .coalesce()
+    .resize( width, height )
+    .stream( streamToResponseAndCacheImage(req, res, next) )
+  }
+
+  console.log('[RESIZE] sharp', imageName)
+
+  const pipeline = sharp().resize( width, height )
+
+
+  pipeline.clone()
+  // .pipe( streamToResponseAndCacheImage(req, res, next) )
+  .pipe( res )
+
+  // SAVE ASSET FOR FURTHER USE
+  if (config.images.cache) {
+
+    const { path }      = req
+    const name          = path.replace(/^\//, '').replace(/\//g, '_')
+
+    writeStream( pipeline.clone(), name )
+    .then( onWriteEnd)
+    .catch( onWriteError )
+
+  }
+
+  streamImage( imageName ).pipe( pipeline )
+
+  function onWriteEnd() {
+    // save in DB for cataloging
+    new Cacheimages({
+      path,
+      name,
+      imageName,
+    })
+    .save()
+    .then( ci => console.log( green('cache image infos saved in DB', path )) )
+    .catch( e => {
+      console.log( red(`[IMAGE] can't save cache image infos in DB`), path )
+      console.log( util.inspect( e ) )
+    })
+  }
+
+  function onWriteError( e ) {
+    console.log(`[IMAGE] can't upload resize/placeholder result`, path)
+    console.log( util.inspect( e ) )
+  }
+
 }
 
 function cover(req, res, next) {
