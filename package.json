@@ -138,6 +138,7 @@
     "jshint-stylish": "2.2.1",
     "lazypipe": "^1.0.1",
     "load-grunt-tasks": "3.5.2",
+    "lodash.debounce": "^4.0.8",
     "lodash.omit": "^4.5.0",
     "lodash.topairs": "^4.3.0",
     "main-bower-files": "^2.13.1",
