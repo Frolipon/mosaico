@@ -70,9 +70,10 @@
     "rc": "^1.1.7",
     "request": "^2.75.0",
     "serve-favicon": "^2.4.0",
+    "sharp": "^0.17.2",
     "speakingurl": "^13.0.0",
     "throng": "^4.0.0",
-    "validator": "^6.0.0"
+    "validator": "^7.0.0"
   },
   "devDependencies": {
     "aliasify": "^2.0.0",
@@ -88,7 +89,7 @@
     "browserify-shim": "^3.8.13",
     "connect-livereload": "0.6.0",
     "csswring": "^5.1.1",
-    "deamdify": "0.2.0",
+    "deamdify": "^0.3.0",
     "debowerify": "^1.5.0",
     "del": "^2.2.2",
     "dialog-polyfill": "^0.4.7",
@@ -101,7 +102,7 @@
     "grunt-contrib-connect": "1.0.2",
     "grunt-contrib-copy": "1.0.0",
     "grunt-contrib-jshint": "^1.1.0",
-    "grunt-contrib-less": "1.4.0",
+    "grunt-contrib-less": "^1.4.1",
     "grunt-contrib-watch": "1.0.0",
     "grunt-exorcise": "2.1.1",
     "grunt-express-server": "0.5.3",
@@ -159,7 +160,7 @@
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
     "watchify": "^3.9.0",
-    "yargs": "^6.6.0"
+    "yargs": "^7.0.2"
   },
   "author": "Stefano Bagnara",
   "license": "GPL-3.0",
