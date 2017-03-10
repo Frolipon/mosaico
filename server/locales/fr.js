@@ -14,7 +14,7 @@
 			"new-name": "Nouveau nom",
 			"noname": "sans titre",
 			"duplicate": "dupliquer",
-			"wireframe-name": "modèle utilisé",
+			"wireframe-name": "template utilisé",
 			"created-by": "auteur",
 			"tags": "labels",
 			"transfer": "transférer"

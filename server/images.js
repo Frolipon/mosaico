@@ -1,23 +1,32 @@
 'use strict';
 
-const fs          = require('fs')
-const url         = require('url')
-const path        = require('path')
-const gm          = require('gm').subClass({imageMagick: true})
-const createError = require('http-errors')
+const fs            = require('fs')
+const url           = require('url')
+const path          = require('path')
+const gm            = require('gm').subClass({imageMagick: true})
+const createError   = require('http-errors')
+const util          = require('util')
+const stream        = require('stream')
+const probe         = require('probe-image-size')
+const { duration }  = require('moment')
+const { green, red, bgGreen,
+}                   =  require('chalk')
 
-const config      = require('./config')
-const filemanager = require('./filemanager')
-const streamImage = filemanager.streamImage
+const config          = require('./config')
+const {
+  streamImage,
+  writeStream, }      = require('./filemanager')
+const { Cacheimages } = require('./models')
+
+console.log('[IMAGES] config.images.cache', config.images.cache)
 
 //////
 // OLD IMAGE HANDLING
 //////
 
-// Check logs on february
+// Check logs on march
 // if no more `[IMAGE] old url for path` => remove
-
-function getResized(req, res, next) {
+function handleOldImageUrl(req, res, next) {
   if (!req.query.src)     return next( createError(404) )
   if (!req.query.method)  return next( createError(404) )
   let imageName = /([^/]*)$/.exec( req.query.src )
@@ -35,7 +44,19 @@ function getResized(req, res, next) {
 // IMAGE UTILS
 //////
 
-function getSizes(sizes) {
+// let cacheControl  = config.isDev ? duration( 10, 'minutes') : duration( 1, 'years')
+let cacheControl  = config.isDev ? duration( 10, 'minutes') : duration( 1, 'days')
+cacheControl      = cacheControl.asSeconds()
+
+// TODO better handling of Cache-Control
+// => what happend when somebody reupload an image with the same name?
+// https://devcenter.heroku.com/articles/increasing-application-performance-with-http-cache-headers#http-cache-headers
+function addCacheControl(res) {
+  if (!config.images.cache) return
+  res.set('Cache-Control', `public, max-age=${ cacheControl }`)
+}
+
+function getTargetDimensions(sizes) {
   sizes = sizes.split('x')
   sizes = sizes.map( s => s === 'null' ? null : ~~s )
   return sizes
@@ -53,6 +74,7 @@ function needResize(value, width, height) {
 
 function handleFileStreamError(next) {
   return function (err) {
+    // Local => ENOENT || S3 => NoSuchKey
     const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
     if (isNotFound) return next( createError(404) )
     next(err)
@@ -60,93 +82,182 @@ function handleFileStreamError(next) {
   }
 }
 
+// used to stream an resize/placeholder result
+function streamToResponseAndCacheImage(req, res, next) {
+
+  return function streamToResponse(err, stdout, stderr) {
+    if (err) return next(err)
+    const { path }      = req
+    const { imageName } = req.params
+    console.log( '[IMAGE] after resize – ', path)
+    // “clone” stream
+    // https://github.com/nodejs/readable-stream/issues/202
+    const streamToResponse  = stdout.pipe( new stream.PassThrough() )
+
+    // STREAM ASSET TO RESPONSE
+    addCacheControl( res )
+    streamToResponse.pipe( res )
+
+    // SAVE ASSET FOR FURTHER USE
+    if (!config.images.cache) return
+
+    // stream to S3/folder
+    const streamToS3    = stdout.pipe( new stream.PassThrough() )
+    const name          = path.replace(/^\//, '').replace(/\//g, '_')
+
+    writeStream( streamToS3, name )
+    .then( onWriteEnd)
+    .catch( onWriteError )
+
+    function onWriteEnd() {
+      // save in DB for cataloging
+      new Cacheimages({
+        path,
+        name,
+        imageName,
+      })
+      .save()
+      .then( ci => console.log( green('cache image infos saved in DB', path )) )
+      .catch( e => {
+        console.log( red(`[IMAGE] can't save cache image infos in DB`), path )
+        console.log( util.inspect( e ) )
+      })
+    }
+
+    function onWriteError( e ) {
+      console.log(`[IMAGE] can't upload resize/placeholder result`, path)
+      console.log( util.inspect( e ) )
+    }
+  }
+}
+
+const bareStreamToResponse = (req, res, next) => imageName => {
+  const imageStream = streamImage( imageName )
+  imageStream.on('error', err => {
+    console.log( red('read stream error') )
+    // Local => ENOENT || S3 => NoSuchKey
+    const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
+    if (isNotFound) return next( createError(404) )
+    next( err )
+  })
+  // We have to end stream manually on res stream error (can happen if user close connection before end)
+  // If not done, we will have a memory leaks
+  // https://groups.google.com/d/msg/nodejs/wtmIzV0lh8o/cz3wqBtDc-MJ
+  // https://groups.google.com/forum/#!topic/nodejs/A8wbaaPmmBQ
+  imageStream.once('readable', e => {
+    addCacheControl( res )
+    imageStream
+    .pipe( res )
+    // response doens't have a 'close' event but a finish one
+    // this shouldn't be usefull because at this point stream would be entirely consumed and released
+    .on('finish', imageStream.destroy.bind(imageStream) )
+    // this is mandatory
+    .on('error', imageStream.destroy.bind(imageStream) )
+  })
+}
+
 //////
 // IMAGE HANDLING
 //////
 
-function resize(req, res, next) {
-  const { imageName }     = req.params
-  const [ width, height ] = getSizes( req.params.sizes )
-  const imgStream         = streamImage(imageName)
-  let img
+// TODO gif can be optimized by using image-min
+// https://www.npmjs.com/package/image-min
 
-  imgStream.on('readable', _ => {
-    img = gm( streamImage(imageName) )
-    img
-    .autoOrient()
-    .format({ bufferStream: true }, onFormat)
-  })
-  imgStream.on('error', handleFileStreamError(next) )
+function checkImageCache(req, res, next) {
+  if (!config.images.cache) return next()
 
-  function onFormat(err, format) {
-    if (err) return next(err)
-    format = format.toLowerCase()
-    res.set('Content-Type', `image/${ format }`)
-    // Gif frames with differents size can be buggy to resize
-    // http://stackoverflow.com/questions/12293832/problems-when-resizing-cinemagraphs-animated-gifs
-    if (format === 'gif') img.coalesce()
-    img.size(onSize)
-  }
+  const { path } = req
+  Cacheimages
+  .findOne( { path } )
+  .lean()
+  .then( onCacheimage )
+  .catch( e => {
+    console.log('[CHECKSIZES] error in image cache check')
+    console.log( util.inspect(e) )
+    next()
+  } )
 
-  function onSize(err, value) {
-    if (err) return next(err)
-    if (!needResize(value, width, height)) return img.stream( streamToResponse )
-    img
-    .resize( width, height )
-    .stream( streamToResponse )
-  }
-
-  function streamToResponse (err, stdout, stderr) {
-    if (err) return next(err)
-    stdout.pipe(res)
+  function onCacheimage( cacheInformations ) {
+    if (cacheInformations === null) return next()
+    console.log( bgGreen.black(path), 'already in cache' )
+    bareStreamToResponse(req, res, next)( cacheInformations.name )
   }
 
 }
 
-function cover(req, res, next) {
+function checkSizes(req, res, next) {
+  const [ width, height ] = getTargetDimensions( req.params.sizes )
   const { imageName }     = req.params
-  const [ width, height ] = getSizes( req.params.sizes )
-  const imgStream         = streamImage(imageName)
-  let img
+  console.log('[CHECKSIZES]', imageName, { width, height } )
+  const imgStream         = streamImage( imageName )
 
-  imgStream.on('readable', _ => {
-    img = gm( streamImage(imageName) )
-    img
-    .autoOrient()
-    .format({ bufferStream: true }, onFormat)
+  probe( imgStream )
+  .then( imageDatas => {
+    console.log(`[CHECKSIZES] success`)
+    // abort connection;
+    // https://github.com/nodeca/probe-image-size/blob/master/README.md#example
+    imgStream.destroy()
+    if ( !needResize( imageDatas, width, height ) ) {
+      console.log(`[CHECKSIZES] don't need resize`)
+      return bareStreamToResponse( req, res, next )( imageName )
+    }
+
+    req.imageDatas  = imageDatas
+    res.set('Content-Type', imageDatas.mime )
+
+    console.log(`[CHECKSIZES] continue to resize`)
+
+    next()
   })
-  imgStream.on('error', handleFileStreamError(next) )
+  .catch( handleFileStreamError( next ) )
+}
 
-  function onFormat(err, format) {
-    if (err) return next(err)
-    format = format.toLowerCase()
-    res.set('Content-Type', `image/${ format }`)
-    if (format === 'gif') img.coalesce() // Gif frames (see resize ^^)
-    img.size(onSize)
-  }
+function read(req, res, next) {
+  const { imageName }   = req.params
+  bareStreamToResponse(req, res, next)( imageName )
+}
 
-  function onSize(err, value) {
-    if (err) return next(err)
-    if (!needResize(value, width, height)) return img.stream( streamToResponse )
-    img
-    .resize(width, height + '^')
-    .gravity('Center')
-    .extent(width, height + '>')
-    .stream(streamToResponse)
-  }
+// about resizing GIF
+// only speek about scaling & not cropping…
+// http://stackoverflow.com/questions/6098441/resizing-animated-gif-using-graphicsmagick
+// http://www.imagemagick.org/Usage/anim_opt/#frame_opt
+// http://www.graphicsmagick.org/Magick++/Image.html
 
-  function streamToResponse (err, stdout, stderr) {
-    if (err) return next(err)
-    stdout.pipe(res)
-  }
+function resize(req, res, next) {
+  const { imageDatas }    = req
+  const { imageName }     = req.params
+  const [ width, height ] = getTargetDimensions( req.params.sizes )
+  const img               = gm( streamImage( imageName ) ).autoOrient()
+
+  console.log('[RESIZE]', imageName)
+  if ( imageDatas.type === 'gif' ) img.coalesce()
+  img
+  .resize( width, height )
+  .stream( streamToResponseAndCacheImage(req, res, next) )
+}
+
+function cover(req, res, next) {
+  const { imageDatas }    = req
+  const { imageName }     = req.params
+  const [ width, height ] = getTargetDimensions( req.params.sizes )
+  const img               = gm( streamImage( imageName ) ).autoOrient()
+
+  console.log('[COVER]', imageName)
+  if ( imageDatas.type === 'gif' ) img.coalesce()
+  img
+  .resize( width, height + '^' )
+  .gravity( 'Center')
+  .extent( width, height + '>' )
+  .stream( streamToResponseAndCacheImage(req, res, next) )
 
 }
 
 function placeholder(req, res, next) {
-  var sizes   = /(\d+)x(\d+)\.png/.exec(req.params.imageName)
-  var width   = ~~sizes[1]
-  var height  = ~~sizes[2]
-  var out     = gm(width, height, '#707070')
+  var sizes               = /(\d+)x(\d+)\.png/.exec(req.params.imageName)
+  var width               = ~~sizes[1]
+  var height              = ~~sizes[2]
+  const streamPlaceholder = streamToResponseAndCacheImage( req, res, next )
+  var out                 = gm(width, height, '#707070')
   res.set('Content-Type', 'image/png')
   var x = 0, y = 0
   var size = 40
@@ -160,13 +271,16 @@ function placeholder(req, res, next) {
     if (x > width) { x = 0; y = y + size*2 }
   }
   // text
-  out = out.fill('#B0B0B0').fontSize(20).drawText(0, 0, width + ' x ' + height, 'center')
-  return out.stream('png').pipe(res);
+  out = out.fill('#B0B0B0').fontSize(20).drawText(0, 0, `${width} x ${height}`, 'center')
+  streamPlaceholder( null, out.stream('png'), null)
 }
 
 module.exports = {
-  getResized:   getResized,
-  cover:        cover,
-  resize:       resize,
-  placeholder:  placeholder,
+  handleOldImageUrl,
+  cover,
+  resize,
+  placeholder,
+  checkImageCache,
+  checkSizes,
+  read,
 }

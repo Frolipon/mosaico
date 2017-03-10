@@ -51,7 +51,9 @@
   "images": {
     "tmpDir":     "/tmp",
     // in case case of local storage
-    "uploadDir": "/uploads"
+    "uploadDir": "/uploads",
+    // cache resized images & add cache-control to image request
+    "cache": false
   },
 
   //////
@@ -63,6 +65,10 @@
   "admin": {
     "password": "toto"
   },
+
+  // show complentary informations on the front-end
+
+  "debug": false,
 
   //////
   // DB CONNECTION

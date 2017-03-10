@@ -57,9 +57,7 @@ function update(req, res, next) {
     : new Companies(req.body).save()
 
   dbRequest
-  .then(function (company) {
-    res.redirect(`/companies/${company._id}`)
-  })
+  .then( company => res.redirect(`/companies/${company._id}`) )
   .catch(err => handleValidatorsErrors(err, req, res, next) )
 }
 

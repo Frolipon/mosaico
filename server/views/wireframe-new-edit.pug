@@ -3,7 +3,7 @@ extends _layout-admin.pug
 block vars
   - var isEdit    = data.wireframe != null;
   - var wireframe = data.wireframe || {};
-  - var pageTitle = isEdit ? 'wireframe: ' + wireframe.name : 'new wireframe'
+  - var pageTitle = isEdit ? 'template: ' + wireframe.name : 'new template'
   - var pageClass = 'full-width-layout'
 
 block content
@@ -27,7 +27,7 @@ block content
           li.mdl-list__item: span.mdl-list__item-primary-content(style="color: #d50000")
             .material-icons.mdl-list__item-icon report_problem
             | NO MARKUP
-        li.mdl-list__item: span.mdl-list__item-primary-content deleting a wireframe will also remove every creations using this one
+        li.mdl-list__item: span.mdl-list__item-primary-content deleting a template will also remove every mailings using this one
         - var deleteUrl = wireframe.url.delete + '?redirect=' + wireframe.url.backTo
         li.mdl-list__item: a.mdl-list__item-primary-content(href=deleteUrl)
           .material-icons.mdl-list__item-icon delete_forever

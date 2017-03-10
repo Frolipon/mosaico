@@ -6,7 +6,6 @@ const { ObjectId }  = Schema.Types
 const { normalizeString } = require('./utils')
 const { CompanyModel }    = require('./names')
 
-
 const WireframeSchema = Schema({
   name: {
     type:       String,

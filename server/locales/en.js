@@ -14,7 +14,7 @@
 			"duplicate": "duplicate",
 			"delete": "delete",
 			"noname": "untitled",
-			"wireframe-name": "wireframe used",
+			"wireframe-name": "template used",
 			"created-by": "author",
 			"tags": "tags",
 			"transfer": "transfer"
@@ -88,7 +88,7 @@
 	"filter": {
 		"name": "name",
 		"author": "author",
-		"wireframe": "wireframe",
+		"wireframe": "template",
 		"createdat": {
 			"start": "created between",
 			"end": "and"

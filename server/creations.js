@@ -432,10 +432,10 @@ function remove(req, res, next) {
 function upload(req, res, next) {
   console.log(chalk.green('UPLOAD'))
   filemanager
-  .parseMultipart(req, {
+  .parseMultipart( req, {
     prefix:     req.params.creationId,
     formatter:  'editor',
-  })
+  } )
   .then(onParse)
   .catch(next)
 

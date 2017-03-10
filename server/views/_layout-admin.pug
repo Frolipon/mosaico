@@ -21,10 +21,17 @@ html(lang=getLocale())
           nav.mdl-navigation.mdl-layout--large-screen-only
             a.mdl-navigation__link(href="/") mailings
             a.mdl-navigation__link(href="/new-creation") templates
-            a.mdl-navigation__link(href="/admin" title="companies"): i.material-icons group
-            a.mdl-navigation__link(href="/users" title="users"): i.material-icons person
-            a.mdl-navigation__link(href="/wireframes" title="wireframes"): i.material-icons web
-            a.mdl-navigation__link(href="/logout"): i.material-icons power_settings_new
+            a.mdl-navigation__link(href="/admin")
+              i#nav-companies.material-icons group
+              .mdl-tooltip(data-mdl-for="nav-companies") companies
+            a.mdl-navigation__link(href="/users")
+              i#nav-users.material-icons person
+              .mdl-tooltip(data-mdl-for="nav-users") users
+            a.mdl-navigation__link(href="/wireframes")
+              i#nav-templates.material-icons web
+              .mdl-tooltip(data-mdl-for="nav-templates") templates list
+            a.mdl-navigation__link(href="/logout")
+              i.material-icons power_settings_new
 
       .mdl-layout__drawer
         span.mdl-layout-title= title

@@ -24,7 +24,7 @@ test('connection success', t => {
 })
 
 test('connection fail', t => {
-  const nightmare           = createWindow(false)
+  const nightmare           = createWindow( false )
   const { onEnd, onError }  = getTeardownHandlers(t, nightmare)
 
   t.plan(1)

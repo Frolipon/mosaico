@@ -12,6 +12,7 @@
   - [Admin password](#admin-password)
   - [Hostname](#hostname)
   - [AWS S3](#aws-s3)
+  - [Other config](#other-config)
 - [Dev prerequisite](#dev-prerequisite)
 - [Updating the code](#updating-the-code)
   - [Build the project for *production*](#build-the-project-for-production)
@@ -115,7 +116,7 @@ you have also to set the good policy for the bucket:
 
 and copy and paste this:
 
-```
+```json
 {
 	"Version": "2008-10-17",
 	"Statement": [
@@ -133,6 +134,23 @@ and copy and paste this:
 ```
 
 then replace `YOURBUCKETNAME` by your real bucket name
+
+### Other config
+
+```js
+// will print on the front some debug infos
+debug:          false,
+// redirect any http request to https
+forcessl:       false,
+images: {
+  // needed only if not using S3 image storage 
+  uploadDir:    'uploads',
+  // tmp directory name for image upload
+  tmpDir:       'tmp',
+  // cache resized images & add cache-control to image request
+  cache:        false,
+},
+```
 
 ## Dev prerequisite
 

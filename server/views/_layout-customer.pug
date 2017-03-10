@@ -25,9 +25,15 @@ html(lang=getLocale())
             a.mdl-navigation__link.navigation--creations(href="/") mailings
             a.mdl-navigation__link.navigation--wireframes(href="/new-creation") templates
             if _user.isAdmin
-              a.mdl-navigation__link(href="/admin" title="companies"): i.material-icons group
-              a.mdl-navigation__link(href="/users" title="users"): i.material-icons person
-              a.mdl-navigation__link(href="/wireframes" title="wireframes"): i.material-icons web
+              a.mdl-navigation__link(href="/admin")
+                i#nav-companies.material-icons group
+                .mdl-tooltip(data-mdl-for="nav-companies") companies
+              a.mdl-navigation__link(href="/users")
+                i#nav-users.material-icons person
+                .mdl-tooltip(data-mdl-for="nav-users") users
+              a.mdl-navigation__link(href="/wireframes")
+                i#nav-templates.material-icons web
+                .mdl-tooltip(data-mdl-for="nav-templates") templates list
 
             if getLocale() === 'en'
               a.mdl-navigation__link(href=mergeQueries('/', _query, { lang: 'fr' })) version française
