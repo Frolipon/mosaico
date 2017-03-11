@@ -293,15 +293,77 @@ function cover(req, res, next) {
   const { imageDatas }    = req
   const { imageName }     = req.params
   const [ width, height ] = getTargetDimensions( req.params.sizes )
-  const img               = gm( streamImage( imageName ) ).autoOrient()
+  // const img               = gm( streamImage( imageName ) ).autoOrient()
 
-  console.log('[COVER]', imageName)
-  if ( imageDatas.type === 'gif' ) img.coalesce()
-  img
-  .resize( width, height + '^' )
-  .gravity( 'Center')
-  .extent( width, height + '>' )
-  .stream( streamToResponseAndCacheImage(req, res, next) )
+  if ( imageDatas.type === 'gif' ) {
+    return gm( streamImage( imageName ) )
+    .autoOrient()
+    .coalesce()
+    // Append a ^ to the geometry so that the image aspect ratio is maintained when the image is resized,
+    // but the resulting width or height are treated as minimum values rather than maximum values.
+    .resize( width, height + '^' )
+    .gravity( 'Center')
+    // Use > to change the dimensions of the image only if its width or height exceeds the geometry specification.
+    // < resizes the image only if both of its dimensions are less than the geometry specification.
+    // For example, if you specify '640x480>' and the image size is 256x256, the image size does not change.
+    // However, if the image is 512x512 or 1024x1024, it is resized to 480x480.
+    .extent( width, height + '>' )
+    .stream( streamToResponseAndCacheImage(req, res, next) )
+  }
+
+  console.log('[COVER] sharp', imageName)
+
+  const pipeline = sharp()
+  // .min( width, height )
+  .resize( width, height )
+  // .withoutEnlargement()
+
+
+  pipeline.clone()
+  // .pipe( streamToResponseAndCacheImage(req, res, next) )
+  .pipe( res )
+
+  // SAVE ASSET FOR FURTHER USE
+  if (config.images.cache) {
+
+    const { path }      = req
+    const name          = path.replace(/^\//, '').replace(/\//g, '_')
+
+    writeStream( pipeline.clone(), name )
+    .then( onWriteEnd)
+    .catch( onWriteError )
+
+  }
+
+  streamImage( imageName ).pipe( pipeline )
+
+  function onWriteEnd() {
+    // save in DB for cataloging
+    new Cacheimages({
+      path,
+      name,
+      imageName,
+    })
+    .save()
+    .then( ci => console.log( green('cache image infos saved in DB', path )) )
+    .catch( e => {
+      console.log( red(`[IMAGE] can't save cache image infos in DB`), path )
+      console.log( util.inspect( e ) )
+    })
+  }
+
+  function onWriteError( e ) {
+    console.log(`[IMAGE] can't upload resize/placeholder result`, path)
+    console.log( util.inspect( e ) )
+  }
+
+  // console.log('[COVER]', imageName)
+  // if ( imageDatas.type === 'gif' ) img.coalesce()
+  // img
+  // .resize( width, height + '^' )
+  // .gravity( 'Center')
+  // .extent( width, height + '>' )
+  // .stream( streamToResponseAndCacheImage(req, res, next) )
 
 }
 
