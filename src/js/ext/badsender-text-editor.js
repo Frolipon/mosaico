@@ -1,5 +1,7 @@
 'use strict'
 
+var debounce = require('lodash.debounce')
+
 //////
 // DEFINE TINYMCE CUSTOM PLUGINS
 //////
@@ -115,13 +117,15 @@ function fontsizedialog(editor, url) {
     var formatName  = 'fontsize'
     var self        = this
 
-    editor.on('nodeChange', function (e) {
-      each(e.parents, getFontSize);
+    editor.on('nodeChange', debounce(onNodeChange, 150) )
+
+    function onNodeChange( e ) {
+      each(e.parents, getFontSize)
       if (!selectionFs) {
-        selectionFs = document.defaultView.getComputedStyle(e.parents[0], null)
+        selectionFs = document.defaultView.getComputedStyle(e.parents[0] || e.element, null)
         .getPropertyValue('font-size')
       }
-    });
+    }
 
     function getFontSize(node) {
       if (node.style && node.style.fontSize) {
