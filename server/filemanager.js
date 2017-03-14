@@ -162,9 +162,11 @@ if (config.isAws) {
       .then(onFiles)
       .catch(reject)
 
+      const prefixRegexp = new RegExp(`^${prefix}`)
+
       function onFiles(files) {
         files = files
-        .filter( file => file.indexOf(prefix) !== -1 )
+        .filter( file => prefixRegexp.test(file) )
         .map(formatFilenameForFront)
         resolve(files)
       }
