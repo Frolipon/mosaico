@@ -104,7 +104,9 @@ const onWriteResizeError = path => e => {
   console.log( util.inspect( e ) )
 }
 
-// used to stream an resize/placeholder result
+// Those 2 functions handle both streaming a reized image and saving in cache
+// any reading error is handled beforehand by `checksize`
+// TODO handle any aborted request
 function streamToResponseAndCacheImage(req, res, next) {
 
   return function streamToResponse(err, stdout, stderr) {
@@ -154,7 +156,7 @@ function handleSharpStream(req, res, next, pipeline) {
 
 const bareStreamToResponse = (req, res, next) => imageName => {
   const imageStream = streamImage( imageName )
-  imageStream.on('error', handleFileStreamError(err) )
+  imageStream.on('error', handleFileStreamError(next) )
   // We have to end stream manually on res stream error (can happen if user close connection before end)
   // If not done, we will have a memory leaks
   // https://groups.google.com/d/msg/nodejs/wtmIzV0lh8o/cz3wqBtDc-MJ
