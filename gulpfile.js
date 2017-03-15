@@ -366,7 +366,12 @@ const nodemonOptions = {
 
 let init = true
 function nodemon(cb) {
-  return $.nodemon(_.merge({env: { 'NODE_ENV': 'development' }}, nodemonOptions))
+  return $.nodemon(_.merge({
+    env: {
+      'NODE_ENV':     'development',
+      'VIPS_WARNING': false,
+    }
+  }, nodemonOptions))
   .on('start', () => {
     // https://gist.github.com/sogko/b53d33d4f3b40d3b4b2e#comment-1457582
     if (init) {
