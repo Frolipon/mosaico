@@ -112,6 +112,10 @@
       titleStyle weight {     label: Graisse du titre; extend: weight; }
       titleStyle alignement { label: Alignement du titre; extend: alignement; }
       titleStyle {            label: Titre; properties: size weight alignement; }
+      coveroneImage {         label: Left Image in cover; extend: image; }
+      covertwoImage {         label: Right Image in cover; extend: image; }
+      resizeoneImage {        label: Left Image in resize; extend: image; }
+      resizetwoImage {        label: Right Image in resize; extend: image; }
 
       /*
         Theme
@@ -242,6 +246,10 @@
 
 <div data-ko-container="main" data-ko-wrap="false">
 
+  <!--
+  //// CUSTOM BLOCK
+  -->
+
   <div data-ko-block="CustomBlock">
     <p style="color:#FF00FF; -ko-color: @customSurtitreColor">A complet independant color</p>
     <!--
@@ -272,6 +280,10 @@
       <br>
     </p>
   </div>
+
+  <!--
+  //// TWO COLUMNS BLOCK
+  -->
 
   <div data-ko-block="twoColumnsBlock">
 
@@ -329,6 +341,49 @@
     </table>
 
   </div>
+
+  <!--
+  //// DOUBLE IMAGE BLOCK
+  -->
+
+  <div data-ko-block="coverImagesBlock">
+    <h3 style="text-align: center;">
+      A block of 2 images with resize
+    </h3>
+    <h4 style="text-align: center;">
+      COVER
+    </h4>
+    <table width="100%" cellpadding="0" border="0" cellspacing="0">
+      <tr>
+        <td align="center" valign="top" width="50%">
+          <img data-ko-editable="coveroneImage.src" height="300" width="300" style="width:300px; height: 300px; margin: 0px auto; display: block; -ko-attr-alt: @coveroneImage.alt;" src="http://dummyimage.com/300x300/666666/fff" border="0" alt="" />
+        </td>
+        <td align="center" valign="top" width="50%">
+          <img data-ko-editable="covertwoImage.src" height="300" width="300" style="width:300px; height: 300px; margin: 0px auto; display: block; -ko-attr-alt: @covertwoImage.alt;" src="http://dummyimage.com/300x300/666666/fff" border="0" alt="" />
+        </td>
+
+      </tr>
+    </table>
+    <h4 style="text-align: center;">
+      RESIZE
+    </h4>
+    <table width="100%" cellpadding="0" border="0" cellspacing="0">
+      <tr>
+        <td align="center" valign="top" width="50%">
+          <img data-ko-editable="resizeoneImage.src" width="300" data-ko-placeholder-height="300"
+              style="-ko-attr-alt: @resizeoneImage.alt; width: 100%; max-width: 300px;"
+              src="http://dummyimage.com/300x300/666666/fff" vspace="0" hspace="0" border="0" alt="" />
+        </td>
+        <td align="center" valign="top" width="50%">
+          <img data-ko-editable="resizetwoImage.src" width="300" data-ko-placeholder-height="300"
+              style="-ko-attr-alt: @resizetwoImage.alt; width: 100%; max-width: 300px;"
+              src="http://dummyimage.com/300x300/666666/fff" vspace="0" hspace="0" border="0" alt="" />
+        </td>
+      </tr>
+    </table>
+
+  </div>
+
 
 </div>
 
