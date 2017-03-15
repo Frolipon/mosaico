@@ -73,14 +73,35 @@ function needResize(value, width, height) {
   return true
 }
 
-function handleFileStreamError(next) {
-  return function (err) {
-    // Local => ENOENT || S3 => NoSuchKey
-    const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
-    if (isNotFound) return next( createError(404) )
-    next(err)
-    console.log('resize error')
-  }
+const handleFileStreamError = next => err => {
+  console.log( red('read stream error') )
+  // Local => ENOENT || S3 => NoSuchKey
+  const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
+  if (isNotFound) return next( createError(404) )
+  next(err)
+}
+
+const onWriteResizeEnd = datas => () => {
+  const { path, name, imageName, } = datas
+
+  // save in DB for cataloging
+  new Cacheimages({
+    path,
+    name,
+    imageName,
+  })
+  .save()
+  .then( ci => console.log( green('cache image infos saved in DB', path )) )
+  .catch( e => {
+    console.log( red(`[IMAGE] can't save cache image infos in DB`), path )
+    console.log( util.inspect( e ) )
+  })
+
+}
+
+const onWriteResizeError = path => e => {
+  console.log(`[IMAGE] can't upload resize/placeholder result`, path)
+  console.log( util.inspect( e ) )
 }
 
 // used to stream an resize/placeholder result
@@ -106,28 +127,8 @@ function streamToResponseAndCacheImage(req, res, next) {
     const name          = path.replace(/^\//, '').replace(/\//g, '_')
 
     writeStream( streamToS3, name )
-    .then( onWriteEnd)
-    .catch( onWriteError )
-
-    function onWriteEnd() {
-      // save in DB for cataloging
-      new Cacheimages({
-        path,
-        name,
-        imageName,
-      })
-      .save()
-      .then( ci => console.log( green('cache image infos saved in DB', path )) )
-      .catch( e => {
-        console.log( red(`[IMAGE] can't save cache image infos in DB`), path )
-        console.log( util.inspect( e ) )
-      })
-    }
-
-    function onWriteError( e ) {
-      console.log(`[IMAGE] can't upload resize/placeholder result`, path)
-      console.log( util.inspect( e ) )
-    }
+    .then( onWriteResizeEnd({ path, name, imageName, }) )
+    .catch( onWriteResizeError(path) )
   }
 }
 
@@ -143,45 +144,17 @@ function handleSharpStream(req, res, next, pipeline) {
   // prepare sending to cache
   if (config.images.cache) {
     writeStream( pipeline.clone(), name )
-    .then( onWriteEnd)
-    .catch( onWriteError )
+    .then( onWriteResizeEnd({ path, name, imageName, }) )
+    .catch( onWriteResizeError(path) )
   }
-
   // flow readstream into the pipeline!
   // this has to be done after of course :D
   streamImage( imageName ).pipe( pipeline )
-
-  function onWriteEnd() {
-    // save in DB for cataloging
-    new Cacheimages({
-      path,
-      name,
-      imageName,
-    })
-    .save()
-    .then( ci => console.log( green('cache image infos saved in DB', path )) )
-    .catch( e => {
-      console.log( red(`[IMAGE] can't save cache image infos in DB`), path )
-      console.log( util.inspect( e ) )
-    })
-  }
-
-  function onWriteError( e ) {
-    console.log(`[IMAGE] can't upload resize/placeholder result`, path)
-    console.log( util.inspect( e ) )
-  }
-
 }
 
 const bareStreamToResponse = (req, res, next) => imageName => {
   const imageStream = streamImage( imageName )
-  imageStream.on('error', err => {
-    console.log( red('read stream error') )
-    // Local => ENOENT || S3 => NoSuchKey
-    const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
-    if (isNotFound) return next( createError(404) )
-    next( err )
-  })
+  imageStream.on('error', handleFileStreamError(err) )
   // We have to end stream manually on res stream error (can happen if user close connection before end)
   // If not done, we will have a memory leaks
   // https://groups.google.com/d/msg/nodejs/wtmIzV0lh8o/cz3wqBtDc-MJ
