@@ -106,7 +106,6 @@ const onWriteResizeError = path => e => {
 
 // Those 2 functions handle both streaming a reized image and saving in cache
 // any reading error is handled beforehand by `checksize`
-// TODO handle any aborted request
 function streamToResponseAndCacheImage(req, res, next) {
 
   return function streamToResponse(err, stdout, stderr) {
