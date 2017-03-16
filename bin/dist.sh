@@ -58,7 +58,25 @@ fi
 rm .gitignore
 mv .gitignore-release .gitignore
 rm -rf node_modules
-npm install --production
+# unfortunatly pushing the modules on Heroku break the build:
+# Sharp can't build correctly his dependencies
+
+# npm install --production
+
+# a solution could be to pre-install sharp…
+# https://github.com/lovell/sharp/issues/114#issuecomment-61751393
+
+# "dependencies": {
+#   ...
+#  "npm": "1.x", // Add this
+#  "sharp": "0.7.1", // Remove this
+#   ...
+# }
+
+# "scripts": {
+#     "preinstall": "npm install -g sharp",
+#     ...
+# },
 
 # add, commit and push
 git checkout -b "$env"-"$version"

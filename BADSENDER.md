@@ -5,6 +5,7 @@
 
 
 - [Heroku server configuration](#heroku-server-configuration)
+  - [buildpack](#buildpack)
   - [configuring environments variables](#configuring-environments-variables)
   - [Mail sending](#mail-sending)
   - [from email adress](#from-email-adress)
@@ -30,6 +31,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Heroku server configuration
+
+### buildpack
+
+In order for the image resize to work you will need this build pack:
+
+[https://github.com/alex88/heroku-buildpack-vips](https://github.com/alex88/heroku-buildpack-vips)
+
+Copy and paste this url in the `Buildpacks` section of `Settings`
 
 ### configuring environments variables
 
@@ -143,7 +152,7 @@ debug:          false,
 // redirect any http request to https
 forcessl:       false,
 images: {
-  // needed only if not using S3 image storage 
+  // needed only if not using S3 image storage
   uploadDir:    'uploads',
   // tmp directory name for image upload
   tmpDir:       'tmp',
@@ -158,6 +167,7 @@ images: {
 - [MongoDB v3.2.7](https://www.mongodb.com/) (if installed locally `mongod` to start)
 - [Imagemagick](http://www.imagemagick.org/script/index.php)
 - a SMTP server. [mailcatcher can help for local dev ](https://mailcatcher.me/) (`mailcatcher` to start)
+- [sharp](http://sharp.dimens.io/en/stable/) should work out the box most of the time. In case of troubles see [sharp installation instructions](http://sharp.dimens.io/en/stable/install/).
 
 You need to have:
 
