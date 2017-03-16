@@ -4,6 +4,7 @@ const _           = require('lodash')
 const fs          = require('fs-extra')
 const url         = require('url')
 const path        = require('path')
+const mime        = require('mime-types')
 const AWS         = require('aws-sdk')
 const chalk       = require('chalk')
 const formidable  = require('formidable')
@@ -245,17 +246,16 @@ function parseMultipart(req, options) {
       console.log('on file', chalk.green(name))
       // slug every uploaded file name
       // user may put accent and/or spaces…
-      const fileName  = slugFilename( file.name )
-      const ext       = path.extname( file.name )
-      console.log('/////////////')
-      console.log(fileName)
-      console.log(ext)
-      console.log('/////////////')
+      let fileName  = slugFilename( file.name ).replace(  )
+      // ensure that files are having the right extention
+      // (files can be uploaded with extname missing…)
+      fileName      = fileName.replace( path.extname( fileName ), '' )
+      const ext       = mime.extension( file.type )
       if (!fileName) return console.warn('unable to upload', file.name)
       if (options.formatter === 'editor') {
-        file.name       = `${ options.prefix }-${ file.hash }${ ext }`
+        file.name       = `${ options.prefix }-${ file.hash }.${ ext }`
       } else {
-        file.name       = `${ options.prefix }-${ fileName }`
+        file.name       = `${ options.prefix }-${ fileName }.${ ext }`
       }
       uploads.push( write(file) )
     }
@@ -317,7 +317,6 @@ function handleWireframesUploads(fields, files, resolve) {
 // thumbnailUrl: 'http://localhost:3000/uploads/thumbnail/sketchbook-342.jpg'
 function handleEditorUpload(fields, files, resolve) {
   console.log('HANDLE JQUERY FILE UPLOAD')
-  console.log(files)
   var file  = files['files[]']
   file      = _.assign({}, file, {
     url:          `/img/${file.name}`,
