@@ -209,7 +209,7 @@ if (config.isAws) {
 // UPLOAD
 //////
 
-var formatters = {
+const formatters = {
   editor:     handleEditorUpload,
   wireframes: handleWireframesUploads,
 }
@@ -218,9 +218,10 @@ var formatters = {
 function parseMultipart(req, options) {
   return new Promise(function (resolve, reject) {
     // parse a file upload
-    var form        = new formidable.IncomingForm()
-    var uploads     = []
+    const form      = new formidable.IncomingForm()
+    const uploads   = []
     form.multiples  = true
+    form.hash       = 'md5'
     form.uploadDir  = config.images.tmpDir
     form.parse(req, onEnd)
     form.on('file', onFile)
@@ -230,10 +231,8 @@ function parseMultipart(req, options) {
       console.log(chalk.green('form.parse', uploads.length))
       // wait all TMP files to be moved in the good location (s3 or local)
       Promise
-      .all(uploads)
-      .then(function () {
-        return formatters[options.formatter](fields, files, resolve)
-      })
+      .all( uploads )
+      .then( () => formatters[ options.formatter ](fields, files, resolve) )
       .catch(reject)
     }
 
@@ -246,10 +245,19 @@ function parseMultipart(req, options) {
       console.log('on file', chalk.green(name))
       // slug every uploaded file name
       // user may put accent and/or spaces…
-      var fileName  = slugFilename(file.name)
+      const fileName  = slugFilename( file.name )
+      const ext       = path.extname( file.name )
+      console.log('/////////////')
+      console.log(fileName)
+      console.log(ext)
+      console.log('/////////////')
       if (!fileName) return console.warn('unable to upload', file.name)
-      file.name     = options.prefix + '-' + fileName
-      uploads.push(write(file))
+      if (options.formatter === 'editor') {
+        file.name       = `${ options.prefix }-${ file.hash }${ ext }`
+      } else {
+        file.name       = `${ options.prefix }-${ fileName }`
+      }
+      uploads.push( write(file) )
     }
   })
 }
@@ -280,8 +288,7 @@ function handleWireframesUploads(fields, files, resolve) {
     // read content from file system
     // no worry about performance: only admin will do it
     readFile(files.markup.path)
-    .then(function (text) {
-      console.log(text.toString())
+    .then( text => {
       fields.markup = text
       resolve({fields: fields, files: files})
     })
@@ -310,10 +317,11 @@ function handleWireframesUploads(fields, files, resolve) {
 // thumbnailUrl: 'http://localhost:3000/uploads/thumbnail/sketchbook-342.jpg'
 function handleEditorUpload(fields, files, resolve) {
   console.log('HANDLE JQUERY FILE UPLOAD')
+  console.log(files)
   var file  = files['files[]']
   file      = _.assign({}, file, {
-    url:          '/img/' + file.name,
-    deleteUrl:    '/img/' + file.name,
+    url:          `/img/${file.name}`,
+    deleteUrl:    `/img/${file.name}`,
     thumbnailUrl: `/cover/150x150/${file.name}`,
   })
   resolve({ files: [file] , })
