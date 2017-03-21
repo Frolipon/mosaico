@@ -91,7 +91,7 @@
     "connect-livereload": "0.6.0",
     "csswring": "^5.1.1",
     "deamdify": "^0.3.0",
-    "debowerify": "^1.5.0",
+    "debowerify": "github:hiswe/debowerify",
     "del": "^2.2.2",
     "dialog-polyfill": "^0.4.7",
     "envify": "^4.0.0",
