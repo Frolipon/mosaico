@@ -45,7 +45,7 @@ function handleOldImageUrl(req, res, next) {
 // IMAGE UTILS
 //////
 
-let cacheControl  = config.isDev ? duration( 10, 'minutes') : duration( 1, 'years')
+let cacheControl  = config.isDev ? duration( 30, 'minutes') : duration( 1, 'years')
 cacheControl      = cacheControl.asSeconds()
 
 // TODO better handling of Cache-Control
