@@ -84,7 +84,6 @@
     "babel-preset-es2015": "^6.24.0",
     "babelify": "^7.3.0",
     "bower": "^1.7.9",
-    "bower-npm-install": "^0.5.11",
     "browser-sync": "^2.18.8",
     "browserify": "^14.1.0",
     "browserify-shim": "^3.8.13",
@@ -166,7 +165,8 @@
   "author": "Stefano Bagnara",
   "license": "GPL-3.0",
   "scripts": {
-    "deps": "export NODE_ENV=development && npm install && bower-npm-install --non-interactive",
+    "postinstall": "bower -V --allow-root install",
+    "deps": "export NODE_ENV=development && npm install && bower -V --allow-root install",
     "test": "grunt jasmine_node",
     "bower": "bower-npm-install --non-interactive",
     "build": "npm run deps && gulp build --prod",
