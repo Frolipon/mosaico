@@ -32,9 +32,9 @@ block content
         li.mdl-list__item: a.mdl-list__item-primary-content(href=deleteUrl)
           .material-icons.mdl-list__item-icon delete_forever
           | delete
-        if wireframe.images.length
+        if wireframe.url.imgCover
           li.mdl-list__item: span.mdl-list__item-primary-content Preview:
-      if wireframe.images.length
+      if wireframe.url.imgCover
         div(style="max-height: 300px; overflow-y: auto; margin: 0 16px; outline: 1px solid #ff9f00")
           img(src=wireframe.url.imgCover style="width: 100%; height: auto;")
 

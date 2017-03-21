@@ -214,6 +214,12 @@ module.exports = function () {
     next({status: 404})
   }
 
+  app.param(['placeholderSize'], (req, res, next, placeholderSize) => {
+    if ( /(\d+)x(\d+)\.png/.test(placeholderSize) ) return next()
+    console.log('placeholder format INVALID', placeholderSize)
+    next({status: 404})
+  })
+
   //----- ADMIN
 
   // connection
@@ -268,7 +274,7 @@ module.exports = function () {
 
   app.get('/logout',                        guard('user'), session.logout)
   app.get('/img/:imageName',                images.read)
-  app.get('/placeholder/:imageName',        images.checkImageCache, images.placeholder)
+  app.get('/placeholder/:placeholderSize',  images.checkImageCache, images.placeholder)
   app.get('/resize/:sizes/:imageName',      images.checkImageCache, images.checkSizes, images.resize)
   app.get('/cover/:sizes/:imageName',       images.checkImageCache, images.checkSizes, images.cover)
   app.get('/img/',                          images.handleOldImageUrl)

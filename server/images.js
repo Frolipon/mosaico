@@ -286,7 +286,7 @@ function cover(req, res, next) {
 }
 
 function placeholder(req, res, next) {
-  var sizes               = /(\d+)x(\d+)\.png/.exec(req.params.imageName)
+  var sizes               = /(\d+)x(\d+)\.png/.exec(req.params.placeholderSize)
   var width               = ~~sizes[1]
   var height              = ~~sizes[2]
   const streamPlaceholder = streamToResponseAndCacheImage( req, res, next )

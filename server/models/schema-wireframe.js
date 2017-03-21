@@ -83,7 +83,7 @@ WireframeSchema.virtual('url').get(function () {
     company:   companyUrl,
     delete:    `/wireframes/${this._id}/delete`,
     markup:    `/wireframes/${this._id}/markup`,
-    imgCover:  `/img/${this._id}-_full.png`,
+    imgCover:  this.assets['_full.png'] ? `/img/${this.assets['_full.png']}` : false,
   }
 })
 

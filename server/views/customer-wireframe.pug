@@ -13,9 +13,12 @@ block content
       each wireframe, index in data.wireframes
         - var push = data.wireframes.length === 1 && index === 0 ? 'mdl-cell--4-offset-desktop' : data.wireframes.length === 2 & index === 0 ? 'mdl-cell--2-offset-desktop' : '';
         if (wireframe.hasMarkup)
-          a(href='/editor?wireframeId=' + wireframe._id class=push).mdl-cell.mdl-card.mdl-shadow--4dp.wireframe-card
+          a.mdl-cell.mdl-card.mdl-shadow--4dp.wireframe-card(href='/editor?wireframeId=' + wireframe._id class=push)
             .mdl-card__media.mdl-color--primary
-              img(src=wireframe.imgPath + '_full.png' width="100%" alt="xx")
+              if wireframe.url.imgCover
+                img(width="100%" alt="xx" src=wireframe.url.imgCover)
+              else
+                img(width="405" heigh="250" src="/placeholder/405x250.png")
             .mdl-card__title: h2.mdl-card__title-text: div(style="text-align: center;")
               | #{wireframe.name}
               if _user.isAdmin
