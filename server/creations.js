@@ -247,9 +247,10 @@ function show(req, res, next) {
   }
   Creations
   .findOne( addCompanyFilter(req.user, { _id: req.params.creationId}) )
+  .populate( '_wireframe', '_id assets' )
   .then( creation => {
-    if (!creation) return next(createError(404))
-    res.render('editor', { data: _.assign({}, data, creation.mosaico) })
+    if (!creation) return next( createError(404) )
+    res.render('editor', { data: _.assign( {}, data, creation.mosaico) })
   })
   .catch(next)
 }

@@ -243,20 +243,17 @@ function parseMultipart(req, options) {
       // markup will be saved in DB
       if (name === 'markup') return
       // put all other files in the right place (S3 \\ local)
-      console.log('on file', chalk.green(name))
+      console.log('on file', chalk.green(name) )
       // slug every uploaded file name
       // user may put accent and/or spaces…
-      let fileName  = slugFilename( file.name ).replace(  )
+      let fileName      = slugFilename( file.name )
       // ensure that files are having the right extention
       // (files can be uploaded with extname missing…)
-      fileName      = fileName.replace( path.extname( fileName ), '' )
-      const ext       = mime.extension( file.type )
+      fileName          = fileName.replace( path.extname( fileName ), '' )
+      const ext         = mime.extension( file.type )
       if (!fileName) return console.warn('unable to upload', file.name)
-      if (options.formatter === 'editor') {
-        file.name       = `${ options.prefix }-${ file.hash }.${ ext }`
-      } else {
-        file.name       = `${ options.prefix }-${ fileName }.${ ext }`
-      }
+      file.name         = `${ options.prefix }-${ file.hash }.${ ext }`
+      file.originalName = `${ fileName }.${ ext }`
       uploads.push( write(file) )
     }
   })
@@ -267,14 +264,13 @@ function parseMultipart(req, options) {
 function imageToFields(fields, file) {
   if (file.size === 0) return
   if (!file.name) return
-  fields.images = fields.images || []
-  fields.images.push(file.name)
+  fields.assets                       = fields.assets || {}
+  fields.assets[ file.originalName ]  = file.name
 }
 
 function handleWireframesUploads(fields, files, resolve) {
   // images
   // we want to store any images that have been uploaded on the current model
-
   if (files.images) {
     if (Array.isArray(files.images)) {
       files.images.forEach( file => imageToFields(fields, file) )
@@ -290,10 +286,10 @@ function handleWireframesUploads(fields, files, resolve) {
     readFile(files.markup.path)
     .then( text => {
       fields.markup = text
-      resolve({fields: fields, files: files})
+      resolve( fields )
     })
   } else {
-    resolve({fields: fields, files: files})
+    resolve( fields )
   }
 }
 

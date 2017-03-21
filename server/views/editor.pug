@@ -11,8 +11,8 @@ block head-content
       var basePath  = window.location.protocol + '//' + '#{_config.host}';
       var plugins   = [];
       var ok = Badsender.init({
-        strings:                !{data.translations},
-        metadata:               !{printJS(data.meta)},
+        strings:                !{ data.translations },
+        metadata:               !{ printJS(data.meta) },
         data:                   !{ data.data ? printJS(data.data) : printJS('{}')},
         imgProcessorBackend:    basePath + '/img/',
         emailProcessorBackend:  basePath + '/dl/',

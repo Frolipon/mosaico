@@ -34,7 +34,7 @@ function handleOldImageUrl(req, res, next) {
   if (!imageName[1])      return next( createError(404) )
   imageName       = imageName[1]
   const method    = req.query.method
-  const sizes     = req.query.params ? req.query.params.split(',') : [0, 0];
+  const sizes     = req.query.params ? req.query.params.split(',') : [0, 0]
   const width     = sizes[0]
   const height    = sizes[1]
   console.warn(`[IMAGE] old url for path ${req.originalUrl}`)

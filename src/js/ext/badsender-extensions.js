@@ -31,6 +31,7 @@ function extendViewModel(opts, customExtensions) {
 //////
 
 function templateUrlConverter(opts) {
+  var assets = opts.metadata.assets || {}
   return function badsenderTemplateUrlConverter(url) {
     if (!url) return null
     // handle: [unsubscribe_link] or mailto:[mail]
@@ -48,15 +49,15 @@ function templateUrlConverter(opts) {
     //   *|UNSUB|*
     //   #pouic
     if (!extentionRegexp.test(url)) return null
-    // All images at upload are slugged
+    console.info('badsenderTemplateUrlConverter')
+    console.log(url)
+    // All images at uploaded are renamed with md5
     //    block thumbnails are based on html block ID
-    //    we need to retreive the file url by slugging the id
-    // The same applies for uploaded resources images:
-    //    html img src may differ from uploaded names
-    // No need to control slugFilename result (like in server-side)
-    //    It is done before for determining if it's an image or not
-    url = slugFilename(url)
-    url = opts.imgProcessorBackend + opts.metadata._wireframe  + '-' + url
+    //    => we need to maintain a dictionary of name -> md5 name
+    //    here come the assets block
+    // we still keep the slug part for backward compatibility reason with old image name convetions
+    url = slugFilename( url )
+    url = assets[ url ] ? opts.imgProcessorBackend + assets[ url ] : null
     return url
   }
 }

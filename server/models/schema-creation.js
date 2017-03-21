@@ -82,14 +82,17 @@ CreationSchema.virtual('url').get(function () {
   return creationUrls(this._id, this._wireframe)
 })
 
+// _wireframe must be populated
 CreationSchema.virtual('mosaico').get(function () {
+  var wireframeId       = this._wireframe._id
   var mosaicoEditorData = {
     meta: {
       id:           this._id,
-      _wireframe:   this._wireframe,
+      _wireframe:   wireframeId,
       name:         this.name,
-      template:     wireframeLoadingUrl(this._wireframe),
-      url:          creationUrls(this._id, this._wireframe),
+      template:     wireframeLoadingUrl( wireframeId ),
+      url:          creationUrls( this._id, wireframeId ),
+      assets:       this._wireframe.assets,
     },
     data: this.data,
   }
