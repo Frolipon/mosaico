@@ -61,7 +61,7 @@ rm -rf node_modules
 # unfortunatly pushing the modules on Heroku break the build:
 # Sharp can't build correctly his dependencies
 
-# npm install --production
+npm install --production
 
 # a solution could be to pre-install sharp…
 # https://github.com/lovell/sharp/issues/114#issuecomment-61751393
