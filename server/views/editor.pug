@@ -11,6 +11,7 @@ block head-content
       var basePath  = window.location.protocol + '//' + '#{_config.host}';
       var plugins   = [];
       var ok = Badsender.init({
+        lang:                   '#{getLocale()}',
         strings:                !{ data.translations },
         metadata:               !{ printJS(data.meta) },
         data:                   !{ data.data ? printJS(data.data) : printJS('{}')},

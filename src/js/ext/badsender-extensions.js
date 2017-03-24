@@ -69,6 +69,20 @@ function templateUrlConverter(opts) {
 function extendKnockout(opts) {
 
   // Change tinyMCE full editor options
+  if (opts.lang === 'fr') {
+    textEditor.language_url = '/tinymce-langs/fr_FR.js'
+    textEditor.language     = 'fr_FR'
+    tinymce.util.I18n.add('fr_FR', {
+      'Cancel': 'Annuler',
+      'in pixel': 'en pixel',
+      'Enter a font-size': 'Entrez une taille de police',
+      'Letter spacing': 'Interlettrage',
+      'Font size': 'Taille de police',
+      'Font size: ': 'Taille : ',
+      'minimum size: 8px': 'taille minimum : 8px',
+      'no decimals': 'pas de décimales',
+    } )
+  }
   ko.bindingHandlers.wysiwyg.fullOptions = textEditor
 
   // This is not used by knockout per se.
