@@ -63,7 +63,7 @@ rm -rf node_modules
 
 npm install --production
 # try to remove sharp from node_modules
-# rm -rf node_modules/sharp
+rm -rf node_modules/sharp
 
 # a solution could be to pre-install sharp…
 # https://github.com/lovell/sharp/issues/114#issuecomment-61751393
