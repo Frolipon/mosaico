@@ -71,7 +71,6 @@
     "rc": "^1.1.7",
     "request": "^2.75.0",
     "serve-favicon": "^2.4.0",
-    "sharp": "^0.17.2",
     "speakingurl": "^13.0.0",
     "throng": "^4.0.0",
     "validator": "^7.0.0"
@@ -185,6 +184,7 @@
     "tape": "tape './tests/functional/*.js' | faucet",
     "test-back": "npm run tape",
     "consolidate-creations": "node ./bin/db-consolidate-creations.js",
+    "preinstall": "npm install sharp@0.17.2",
     "toc": "gulp toc"
   },
   "engines": {
