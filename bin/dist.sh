@@ -57,6 +57,12 @@ fi
 
 rm .gitignore
 mv .gitignore-release .gitignore
+# shrinkwrap will error if there is some devDependencies' dependencies are left
+npm prune --production
+# prune can be too greedy and remove devDependencies use pas production dependencies
+npm install --production
+# generate the shrinkwrap
+npm shrinkwrap
 rm -rf node_modules
 # unfortunatly pushing the modules on Heroku break the build:
 # Sharp can't build correctly his dependencies
