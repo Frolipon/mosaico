@@ -361,7 +361,12 @@ build.description = `rebuild all assets`
 const nodemonOptions = {
   script: 'server/workers.js',
   ext:    'js json',
-  watch:  ['server/**/*.js', '.badsenderrc', 'index.js'],
+  watch:  [
+    'server/**/*.js',
+    '.badsenderrc',
+    'index.js',
+    'res/lang/*.js',
+  ],
 }
 
 let init = true

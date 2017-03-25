@@ -47,13 +47,13 @@ var loader = function (viewModel) {
     // => Deprecation notice for .success(), .error(), and .complete()
     function onPostSuccess(data, textStatus, jqXHR) {
       console.log('save success')
-      viewModel.notifier.success(viewModel.t("Creation has been saved"))
+      viewModel.notifier.success( viewModel.t('save-message-success') )
     }
 
     function onPostError(jqXHR, textStatus, errorThrown) {
       console.log('save error')
       console.log(errorThrown)
-      viewModel.notifier.error(viewModel.t("Save errir"))
+      viewModel.notifier.error(viewModel.t('save-message-error'))
     }
 
     function onPostComplete() {

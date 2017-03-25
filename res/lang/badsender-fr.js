@@ -10,4 +10,7 @@ module.exports = {
   'edit-title-ajax-fail':     `Impossible d'enregistrer le nouveau nom`,
   // empty title fallback
   'title-empty':              `sans titre`,
+  //
+  'save-message-success':     `Le mailing a été sauvé`,
+  'save-message-error':       `Une erreur est survenue lors de l'enregistrement`,
 }
