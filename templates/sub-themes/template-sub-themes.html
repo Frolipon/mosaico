@@ -155,7 +155,7 @@
         properties: coloraccentVar=#FF0000 colorprimaryVar=#330000;
         /*
           Because making those groups is making a new widget
-          And because we don't still want to show then on the right panels
+          And because we still don't  want to show then on the right panels
           => hide them also
         */
         category: hidden;
@@ -268,11 +268,19 @@
       @[ _root_[ _root_.myBrand ].coloraccentThemevar ]
       won't work ( => throw an error )
     */ -->
-    <h1 data-ko-editable="headerText" style="color: #FFFF00; -ko-color: @[ overrideColor ? overrideColor : _root_.myBrand eq 'b1' ? _root_.b1.coloraccentVar : _root_.myBrand eq 'b2' ? _root_.b2.coloraccentVar : _root_.b3.coloraccentVar]; ">
+    <!--
+      Using conditional operators doesn't allow us to have a default value defined in the HTML
+      BUT it is still needed for the template to be parsed without errors
+      so we have to live with this message: `Cannot apply default value to variable when using expressions`
+      in utils.js#59
+    -->
+    <h1 data-ko-editable="headerText" style="color: #123456; -ko-color: @[ overrideColor ? overrideColor : _root_.myBrand eq 'b1' ? _root_.b1.coloraccentVar : _root_.myBrand eq 'b2' ? _root_.b2.coloraccentVar : _root_.b3.coloraccentVar]; ">
       this is header with the color
     </h1>
       <div data-ko-editable="bodyText">
-          this is text
+        Sed velit reprehenderit autem nihil recusandae. Quae a ut optio autem maiores fugit. Temporibus exercitationem optio itaque esse iusto nihil aspernatur aut.
+        Laudantium possimus nisi aspernatur inventore ut quis. Animi excepturi odio voluptas occaecati quibusdam assumenda saepe repellendus. Quia sit eos quibusdam. Facilis non non dolores tempore.
+        Rerum voluptatem qui qui enim suscipit. Qui eius praesentium assumenda autem. Architecto laudantium et enim debitis sint perspiciatis. Illum sed sint eos adipisci cupiditate id ducimus. Quisquam temporibus distinctio molestias sint nemo officia.
       </div>
   </div>
 
@@ -280,11 +288,11 @@
     <h3>
       This is a witnessBlock
     </h3>
-    <p style="text-align: center; background-color: #FF6600; -ko-background-color: @[_root_.myBrand eq 'b1' ? _root_.b1.colorprimaryVar : _root_.myBrand eq 'b2' ? _root_.b2.colorprimaryVar : _root_.b3.colorprimaryVar];">
+    <p style="text-align: center; background-color: #123456; -ko-background-color: @[_root_.myBrand eq 'b1' ? _root_.b1.colorprimaryVar : _root_.myBrand eq 'b2' ? _root_.b2.colorprimaryVar : _root_.b3.colorprimaryVar];">
       <br>
       <br>
       <br>
-      <span style="color: #FFFF00; -ko-color: @[_root_.myBrand eq 'b1' ? _root_.b1.coloraccentVar : _root_.myBrand eq 'b2' ? _root_.b2.coloraccentVar : _root_.b3.coloraccentVar];">TEST SECOND COLOR</span>
+      <span style="color: #123456; -ko-color: @[_root_.myBrand eq 'b1' ? _root_.b1.coloraccentVar : _root_.myBrand eq 'b2' ? _root_.b2.coloraccentVar : _root_.b3.coloraccentVar];">TEST SECOND COLOR</span>
       <br>
       <br>
       <br>
