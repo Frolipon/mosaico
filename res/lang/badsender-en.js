@@ -13,4 +13,7 @@ module.exports = {
   //
   'save-message-success':     `The mailing has been saved`,
   'save-message-error':       `Error in saving`,
+  // prevent i18n console.warn
+  'Fake image editor':        ``,
+  '<p>Fake image editor</p>': ``,
 }
