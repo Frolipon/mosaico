@@ -122,6 +122,8 @@
         - good to provide one for the name it gives to the `Style` tab
         - able to share “same name” styles between blocks (icon with 3 or 1 cubes)
       */
+      /* setting a label to theme prevent waning about missing labels */
+      theme { label: Styles; }
       globalTheme { label: My main styles; }
       contentTheme { label: Style de l’élément; }
 
@@ -180,6 +182,7 @@
         This is to override some block datas.
         The block model will be build automatically when calling widgets inside the Html portion defining them
         - Label & blockDescription will go on Content tab
+          - no setting label will result in console warn
         - styles seems to parsed from root “style” attribute
         - theme will give Style tab name
       */
@@ -193,6 +196,11 @@
         label: my witness block;
         blockDescription: Only change with brand;
         theme: globalTheme;
+      }
+      coverImagesBlock {
+        label: image testing block;
+        blockDescription: come with the 2 methods: resize and cover;
+        theme: contentTheme;
       }
 
       /*
