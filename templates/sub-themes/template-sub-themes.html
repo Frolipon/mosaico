@@ -101,10 +101,14 @@
       }
       link {
         label: Lien;
-        properties: text buttonUrl;
+        properties: buttonUrl;
       }
       image {
         label: Image;
+        properties: src alt;
+      }
+      clickableimage {
+        label: Clickable image;
         properties: src imageUrl alt imageWidth;
       }
 
@@ -211,7 +215,7 @@
 
       columnOptions {
         label: Option de colonne;
-        properties: imageVisible=true titleVisible=true buttonVisible=true image buttonLink;
+        properties: imageVisible=true titleVisible=true buttonVisible=true clickableimage buttonLink;
       }
       /* subclass to change label */
       firstColumnOptions {label: Colonne 1 ; extend: columnOptions; }
@@ -219,7 +223,6 @@
 
       twoColumnsBlock {
         label: 2 colonnes;
-        /*properties: separatorVisible=true titleStyle buttonStyle;*/
         properties: separatorVisible=true;
         theme: contentTheme;
       }
@@ -305,13 +308,13 @@
         <td>
           <div data-ko-display="firstColumnOptions.imageVisible" style="text-align: center;">
             <center>
-              <a data-ko-link="firstColumnOptions.image.imageUrl" href="" target="_blank">
-                <img data-ko-editable="firstColumnOptions.image.src" data-ko-placeholder-height="180" width="180" style="width:180px; margin: 0px auto;display: block;-ko-attr-alt: @firstColumnOptions.image.alt;" src="http://dummyimage.com/600x200/666666/fff" border="0" alt="" />
+              <a data-ko-link="firstColumnOptions.clickableimage.imageUrl" href="" target="_blank">
+                <img data-ko-editable="firstColumnOptions.clickableimage.src" data-ko-placeholder-height="180" width="180" style="width:180px; margin: 0px auto;display: block;-ko-attr-alt: @firstColumnOptions.clickableimage.alt;" src="http://dummyimage.com/600x200/666666/fff" border="0" alt="" />
               </a>
             </center>
           </div>
           <div data-ko-display="firstColumnOptions.titleVisible">
-            <p style="font-family: Trebuchet MS, Trebuchet, Arial, Helvetica, sans-serif; font-size: 14px; color: #000000; text-align: center; font-weight: normal; line-height: normal;-ko-font-size: @[columnTitleStyle.size]px; -ko-text-align: @columnTitleStyle.alignement; -ko-attr-align: @columnTitleStyle.alignement;" align="center" data-ko-editable="firstTitleText">
+            <p style="font-family: Trebuchet MS, Trebuchet, Arial, Helvetica, sans-serif; font-size: 14px; color: #000000; text-align: center; font-weight: normal; line-height: normal;-ko-font-size: @[columnTitleStyle.size]px; -ko-text-align: @columnTitleStyle.alignement; -ko-attr-align: @columnTitleStyle.alignement; -ko-font-weight: @columnTitleStyle.weight;" align="center" data-ko-editable="firstTitleText">
               TITRE 1
             </p>
           </div>
@@ -326,13 +329,13 @@
         <td>
           <div data-ko-display="secondColumnOptions.imageVisible" style="text-align: center;">
             <center>
-              <a data-ko-link="secondColumnOptions.image.imageUrl" href="" target="_blank">
-                <img data-ko-editable="secondColumnOptions.image.src" data-ko-placeholder-height="180" width="180" style="width:180px; margin: 0px auto;display: block;-ko-attr-alt: @secondColumnOptions.image.alt;" src="http://dummyimage.com/600x200/666666/fff" border="0" alt="" />
+              <a data-ko-link="secondColumnOptions.clickableimage.imageUrl" href="" target="_blank">
+                <img data-ko-editable="secondColumnOptions.clickableimage.src" data-ko-placeholder-height="180" width="180" style="width:180px; margin: 0px auto;display: block;-ko-attr-alt: @secondColumnOptions.clickableimage.alt;" src="http://dummyimage.com/600x200/666666/fff" border="0" alt="" />
               </a>
             </center>
           </div>
           <div data-ko-display="secondColumnOptions.titleVisible">
-            <p style="font-family: Trebuchet MS, Trebuchet, Arial, Helvetica, sans-serif; font-size: 14px; color: #000000; text-align: center; font-weight: normal; line-height: normal;-ko-font-size: @[columnTitleStyle.size]px; -ko-text-align: @columnTitleStyle.alignement; -ko-attr-align: @columnTitleStyle.alignement;" align="center" data-ko-editable="secondTitleText">
+            <p style="font-family: Trebuchet MS, Trebuchet, Arial, Helvetica, sans-serif; font-size: 14px; color: #000000; text-align: center; font-weight: normal; line-height: normal;-ko-font-size: @[columnTitleStyle.size]px; -ko-text-align: @columnTitleStyle.alignement; -ko-attr-align: @columnTitleStyle.alignement; -ko-font-weight: @columnTitleStyle.weight;" align="center" data-ko-editable="secondTitleText">
               TITRE 1
             </p>
           </div>
