@@ -387,8 +387,10 @@ function update(req, res, next) {
   .catch( next )
 
   function handleCreation(creation) {
-    if (!creation) return next(createError(404))
-    creation.data = req.body.data
+    if (!creation) return next( createError(404) )
+    creation.data = req.body.data || creation.data
+    // use res.__ because (not req) it's where i18n is always up to date (index.js#192)
+    creation.name = normalizeString( req.body.name ) || res.__('home.saved.noname')
     // http://mongoosejs.com/docs/schematypes.html#mixed
     creation.markModified('data')
 
@@ -396,27 +398,6 @@ function update(req, res, next) {
     .save()
     .then( creation => res.json( creation.mosaico ) )
     .catch(next)
-  }
-}
-
-function rename(req, res, next) {
-  if (!req.xhr) return next( createError(501) ) // Not Implemented
-
-  Creations
-  .findOne( addCompanyFilter(req.user, { _id: req.params.creationId}) )
-  .then( handleCreation )
-  .catch( next )
-
-  function handleCreation(creation) {
-    if (!creation) return next( createError(404) )
-    // use res.__ because (not req) it's where i18n is always up to date (index.js#192)
-    creation.name = normalizeString( req.body.name ) || res.__('home.saved.noname')
-
-    creation
-    .save()
-    // don't shortcut to .then( res.json ) it breaks app…
-    .then( creation => res.json(creation) )
-    .catch( next )
   }
 }
 
@@ -481,7 +462,6 @@ module.exports = {
   remove,
   updateLabels,
   bulkRemove,
-  rename,
   create,
   upload,
   listImages,
