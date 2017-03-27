@@ -286,7 +286,6 @@ module.exports = function () {
   app.post('/editor/:creationId/upload',    creations.upload)
   app.get('/editor/:creationId',            creations.show)
   app.post('/editor/:creationId',           creations.update)
-  app.put('/editor/:creationId',            creations.rename)
   app.get('/editor',                        creations.create)
 
   app.all('/creation*',                       guard('user'))
