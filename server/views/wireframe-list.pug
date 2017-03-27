@@ -27,7 +27,7 @@ block content
                 td.mdl-data-table__cell--non-numeric
                   a(href=wireframe.url.show)= wireframe._id
               td.mdl-data-table__cell--non-numeric
-                  a(href=wireframe.url.show)= wireframe.name
+                  a.js-wireframe-name(href=wireframe.url.show)= wireframe.name
               td.mdl-data-table__cell--non-numeric
                 a(href=wireframe.url.company)= wireframe._company.name
 
@@ -41,5 +41,5 @@ block content
                   i.material-icons library_add
               - var deleteUrl = wireframe.url.delete + '?redirect=/wireframes'
               td.mdl-data-table__cell--action
-                a.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent(href=deleteUrl)
+                a.mdl-button.mdl-js-button.mdl-button--icon.mdl-button--accent.js-delete-wireframe(href=deleteUrl)
                   i.material-icons delete
