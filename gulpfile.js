@@ -388,7 +388,7 @@ function nodemon(cb) {
 
 function bsAndWatch() {
   browserSync.init({
-    proxy: 'https://localhost',
+    proxy: 'http://localhost:3000',
     open: false,
     port: 7000,
     ghostMode: false,
