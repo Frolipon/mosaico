@@ -164,16 +164,16 @@ images: {
 ## Dev prerequisite
 
 - [NodeJS 6](https://nodejs.org/en/)
-- [MongoDB v3.2.7](https://www.mongodb.com/) (if installed locally `mongod` to start)
-- [Imagemagick](http://www.imagemagick.org/script/index.php)
-- a SMTP server. [mailcatcher can help for local dev ](https://mailcatcher.me/) (`mailcatcher` to start)
-- [sharp](http://sharp.dimens.io/en/stable/) should work out the box most of the time. In case of troubles see [sharp installation instructions](http://sharp.dimens.io/en/stable/install/).
+- [MongoDB v3.2.7](https://www.mongodb.com/) (if installed locally `mongod` to start) (`brew install mongod` on mac)
+- [Imagemagick](http://www.imagemagick.org/script/index.php) (`brew install imagemagick` on mac)
+- a SMTP server. [mailcatcher can help for local dev ](https://mailcatcher.me/) (`mailcatcher` to start) (`brew install ruby && gem install mailcatcher` on mac)
+- [sharp](http://sharp.dimens.io/en/stable/) should work out the box most of the time. In case of troubles see [sharp installation instructions](http://sharp.dimens.io/en/stable/install/). MacOs will need XCode in order to compile.
 
 You need to have:
 
 - clone/fork the project
 - in your terminal, go in the folder
-- run `npm install` in the root folder
+- run `npm run deps` in the root folder
 
 ## Updating the code
 
