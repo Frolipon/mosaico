@@ -194,6 +194,17 @@ function setPassword(req, res, next) {
   .catch(next)
 }
 
+function showSetPassword(req, res, next) {
+  const { token } = req.params
+  Users
+  .findOne( { token } )
+  .then( user => {
+    const data = !user ? { noToken: true } : { token }
+    return res.render( 'password-reset', { data } )
+  })
+  .catch( next )
+}
+
 module.exports = {
   list,
   show,
@@ -203,4 +214,5 @@ module.exports = {
   adminResetPassword,
   userResetPassword,
   setPassword,
+  showSetPassword,
 }

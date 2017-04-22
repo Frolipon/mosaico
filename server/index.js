@@ -269,7 +269,7 @@ module.exports = function () {
   app.get('/login',                         guard('no-session'), render.login)
   app.get('/forgot',                        guard('no-session'), render.forgot)
   app.post('/forgot',                       guard('no-session'), users.userResetPassword)
-  app.get('/password/:token',               guard('no-session'), render.reset)
+  app.get('/password/:token',               guard('no-session'), users.showSetPassword)
   app.post('/password/:token',              guard('no-session'), users.setPassword)
 
   app.get('/logout',                        guard('user'), session.logout)

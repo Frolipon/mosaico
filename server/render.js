@@ -23,16 +23,9 @@ function forgot(req, res, next) {
   return res.render('password-forgot')
 }
 
-function reset(req, res, next) {
-  return res.render('password-reset', {
-    data: {token: req.params.token}
-  })
-}
-
 module.exports = {
   adminLogin: adminLogin,
   editor:     editor,
   login:      login,
   forgot:     forgot,
-  reset:      reset,
 }
