@@ -88,7 +88,11 @@
 		"token": {
 			"invalid": "Sorry! Password reset link is invalid or has expired."
 		},
-		"nomatch": "The passwords doens't match"
+		"nomatch": "The passwords doesn't match",
+		"error": {
+			"nouser": "This account doens't exist or hasn't been activated",
+			"incorrect": "This password is incorrect"
+		}
 	},
 	"filter": {
 		"name": "name",

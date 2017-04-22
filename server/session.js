@@ -25,18 +25,19 @@ passport.use(new LocalStrategy(
       if (password === config.admin.password) {
         return done(null , adminUser)
       }
-      return done(null, false, { message: 'Incorrect password.' })
+      return done(null, false, { message: 'password.error.incorrect' })
     }
     // user
     Users
     .findOne({
       email:          username,
       isDeactivated:  { $ne: true },
+      token:          { $exists: false },
     })
     .then(function (user) {
-      if (!user) return done(null, false, {message: 'no user'})
+      if (!user) return done(null, false, {message: 'password.error.nouser'})
       var isPasswordValid = user.comparePassword(password)
-      if (!isPasswordValid) return done(null, false, { message: 'Incorrect password.' })
+      if (!isPasswordValid) return done(null, false, { message: 'password.error.incorrect' })
       return done(null, user)
     })
     .catch(function (err) {
@@ -52,7 +53,11 @@ passport.serializeUser( (user, done) => {
 passport.deserializeUser( (id, done) => {
   if (id === config.admin.id) return done(null, adminUser)
   Users
-  .findById(id)
+  .findOne({
+    _id:            id,
+    isDeactivated:  { $ne: true },
+    token:          { $exists: false },
+  })
   .then( user  => done(null, user) )
   .catch( err => done(null, false, err) )
 })
@@ -62,11 +67,11 @@ function init(app) {
     secret:             'keyboard cat',
     resave:             false,
     saveUninitialized:  false,
-    store: new MongoStore({ mongooseConnection: connection })
+    store:              new MongoStore({ mongooseConnection: connection }),
   }))
-  app.use(flash())
-  app.use(passport.initialize())
-  app.use(passport.session())
+  app.use( flash() )
+  app.use( passport.initialize() )
+  app.use( passport.session() )
 }
 
 function guard(role) {

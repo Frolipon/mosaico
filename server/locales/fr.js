@@ -89,7 +89,11 @@
 		"token": {
 			"invalid": "Désolé! le lien de résinitialisation est invalide ou a expiré."
 		},
-		"nomatch": "Les mots de passe ne sont pas identiques"
+		"nomatch": "Les mots de passe ne sont pas identiques",
+		"error": {
+			"nouser": "Ce compte n'existe pas ou n'a pas été activé",
+			"incorrect": "Le mot de passe est incorrecte"
+		}
 	},
 	"filter": {
 		"name": "nom",
