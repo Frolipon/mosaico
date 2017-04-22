@@ -46,72 +46,104 @@ html(lang=getLocale())
 
       main.mdl-layout__content(class=page === 'full-width-layout' ? 'mdl-grid mdl-grid--no-spacing' : '' )
         block content
-        //- dialog.js-dialog-confirm.mdl-dialog
-        //-   h4.mdl-dialog__title.js-dialog-title
-        //-   .mdl-dialog__content: p.js-dialog-text
-        //-   .mdl-dialog__actions
-        //-     button(type="button").js-dialog-confirm.mdl-button.mdl-button--accent.mdl-js-button
-        //-     button(type="button").js-dialog-cancel.js-close-rename-dialog.mdl-button
+        dialog.js-dialog-confirm.mdl-dialog
+          h4.mdl-dialog__title.js-dialog-title
+          .mdl-dialog__content: p.js-dialog-description
+          .mdl-dialog__actions
+            a(href="#").js-dialog-confirm.mdl-button.mdl-button--accent.mdl-js-button ok
+            button(type="button").js-dialog-cancel.js-close-rename-dialog.mdl-button cancel
         script.
           (function(){
+            //- dialog handling
+            //- window.confirm is raising warnings in chrome…
+            var dialog  = document.querySelector('.js-dialog-confirm')
+            if (!dialog.showModal) return
+            var title       = dialog.querySelector('.js-dialog-title')
+            var description = dialog.querySelector('.js-dialog-description')
+            var confirmLink = dialog.querySelector('.js-dialog-confirm')
+            dialog.querySelector('.js-dialog-cancel').addEventListener('click', function () {
+              dialog.close()
+            })
+            dialog.addEventListener('cancel', function () { resetDialog() })
+            dialog.addEventListener('close', function () {  resetDialog() })
+            function resetDialog() {
+              title.textContent       = ''
+              description.textContent = ''
+              confirmLink.setAttribute('href', '#')
+              //- clone to remove all event listeners
+              confirmLinkClone  = confirmLink.cloneNode(true)
+              confirmLink.parentNode.replaceChild(confirmLinkClone, confirmLink)
+              confirmLink       = confirmLinkClone
+            }
+            function openDialog( datas ) {
+              title.textContent       = datas.title
+              description.textContent = datas.description
+              dialog.showModal()
+            }
             //- delete wireframes
-            ;(function(){
-              var deleteButtons = document.querySelectorAll('.js-delete-wireframe')
-              if (!deleteButtons.length) return
-              for (var i = 0; i < deleteButtons.length; i++ ) {
-                var deleteButton = deleteButtons[ i ]
-                deleteButton.addEventListener('click', askWireframeDeletion)
-              }
-              function askWireframeDeletion(e) {
-                var td            = getParent(e.currentTarget, 'tr')
-                var wireframeName = td.querySelector('.js-wireframe-name').innerText
-                var result        = window.confirm('are you sure you want to delete ' + wireframeName + '?')
-                if (result === false ) return e.preventDefault()
-              }
-            })()
+            var deleteButtons = document.querySelectorAll('.js-delete-wireframe')
+            addListeners(deleteButtons, 'click', askWireframeDeletion)
+            function askWireframeDeletion(e) {
+              e.preventDefault()
+              var link                = e.currentTarget
+              var wireframeName       = link.dataset.name
+              confirmLink.setAttribute( 'href', link.getAttribute('href') )
+              openDialog( {
+                title:        'Delete template',
+                description:  'are you sure you want to delete ' + wireframeName + '?',
+              } )
+            }
             //- reset user
-            ;(function(){
-              var resetUsers  = document.querySelectorAll('form.js-reset-user')
-              if (!resetUsers.length) return
-              for (var i = 0; i < resetUsers.length; i++ ) {
-                var resetUser = resetUsers[ i ]
-                resetUser.addEventListener('submit', askUserReset)
-              }
-              function askUserReset(e) {
-                var userName  = e.currentTarget.dataset.name
-                var result    = window.confirm('are you sure you want to reset ' + userName + ' password?')
-                if (result === false ) return e.preventDefault()
-              }
-            })()
+            var resetUsers  = document.querySelectorAll('form.js-reset-user')
+            addListeners(resetUsers, 'submit', askUserReset)
+            function askUserReset(e) {
+              e.preventDefault()
+              var form                = e.currentTarget
+              var userName            = form.dataset.name
+              confirmLink.addEventListener('click', function (e) {
+                e.preventDefault()
+                form.submit()
+              })
+              openDialog( {
+                title:        'Reset',
+                description:  'are you sure you want to reset ' + userName + ' password?',
+              } )
+            }
             //- activate user
-            ;(function(){
-              var activateUsers  = document.querySelectorAll('.js-user-activate')
-              if (!activateUsers.length) return
-              for (var i = 0; i < activateUsers.length; i++ ) {
-                var activateUser = activateUsers[ i ]
-                activateUser.addEventListener('click', askUserActivation)
-              }
-              function askUserActivation(e) {
-                var userName  = e.currentTarget.dataset.name
-                var result    = window.confirm('are you sure you want to activate ' + userName + '?')
-                if (result === false ) return e.preventDefault()
-              }
-            })()
+            var activateUsers  = document.querySelectorAll('.js-user-activate')
+            addListeners(activateUsers, 'click', askUserActivation)
+            function askUserActivation(e) {
+              e.preventDefault()
+              var link                = e.currentTarget  
+              var userName            = link.dataset.name
+              confirmLink.setAttribute( 'href', link.getAttribute('href') )
+              openDialog( {
+                title:        'Activate',
+                description:  'are you sure you want to activate ' + userName + '?',
+              } )
+            }
             //- deactivate user
-            ;(function(){
-              var deactivateUsers  = document.querySelectorAll('.js-user-deactivate')
-              if (!deactivateUsers.length) return
-              for (var i = 0; i < deactivateUsers.length; i++ ) {
-                var deactivateUser = deactivateUsers[ i ]
-                deactivateUser.addEventListener('click', askUserDeactivation)
-              }
-              function askUserDeactivation(e) {
-                var userName  = e.currentTarget.dataset.name
-                var result    = window.confirm('are you sure you want to deactivate ' + userName + '?')
-                if (result === false ) return e.preventDefault()
-              }
-            })()
+            var deactivateUsers  = document.querySelectorAll('.js-user-deactivate')
+            addListeners(deactivateUsers, 'click', askUserDeactivation)
+            function askUserDeactivation(e) {
+              e.preventDefault()
+              var link                = e.currentTarget
+              var userName            = link.dataset.name  
+              confirmLink.setAttribute( 'href', link.getAttribute('href') )
+              openDialog( {
+                title:        'Deactivate',
+                description:  'are you sure you want to deactivate ' + userName + '?',
+              } )
+            }
             //- utils
+            function addListeners( elems, eventName, callback ) {
+              if (!elems.length) return
+              for (var i = 0; i < elems.length; i++ ) {
+                var elem = elems[ i ]
+                elem.addEventListener( eventName, callback)
+              }
+            }
+
             function getParent( elem, selector ) {
               var parent = false
               for ( ; elem && elem !== document; elem = elem.parentNode ) {

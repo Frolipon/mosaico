@@ -29,7 +29,8 @@ mixin user-list()
             if !user.isDeactivated
               form.js-reset-user(action='/users/reset' method="post" data-name=user.safename)
                 input(type="hidden" name="redirect" value="/users")
-                button.mdl-button.mdl-js-button.mdl-button--accent(type="submit" name="id" value=user._id)= user.status.actionMsgShort
+                input(type="hidden" name="id" value=user._id)
+                button.mdl-button.mdl-js-button.mdl-button--accent(type="submit")= user.status.actionMsgShort
           td.mdl-data-table__cell--action
             if !user.isDeactivated
               a.js-user-deactivate(

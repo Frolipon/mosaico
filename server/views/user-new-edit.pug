@@ -29,7 +29,8 @@ block content
             form.mdl-list__item-primary-content.js-reset-user(action='/users/reset' method="post" data-name=user.safename)
               .material-icons.mdl-list__item-icon vpn_key
               input(type="hidden" name="redirect" value=user.url.show)
-              button(type="submit" name="id" value=user._id)
+              input(type="hidden" name="id" value=user._id)
+              button(type="submit")
                 | #{user.status.actionMsg}
 
           li.mdl-list__item
