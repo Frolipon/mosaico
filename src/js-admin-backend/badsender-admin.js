@@ -51,6 +51,15 @@ function askWireframeDeletion(e) {
   } )
 }
 
+//----- handle notifications
+
+const notification = document.querySelector('#notification')
+if (notification) {
+  window.setTimeout(function () {
+    notification.classList.remove('mdl-snackbar--active')
+  }, 2700)
+}
+
 //////
 // USERS
 //////

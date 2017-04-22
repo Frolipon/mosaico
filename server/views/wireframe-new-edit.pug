@@ -103,11 +103,3 @@ block content
         each message in messages.success
           span= message
       button.mdl-snackbar__action(type="button")
-
-    script.
-      (function() {
-      'use strict';
-        setTimeout(function () {
-          document.querySelector('#notification').classList.remove('mdl-snackbar--active')
-        }, 2700)
-      }())
