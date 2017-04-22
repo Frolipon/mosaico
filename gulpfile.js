@@ -286,7 +286,7 @@ function jsHome() {
   }))
 
   if (isWatch) {
-    b = watchify(b);
+    b = watchify(b)
     b.on('update', function () {
       $.util.log('bundle home app')
       bundleHome(b)
@@ -305,7 +305,45 @@ function bundleHome(b) {
   .pipe(gulp.dest(buildDir))
 }
 
-const js        = gulp.parallel( jsEditor, jsHome )
+//----- ADMIN JS
+
+function jsAdmin() {
+  var b = browserify({
+    cache:        {},
+    packageCache: {},
+    debug:        true,
+    entries:      ['./src/js-admin-backend/badsender-admin.js']
+  })
+  .transform(babelify, {
+    presets:      ['es2015'],
+  })
+  .transform(envify({
+    _:            'purge',
+    NODE_ENV:     env,
+    LOG:          isDev,
+  }))
+
+  if (isWatch) {
+    b = watchify(b)
+    b.on('update', function () {
+      $.util.log('bundle admin app')
+      bundleAdmin(b)
+    })
+  }
+  return bundleAdmin(b)
+
+}
+
+function bundleAdmin(b) {
+  return b.bundle()
+  .on('error', onError)
+  .pipe(source('badsender-admin.js'))
+  .pipe(vinylBuffer())
+  .pipe($.if(!isDev, $.uglify()))
+  .pipe(gulp.dest(buildDir))
+}
+
+const js        = gulp.parallel( jsEditor, jsHome, jsAdmin )
 js.description  = `build js for mosaico app and the for the rests of the application`
 
 ////////
