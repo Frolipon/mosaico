@@ -5,12 +5,6 @@ var translations = {
   fr: JSON.stringify(require('../res/lang/mosaico-fr.json')),
 }
 
-function editor(req, res, next) {
-  return res.render('editor', {
-    translations: translations,
-  })
-}
-
 function adminLogin(req, res, next) {
   res.render('admin-login')
 }
@@ -25,7 +19,6 @@ function forgot(req, res, next) {
 
 module.exports = {
   adminLogin: adminLogin,
-  editor:     editor,
   login:      login,
   forgot:     forgot,
 }

@@ -46,20 +46,72 @@ html(lang=getLocale())
 
       main.mdl-layout__content(class=page === 'full-width-layout' ? 'mdl-grid mdl-grid--no-spacing' : '' )
         block content
+        //- dialog.js-dialog-confirm.mdl-dialog
+        //-   h4.mdl-dialog__title.js-dialog-title
+        //-   .mdl-dialog__content: p.js-dialog-text
+        //-   .mdl-dialog__actions
+        //-     button(type="button").js-dialog-confirm.mdl-button.mdl-button--accent.mdl-js-button
+        //-     button(type="button").js-dialog-cancel.js-close-rename-dialog.mdl-button
         script.
           (function(){
-            var deleteButtons = document.querySelectorAll('.js-delete-wireframe')
-            if (!deleteButtons.length) return
-            for (var i = 0; i < deleteButtons.length; i++ ) {
-              var deleteButton = deleteButtons[ i ]
-              deleteButton.addEventListener('click', askWireframeDeletion)
-            }
-            function askWireframeDeletion(e) {
-              var td            = getParent(e.currentTarget, 'tr')
-              var wireframeName = td.querySelector('.js-wireframe-name').innerText
-              var result        = window.confirm('are you sure you want to delete ' + wireframeName + '?')
-              if (result === false ) return e.preventDefault()
-            }
+            //- delete wireframes
+            ;(function(){
+              var deleteButtons = document.querySelectorAll('.js-delete-wireframe')
+              if (!deleteButtons.length) return
+              for (var i = 0; i < deleteButtons.length; i++ ) {
+                var deleteButton = deleteButtons[ i ]
+                deleteButton.addEventListener('click', askWireframeDeletion)
+              }
+              function askWireframeDeletion(e) {
+                var td            = getParent(e.currentTarget, 'tr')
+                var wireframeName = td.querySelector('.js-wireframe-name').innerText
+                var result        = window.confirm('are you sure you want to delete ' + wireframeName + '?')
+                if (result === false ) return e.preventDefault()
+              }
+            })()
+            //- reset user
+            ;(function(){
+              var resetUsers  = document.querySelectorAll('form.js-reset-user')
+              if (!resetUsers.length) return
+              for (var i = 0; i < resetUsers.length; i++ ) {
+                var resetUser = resetUsers[ i ]
+                resetUser.addEventListener('submit', askUserReset)
+              }
+              function askUserReset(e) {
+                var userName  = e.currentTarget.dataset.name
+                var result    = window.confirm('are you sure you want to reset ' + userName + ' password?')
+                if (result === false ) return e.preventDefault()
+              }
+            })()
+            //- activate user
+            ;(function(){
+              var activateUsers  = document.querySelectorAll('.js-user-activate')
+              if (!activateUsers.length) return
+              for (var i = 0; i < activateUsers.length; i++ ) {
+                var activateUser = activateUsers[ i ]
+                activateUser.addEventListener('click', askUserActivation)
+              }
+              function askUserActivation(e) {
+                var userName  = e.currentTarget.dataset.name
+                var result    = window.confirm('are you sure you want to activate ' + userName + '?')
+                if (result === false ) return e.preventDefault()
+              }
+            })()
+            //- deactivate user
+            ;(function(){
+              var deactivateUsers  = document.querySelectorAll('.js-user-deactivate')
+              if (!deactivateUsers.length) return
+              for (var i = 0; i < deactivateUsers.length; i++ ) {
+                var deactivateUser = deactivateUsers[ i ]
+                deactivateUser.addEventListener('click', askUserDeactivation)
+              }
+              function askUserDeactivation(e) {
+                var userName  = e.currentTarget.dataset.name
+                var result    = window.confirm('are you sure you want to deactivate ' + userName + '?')
+                if (result === false ) return e.preventDefault()
+              }
+            })()
+            //- utils
             function getParent( elem, selector ) {
               var parent = false
               for ( ; elem && elem !== document; elem = elem.parentNode ) {
