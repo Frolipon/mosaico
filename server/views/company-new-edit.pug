@@ -77,7 +77,6 @@ block content
                     th.mdl-data-table__cell--action delete
                 tbody
                   each wireframe in data.wireframes
-                    // - var deleteUrl = wireframe.url.delete + '?redirect=/companies/' + wireframe._company
                     - var deleteUrl = mergeQueries(wireframe.url.delete, {redirect: wireframe.url.backTo })
                     tr
                       if _config.debug

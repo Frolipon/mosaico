@@ -75,7 +75,8 @@
 			"email": "Email",
 			"password": "Password",
 			"confirm-email": "Confirm your email address",
-			"password-new": "New password"
+			"password-new": "New password",
+			"password-confirm": "Confirm your new password"
 		},
 		"action": {
 			"login": "login",
@@ -83,7 +84,11 @@
 			"reset": "reset",
 			"back-to-login": "back to login",
 			"password-new": "Set my new password"
-		}
+		},
+		"token": {
+			"invalid": "Sorry! Password reset link is invalid or has expired."
+		},
+		"nomatch": "The passwords doens't match"
 	},
 	"filter": {
 		"name": "name",

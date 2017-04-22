@@ -71,7 +71,8 @@
 			"email": "Email",
 			"password": "mot de passe",
 			"confirm-email": "Confirmez votre email",
-			"password-new": "Nouveau mot de passe"
+			"password-new": "Nouveau mot de passe",
+			"password-confirm": "Confirmez votre nouveau mot de passe"
 		},
 		"action": {
 			"login": "connexion",
@@ -84,7 +85,11 @@
 			"login": "Connectez-vous",
 			"forgot": "Mot de passe oublié ?",
 			"reset": "Réinitialisation du mot de passe"
-		}
+		},
+		"token": {
+			"invalid": "Désolé! le lien de résinitialisation est invalide ou a expiré."
+		},
+		"nomatch": "Les mots de passe ne sont pas identiques"
 	},
 	"filter": {
 		"name": "nom",
