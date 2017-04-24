@@ -294,9 +294,6 @@ ko.bindingHandlers['fileupload'] = {
       options.url = ko.bindingHandlers['fileupload'].extendOptions.url.mailing;
     }
 
-    console.info('fileupload')
-    console.log(options)
-
     $fu.fileupload(options);
 
     var events = ['fileuploadadd', 'fileuploadprocessalways', 'fileuploadprogressall', 'fileuploaddone', 'fileuploadfail'];

@@ -65,7 +65,7 @@
            </div>
         </div>
       </div>
-    <!-- ko if: $root.mailingGalleryStatus() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadGallery, button: { disabled: $root.mailingGalleryStatus, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.mailingGalleryStatus() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gally #</a><!-- /ko -->
+    <!-- ko if: $root.mailingGalleryStatus() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadMailingGallery, button: { disabled: $root.mailingGalleryStatus, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.mailingGalleryStatus() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gally #</a><!-- /ko -->
 
 
     <!-- ko if: $root.mailingGalleryStatus() === 'loading' --><div class="galleryEmpty" data-bind="text: $root.t('Loading gallery...')">Loading gallery...</div><!-- /ko -->
@@ -86,7 +86,7 @@
         </div>
         </div>
 
-      <!-- ko if: $root.templateGalleryStatus() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadGallery, button: { disabled: $root.templateGalleryStatus, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.templateGalleryStatus() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gally #</a><!-- /ko -->
+      <!-- ko if: $root.templateGalleryStatus() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadTemplateGallery, button: { disabled: $root.templateGalleryStatus, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.templateGalleryStatus() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gally #</a><!-- /ko -->
 
 
       <!-- ko if: $root.templateGalleryStatus() === 'loading' --><div class="galleryEmpty" data-bind="text: $root.t('Loading gallery...')">Loading gallery...</div><!-- /ko -->

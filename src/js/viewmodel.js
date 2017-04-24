@@ -121,13 +121,6 @@ var strings = {
 function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
 
   var viewModel = {
-    galleryRecent: ko.observableArray([]).extend({
-      paging: 16
-    }),
-    galleryRemote: ko.observableArray([]).extend({
-      paging: 16
-    }),
-    
     mailingGallery: ko.observableArray([]).extend({ paging: 16 }),
     templateGallery: ko.observableArray([]).extend({ paging: 16 }),
     mailingGalleryStatus: ko.observable(false),
@@ -195,6 +188,12 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     return fileObj;
   };
 
+  if (process.env.MOSAICO) {
+
+  // keep this for compatibilty
+  viewModel.galleryRecent = ko.observableArray([]).extend({ paging: 16 })
+  viewModel.galleryRemote =  ko.observableArray([]).extend({ paging: 16 }),
+
   // toolbox.tmpl.html
   viewModel.loadGallery = function() {
     viewModel.galleryLoaded('loading');
@@ -210,6 +209,8 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
       viewModel.notifier.error(viewModel.t('Unexpected error listing files'));
     });
   };
+
+  }
 
   if (process.env.BADSENDER) {
 
@@ -627,6 +628,17 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
   viewModel.log = function(category, msg) {
     // console.log("viewModel.log", category, msg);
   };
+
+
+  if (process.env.MOSAICO) {
+
+  viewModel.selectedImageTab.subscribe(function(newValue) {
+    if (newValue == 1 && viewModel.galleryLoaded() === false) {
+      viewModel.loadGallery();
+    }
+  }, viewModel, 'change');
+
+  }
 
   // automatically load the gallery when the gallery tab is selected
   viewModel.selectedImageTab.subscribe(function(newValue) {
