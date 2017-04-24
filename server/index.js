@@ -207,7 +207,7 @@ module.exports = function () {
   // regexp for checking valid mongoDB Ids
   // http://expressjs.com/en/api.html#app.param
   // http://stackoverflow.com/questions/20988446/regex-for-mongodb-objectid#20988824
-  app.param(['companyId', 'userId', 'wireId', 'creationId'], checkMongoId)
+  app.param(['companyId', 'userId', 'wireId', 'creationId', 'mongoId'], checkMongoId)
   function checkMongoId(req, res, next, mongoId) {
     if (/^[a-f\d]{24}$/i.test(mongoId)) return next()
     console.log('test mongoId INVALID', mongoId)
@@ -283,11 +283,14 @@ module.exports = function () {
 
   app.all('/editor*',                       guard('user'))
   app.get('/editor/:creationId/upload',     creations.listImages)
-  app.post('/editor/:creationId/upload',    creations.upload)
   app.get('/editor/:creationId',            creations.show)
   app.post('/editor/:creationId',           creations.update)
   app.get('/editor',                        creations.create)
 
+  app.all('/upload*',                       guard('user'))
+  app.get('/upload/:mongoId',               creations.listImages )
+  app.post('/upload/:mongoId',              creations.upload )
+  
   app.all('/creation*',                       guard('user'))
   // This should replace GET /editor
   // app.post('/creations',                  (req, res, next) => res.redirect('/'))

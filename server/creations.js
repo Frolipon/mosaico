@@ -411,26 +411,26 @@ function remove(req, res, next) {
 
 // should upload image on a specific client bucket
 // -> can't handle live resize
-function upload(req, res, next) {
-  console.log(chalk.green('UPLOAD'))
+function upload( req, res, next ) {
+  console.log( chalk.green('UPLOAD') )
   filemanager
   .parseMultipart( req, {
-    prefix:     req.params.creationId,
+    prefix:     req.params.mongoId,
     formatter:  'editor',
   } )
-  .then(onParse)
-  .catch(next)
+  .then( onParse )
+  .catch( next )
 
-  function onParse(datas4fileupload) {
-    res.send(JSON.stringify(datas4fileupload))
+  function onParse( datas4fileupload ) {
+    res.send( JSON.stringify(datas4fileupload) )
   }
 }
 
 function listImages(req, res, next) {
   filemanager
-  .list( req.params.creationId )
+  .list( req.params.mongoId )
   .then( files => res.json({ files }) )
-  .catch(next)
+  .catch( next )
 }
 
 function duplicate(req, res, next) {

@@ -253,6 +253,7 @@ function parseMultipart(req, options) {
       const ext         = mime.extension( file.type )
       if (!fileName) return console.warn('unable to upload', file.name)
       file.name         = `${ options.prefix }-${ file.hash }.${ ext }`
+      // original name is needed for templates assets (preview/other images…)
       file.originalName = `${ fileName }.${ ext }`
       uploads.push( write(file) )
     }

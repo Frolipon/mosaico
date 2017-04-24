@@ -8,7 +8,7 @@ block head-content
         alert('Update your browser!');
         return;
       }
-      var basePath  = window.location.protocol + '//' + '#{_config.host}';
+      var basePath  = window.location.protocol + '//#{_config.host}';
       var plugins   = [];
       var ok = Badsender.init({
         lang:                   '#{getLocale()}',
@@ -22,8 +22,11 @@ block head-content
         fileuploadConfig: {
           //- don't prepend basePath
           //- CORS errors can occur while using browsersync
-          url: '/editor/#{data.meta.id}/upload',
-          // messages??
+          url: {
+            mailing:  '/upload/#{data.meta.id}',
+            template: '/upload/#{data.meta._wireframe}',
+          },
+          // messages are done in app.js#start
         },
       }, plugins);
       if (!ok) {

@@ -127,6 +127,12 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     galleryRemote: ko.observableArray([]).extend({
       paging: 16
     }),
+    
+    mailingGallery: ko.observableArray([]).extend({ paging: 16 }),
+    templateGallery: ko.observableArray([]).extend({ paging: 16 }),
+    mailingGalleryStatus: ko.observable(false),
+    templateGalleryStatus: ko.observable(false),
+
     selectedBlock: ko.observable(null),
     selectedItem: ko.observable(null),
     selectedTool: ko.observable(0),
@@ -204,6 +210,41 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
       viewModel.notifier.error(viewModel.t('Unexpected error listing files'));
     });
   };
+
+  if (process.env.BADSENDER) {
+
+  function loadGallery( type ) {
+    var url      = galleryUrl[ type ]
+    var gallery  = viewModel[ type + 'Gallery' ]
+    var status   = viewModel[ type + 'GalleryStatus' ]
+    return function() {
+      viewModel.galleryLoaded('loading');
+      // retrieve the full list of remote files
+      $.getJSON(url, function ( data ) {
+        for (var i = 0; i < data.files.length; i++) data.files[i] = viewModel.remoteFileProcessor(data.files[i]);
+        status( data.files.length );
+        // TODO do I want this call to return relative paths? Or just absolute paths?
+        gallery( data.files.reverse() );
+      }).fail(function() {
+        status( false );
+        viewModel.notifier.error(viewModel.t('Unexpected error listing files'));
+      });
+    }
+  }
+
+  function loadImage( type ) {
+    var gallery  = viewModel[ type + 'Gallery' ];
+    return function ( img ) {
+      gallery.unshift( img )
+    }
+  }
+
+  viewModel.loadMailingGallery  = loadGallery( 'mailing' );
+  viewModel.loadTemplateGallery = loadGallery( 'template' );
+  viewModel.loadMailingImage    = loadImage( 'mailing' );
+  viewModel.loadTemplateImage   = loadImage( 'template' );
+
+  }
 
   // img-wysiwyg.tmpl.html
   viewModel.fileToImage = function(obj, event, ui) {
@@ -589,9 +630,14 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
 
   // automatically load the gallery when the gallery tab is selected
   viewModel.selectedImageTab.subscribe(function(newValue) {
-    if (newValue == 1 && viewModel.galleryLoaded() === false) {
-      viewModel.loadGallery();
+    console.info('[TAB] select', newValue)
+    if (newValue === 0 && viewModel.mailingGalleryStatus() === false) {
+      viewModel.loadMailingGallery();
     }
+    if (newValue === 1 && viewModel.templateGalleryStatus() === false) {
+      viewModel.loadTemplateGallery();
+    }
+
   }, viewModel, 'change');
 
   return viewModel;

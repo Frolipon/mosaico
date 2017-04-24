@@ -103,8 +103,9 @@ function update(req, res, next) {
 
   filemanager
   .parseMultipart(req, {
-    prefix:     wireId,
-    formatter: 'wireframes',
+    // add a `wireframe` prefix to differ from user uploaded template assets
+    prefix:     `wireframe-${wireId}`,
+    formatter:  'wireframes',
   })
   .then(onParse)
   .catch(next)
