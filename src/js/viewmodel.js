@@ -121,11 +121,12 @@ var strings = {
 function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
 
   var viewModel = {
-    mailingGallery: ko.observableArray([]).extend({ paging: 16 }),
-    templateGallery: ko.observableArray([]).extend({ paging: 16 }),
-    mailingGalleryStatus: ko.observable(false),
-    templateGalleryStatus: ko.observable(false),
-
+    galleryRecent: ko.observableArray([]).extend({
+      paging: 16
+    }),
+    galleryRemote: ko.observableArray([]).extend({
+      paging: 16
+    }),
     selectedBlock: ko.observable(null),
     selectedItem: ko.observable(null),
     selectedTool: ko.observable(0),
@@ -188,12 +189,6 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     return fileObj;
   };
 
-  if (process.env.MOSAICO) {
-
-  // keep this for compatibilty
-  viewModel.galleryRecent = ko.observableArray([]).extend({ paging: 16 })
-  viewModel.galleryRemote =  ko.observableArray([]).extend({ paging: 16 }),
-
   // toolbox.tmpl.html
   viewModel.loadGallery = function() {
     viewModel.galleryLoaded('loading');
@@ -209,43 +204,6 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
       viewModel.notifier.error(viewModel.t('Unexpected error listing files'));
     });
   };
-
-  }
-
-  if (process.env.BADSENDER) {
-
-  function loadGallery( type ) {
-    var url      = galleryUrl[ type ]
-    var gallery  = viewModel[ type + 'Gallery' ]
-    var status   = viewModel[ type + 'GalleryStatus' ]
-    return function() {
-      viewModel.galleryLoaded('loading');
-      // retrieve the full list of remote files
-      $.getJSON(url, function ( data ) {
-        for (var i = 0; i < data.files.length; i++) data.files[i] = viewModel.remoteFileProcessor(data.files[i]);
-        status( data.files.length );
-        // TODO do I want this call to return relative paths? Or just absolute paths?
-        gallery( data.files.reverse() );
-      }).fail(function() {
-        status( false );
-        viewModel.notifier.error(viewModel.t('Unexpected error listing files'));
-      });
-    }
-  }
-
-  function loadImage( type ) {
-    var gallery  = viewModel[ type + 'Gallery' ];
-    return function ( img ) {
-      gallery.unshift( img )
-    }
-  }
-
-  viewModel.loadMailingGallery  = loadGallery( 'mailing' );
-  viewModel.loadTemplateGallery = loadGallery( 'template' );
-  viewModel.loadMailingImage    = loadImage( 'mailing' );
-  viewModel.loadTemplateImage   = loadImage( 'template' );
-
-  }
 
   // img-wysiwyg.tmpl.html
   viewModel.fileToImage = function(obj, event, ui) {
@@ -629,9 +587,10 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     // console.log("viewModel.log", category, msg);
   };
 
-
+  // Can't keep that piece of code: interfere with my own listener
   if (process.env.MOSAICO) {
 
+  // automatically load the gallery when the gallery tab is selected
   viewModel.selectedImageTab.subscribe(function(newValue) {
     if (newValue == 1 && viewModel.galleryLoaded() === false) {
       viewModel.loadGallery();
@@ -639,18 +598,6 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
   }, viewModel, 'change');
 
   }
-
-  // automatically load the gallery when the gallery tab is selected
-  viewModel.selectedImageTab.subscribe(function(newValue) {
-    console.info('[TAB] select', newValue)
-    if (newValue === 0 && viewModel.mailingGalleryStatus() === false) {
-      viewModel.loadMailingGallery();
-    }
-    if (newValue === 1 && viewModel.templateGalleryStatus() === false) {
-      viewModel.loadTemplateGallery();
-    }
-
-  }, viewModel, 'change');
 
   return viewModel;
 

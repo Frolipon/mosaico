@@ -13,6 +13,7 @@ var slugFilename  = require('../../../shared/slug-filename.js')
 var serverStorage = require('./badsender-server-storage')
 var editTitle     = require('./badsender-edit-title')
 var textEditor    = require('./badsender-text-editor')
+var gallery       = require('./badsender-gallery')
 
 function setEditorIcon(viewModel) {
   viewModel.logoPath  = '/media/editor-icon.png'
@@ -21,9 +22,10 @@ function setEditorIcon(viewModel) {
 }
 
 function extendViewModel(opts, customExtensions) {
-  customExtensions.push(serverStorage)
-  customExtensions.push(setEditorIcon)
-  customExtensions.push(editTitle)
+  customExtensions.push( serverStorage )
+  customExtensions.push( setEditorIcon )
+  customExtensions.push( editTitle )
+  customExtensions.push( gallery(opts) )
 }
 
 //////
