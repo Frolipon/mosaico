@@ -409,30 +409,6 @@ function remove(req, res, next) {
   .catch(next)
 }
 
-// should upload image on a specific client bucket
-// -> can't handle live resize
-function upload( req, res, next ) {
-  console.log( chalk.green('UPLOAD') )
-  filemanager
-  .parseMultipart( req, {
-    prefix:     req.params.mongoId,
-    formatter:  'editor',
-  } )
-  .then( onParse )
-  .catch( next )
-
-  function onParse( datas4fileupload ) {
-    res.send( JSON.stringify(datas4fileupload) )
-  }
-}
-
-function listImages(req, res, next) {
-  filemanager
-  .list( req.params.mongoId )
-  .then( files => res.json({ files }) )
-  .catch( next )
-}
-
 function duplicate(req, res, next) {
 
   Creations
@@ -463,7 +439,5 @@ module.exports = {
   updateLabels,
   bulkRemove,
   create,
-  upload,
-  listImages,
   duplicate,
 }

@@ -1,22 +1,26 @@
 'use strict';
 
-const fs            = require('fs')
-const url           = require('url')
-const path          = require('path')
-const gm            = require('gm').subClass({imageMagick: true})
-const sharp         = require('sharp')
-const createError   = require('http-errors')
-const util          = require('util')
-const stream        = require('stream')
-const probe         = require('probe-image-size')
-const { duration }  = require('moment')
-const { green, red, bgGreen,
-}                   =  require('chalk')
+const fs              = require('fs')
+const url             = require('url')
+const path            = require('path')
+const gm              = require('gm').subClass({imageMagick: true})
+const sharp           = require('sharp')
+const createError     = require('http-errors')
+const util            = require('util')
+const stream          = require('stream')
+const probe           = require('probe-image-size')
+const { duration }    = require('moment')
+const { 
+  green, 
+  red, 
+  bgGreen, }          =  require('chalk')
 
 const config          = require('./config')
 const {
   streamImage,
-  writeStream, }      = require('./filemanager')
+  writeStream,
+  list,
+  parseMultipart, }   = require('./filemanager')
 const { Cacheimages } = require('./models')
 
 console.log('[IMAGES] config.images.cache', config.images.cache)
@@ -308,6 +312,25 @@ function placeholder(req, res, next) {
   streamPlaceholder( null, out.stream('png'), null)
 }
 
+function listImages( req, res, next ) {
+  list( req.params.mongoId )
+  .then( files => res.json({ files }) )
+  .catch( next )
+}
+
+function upload( req, res, next ) {
+  parseMultipart( req, {
+    prefix:     req.params.mongoId,
+    formatter:  'editor',
+  } )
+  .then( onParse )
+  .catch( next )
+
+  function onParse( datas4fileupload ) {
+    res.send( JSON.stringify(datas4fileupload) )
+  }
+}
+
 module.exports = {
   handleOldImageUrl,
   cover,
@@ -316,4 +339,6 @@ module.exports = {
   checkImageCache,
   checkSizes,
   read,
+  listImages,
+  upload,
 }

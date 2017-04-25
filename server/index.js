@@ -15,6 +15,7 @@ const i18n            = require('i18n')
 const moment          = require('moment')
 const util            = require('util')
 const { merge, omit } = require('lodash')
+const createError     = require('http-errors')
 
 module.exports = function () {
 
@@ -211,13 +212,13 @@ module.exports = function () {
   function checkMongoId(req, res, next, mongoId) {
     if (/^[a-f\d]{24}$/i.test(mongoId)) return next()
     console.log('test mongoId INVALID', mongoId)
-    next({status: 404})
+    next( createError(404) )
   }
 
   app.param(['placeholderSize'], (req, res, next, placeholderSize) => {
     if ( /(\d+)x(\d+)\.png/.test(placeholderSize) ) return next()
     console.log('placeholder format INVALID', placeholderSize)
-    next({status: 404})
+    next( createError(404) )
   })
 
   //----- ADMIN
@@ -282,14 +283,13 @@ module.exports = function () {
   //----- USER
 
   app.all('/editor*',                       guard('user'))
-  app.get('/editor/:creationId/upload',     creations.listImages)
   app.get('/editor/:creationId',            creations.show)
   app.post('/editor/:creationId',           creations.update)
   app.get('/editor',                        creations.create)
 
   app.all('/upload*',                       guard('user'))
-  app.get('/upload/:mongoId',               creations.listImages )
-  app.post('/upload/:mongoId',              creations.upload )
+  app.get('/upload/:mongoId',               images.listImages )
+  app.post('/upload/:mongoId',              images.upload )
   
   app.all('/creation*',                       guard('user'))
   // This should replace GET /editor
