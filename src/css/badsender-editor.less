@@ -485,3 +485,54 @@
 .mce-fontsizedialogbutton {
   width: 120px !important;
 }
+
+////////
+// gallery tabs & panels
+////////
+
+.gallery-panel {
+  text-align: center;
+
+  .mo-uploadzone {
+    position: relative; 
+    padding: 2em; 
+    border: 2px dotted #808080;
+  }
+  .fileupload {
+    z-index: 10; 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0; 
+    min-width: 100%; 
+    min-height: 100%; 
+    font-zie: 999px; 
+    text-align: right; 
+    opacity: 0; 
+    outline: none; 
+    cursor: inherit; 
+    display: block;
+  }
+  .workzone {
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0; 
+    overflow: hidden;
+  }
+  .progress {
+    opacity: .5; 
+    width: 80%; 
+    margin-left: 10%; 
+    position: absolute; 
+    bottom: 30%; 
+    height: 20px; 
+    border: 2px solid black;
+  }
+  .progress-bar {
+    height: 20px; 
+    background-color: black;
+  }
+}

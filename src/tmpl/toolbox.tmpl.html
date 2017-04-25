@@ -53,14 +53,14 @@
       <li data-bind="tooltips: {}"><a title="gallery-template" data-local="true" href="#toolimagesgallerytemplate" data-bind="attr: { title: $root.t('gallery-template') }, text: $root.t('gallery-template')">gallery-template</a></li>
     </ul>
 
-    <div id="toolimagesgallery" style="text-align: center">
+    <div id="toolimagesgallery" class="gallery-panel">
       <div data-drop-content="Drop here" class="img-dropzone pane uploadzone" data-bind="attr: { 'data-drop-content': $root.t('Drop here') }, fudroppable: { activeClass: 'ui-state-highlight', hoverClass: 'ui-state-draghover' }">
-        <div class="mo-uploadzone" style="position: relative; padding: 2em; border: 2px dotted #808080">
-           <input class="fileupload" type="file" multiple name="files[]" data-bind="fileupload: { onerror: $root.notifier.error, onfile: $root.loadMailingImage }" style="z-index: 10; position: absolute; top: 0; left: 0; right: 0; bottom: 0; min-width: 100%; min-height: 100%; font-zie: 999px; text-align: right; filter: alpha(opacity=0); opacity: 0; outline: none; cursor: inherit; display: block">
+        <div class="mo-uploadzone">
+           <input class="fileupload" type="file" multiple name="files[]" data-bind="fileupload: { onerror: $root.notifier.error, onfile: $root.loadMailingImage }">
            <span data-bind="text: $root.t('Click or drag files here')">Click or drag files here</span>
-           <div class="workzone" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden;">
-             <div class="progress" style="opacity: .5; width: 80%; margin-left: 10%; position: absolute; bottom: 30%; height: 20px; border: 2px solid black;">
-               <div class="progress-bar progress-bar-success" style="height: 20px; background-color: black; "></div>
+           <div class="workzone">
+             <div class="progress">
+               <div class="progress-bar progress-bar-success"></div>
              </div>
            </div>
         </div>
@@ -73,14 +73,14 @@
     <!-- ko template: {name: 'gallery-images', data: { items: mailingGallery } } --># mailing gallery #<!-- /ko -->
     </div>
 
-    <div id="toolimagesgallerytemplate" style="text-align: center">
+    <div id="toolimagesgallerytemplate" class="gallery-panel">
       <div data-drop-content="Drop here" class="img-dropzone pane uploadzone" data-bind="attr: { 'data-drop-content': $root.t('Drop here') }, fudroppable: { activeClass: 'ui-state-highlight', hoverClass: 'ui-state-draghover' }">
-        <div class="mo-uploadzone" style="position: relative; padding: 2em; border: 2px dotted #808080">
-           <input class="fileupload" type="file" multiple name="files[]" data-bind="fileupload: { onerror: $root.notifier.error, onfile: $root.loadTemplateImage, uploadToTemplate: true }" style="z-index: 10; position: absolute; top: 0; left: 0; right: 0; bottom: 0; min-width: 100%; min-height: 100%; font-zie: 999px; text-align: right; filter: alpha(opacity=0); opacity: 0; outline: none; cursor: inherit; display: block">
+        <div class="mo-uploadzone">
+           <input class="fileupload" type="file" multiple name="files[]" data-bind="fileupload: { onerror: $root.notifier.error, onfile: $root.loadTemplateImage, uploadToTemplate: true }">
            <span data-bind="text: $root.t('Click or drag files here')">Click or drag files here</span>
-           <div class="workzone" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden;">
-             <div class="progress" style="opacity: .5; width: 80%; margin-left: 10%; position: absolute; bottom: 30%; height: 20px; border: 2px solid black;">
-               <div class="progress-bar progress-bar-success" style="height: 20px; background-color: black; "></div>
+           <div class="workzone">
+             <div class="progress">
+               <div class="progress-bar progress-bar-success"></div>
              </div>
            </div>
         </div>
