@@ -44,7 +44,7 @@
         
 <div id="toolimages" class="slidebar" data-bind="scrollable: true, css: { hidden: $root.showGallery() === false }">
   <div class="close" data-bind="click: $root.showGallery.bind($element, false);">X</div>
-  <span class="pane-title" data-bind="text: $root.t('Gallery:')">Gallery:</span>
+  <span class="pane-title" data-bind="text: $root.t('gallery-title')">Galleries:</span>
 
   <!-- ko if: $root.showGallery() -->
   <div id="toolimagestab" class="tabs_horizontal" data-bind="tabs: { active: $root.selectedImageTab }">
@@ -65,12 +65,12 @@
            </div>
         </div>
       </div>
-    <!-- ko if: $root.mailingGalleryStatus() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadMailingGallery, button: { disabled: $root.mailingGalleryStatus, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.mailingGalleryStatus() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gally #</a><!-- /ko -->
+    <!-- ko if: $root.mailingGalleryStatus() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadMailingGallery, button: { disabled: $root.mailingGalleryStatus, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.mailingGalleryStatus() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gallery #</a><!-- /ko -->
 
 
-    <!-- ko if: $root.mailingGalleryStatus() === 'loading' --><div class="galleryEmpty" data-bind="text: $root.t('Loading gallery...')">Loading gallery...</div><!-- /ko -->
-    <!-- ko if: $root.mailingGalleryStatus() === 0 --><div class="galleryEmpty" data-bind="text: $root.t('The gallery is empty')">The gallery is empty</div><!-- /ko -->
-    <!-- ko template: {name: 'gallery-images', data: { items: mailingGallery } } --># remote gallery #<!-- /ko -->
+    <!-- ko if: $root.mailingGalleryStatus() === 'loading' --><div class="galleryEmpty" data-bind="text: $root.t('gallery-mailing-loading')">Loading mailing gallery…</div><!-- /ko -->
+    <!-- ko if: $root.mailingGalleryStatus() === 0 --><div class="galleryEmpty" data-bind="text: $root.t('gallery-mailing-empty')">The mailing gallery is empty</div><!-- /ko -->
+    <!-- ko template: {name: 'gallery-images', data: { items: mailingGallery } } --># mailing gallery #<!-- /ko -->
     </div>
 
     <div id="toolimagesgallerytemplate" style="text-align: center">
@@ -86,12 +86,12 @@
         </div>
         </div>
 
-      <!-- ko if: $root.templateGalleryStatus() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadTemplateGallery, button: { disabled: $root.templateGalleryStatus, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.templateGalleryStatus() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gally #</a><!-- /ko -->
+      <!-- ko if: $root.templateGalleryStatus() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadTemplateGallery, button: { disabled: $root.templateGalleryStatus, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.templateGalleryStatus() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gallery #</a><!-- /ko -->
 
 
-      <!-- ko if: $root.templateGalleryStatus() === 'loading' --><div class="galleryEmpty" data-bind="text: $root.t('Loading gallery...')">Loading gallery...</div><!-- /ko -->
-      <!-- ko if: $root.templateGalleryStatus() === 0 --><div class="galleryEmpty" data-bind="text: $root.t('The gallery is empty')">The gallery is empty</div><!-- /ko -->
-      <!-- ko template: {name: 'gallery-images', data: { items: templateGallery } } --># remote gallery #<!-- /ko -->
+      <!-- ko if: $root.templateGalleryStatus() === 'loading' --><div class="galleryEmpty" data-bind="text: $root.t('gallery-mailing-loading')">Loading template gallery...</div><!-- /ko -->
+      <!-- ko if: $root.templateGalleryStatus() === 0 --><div class="galleryEmpty" data-bind="text: $root.t('gallery-mailing-empty')">The template gallery is empty</div><!-- /ko -->
+      <!-- ko template: {name: 'gallery-images', data: { items: templateGallery } } --># template gallery #<!-- /ko -->
     </div>
   </div>
   <!-- /ko -->

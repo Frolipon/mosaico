@@ -74,7 +74,7 @@ function creationUrls(creationId, wireId) {
     send:       `/creations/${creationId}/send`,
     zip:        `/creations/${creationId}/zip`,
     transfer:   `/transfer/${creationId}`,
-    wireframe:  `/wireframes/${wireId}`
+    wireframe:  `/wireframes/${wireId}`,
   }
 }
 

@@ -13,6 +13,14 @@ module.exports = {
   //
   'save-message-success':     `The mailing has been saved`,
   'save-message-error':       `Error in saving`,
+  // 
+  'gallery-title':            `Galleries:`,
+  'gallery-mailing':          `Mailing specific`,
+  'gallery-mailing-loading':  `Loading mailing gallery…`,
+  'gallery-mailing-empty':    `The mailing gallery is empty`,
+  'gallery-template':         `Template shared`,
+  'gallery-template-loading': `Loading template gallery…`,
+  'gallery-template-empty':   `The template gallery is empty`,
   // prevent i18n console.warn
   'Fake image editor':        ``,
   '<p>Fake image editor</p>': ``,
