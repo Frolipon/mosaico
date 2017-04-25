@@ -32,7 +32,7 @@ test('connection fail', t => {
 
   function start() {
     nightmare
-    .goto('http://localhost:3000')
+    .goto('http://localhost:3000?lang=en')
     .insert('#email-field', 'p@p.com')
     .insert('#password-field', 'pp')
     .click('form[action*="/login"] [type=submit]')
@@ -43,7 +43,7 @@ test('connection fail', t => {
       return { errorMessage: errorEl ? errorEl.textContent : false }
     } )
     .then( onEnd( result => {
-      t.equal(result.errorMessage, 'Incorrect password.', 'user has an auth error')
+      t.equal(result.errorMessage, 'This password is incorrect', 'user has an auth error')
     } ) )
     .catch( onError )
   }

@@ -28,7 +28,7 @@ function createWindow(show = false) {
 function connectUser(email = 'p@p.com', password = 'p' ) {
   return nightmare => {
     return nightmare
-    .goto('http://localhost:3000')
+    .goto('http://localhost:3000?lang=en')
     .insert('#email-field', email)
     .insert('#password-field', password)
     .click('form[action*="/login"] [type=submit]')
@@ -40,7 +40,7 @@ function connectUser(email = 'p@p.com', password = 'p' ) {
 function connectAdmin() {
   return nightmare => {
     return nightmare
-    .goto('http://localhost:3000/admin')
+    .goto('http://localhost:3000/admin?lang=en')
     .insert('#password-field', 'toto')
     .click('form[action*="/login"] [type=submit]')
     .wait(10)
