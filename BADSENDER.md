@@ -266,4 +266,4 @@ Run all backoffice's tests:
 
 Run a specific test:
 
-`./node_modules/.bin/tape tests/functional/user-deactivation.js`
+`./node_modules/.bin/tape tests/functional/user-deactivation.js | ./node_modules/.bin/faucet`

@@ -4,6 +4,9 @@ const path      = require('path')
 const c         = require('chalk')
 const args      = require('yargs').argv
 
+// can be usefull in some edge case
+// https://github.com/Mr0grog/nightmare-real-mouse
+
 // http://lea.verou.me/2016/12/resolve-promises-externally-with-this-one-weird-trick/
 function defer() {
   var res, rej
