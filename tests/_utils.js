@@ -44,7 +44,7 @@ function connectAdmin() {
   return nightmare => {
     return nightmare
     .goto('http://localhost:3000/admin?lang=en')
-    .insert('#password-field', 'toto')
+    .insert('#password-field', 'admin')
     .click('form[action*="/login"] [type=submit]')
     .wait(10)
     .wait('.js-admin-home')
