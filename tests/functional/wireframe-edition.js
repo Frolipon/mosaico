@@ -27,8 +27,20 @@ test('admin – delete a wireframe', t => {
     .goto(`http://localhost:3000/companies/${data.companyId}`)
     .wait( waitTime )
     .evaluate( findExistingWireframeLinks, data)
-    .then( checkLinksAndDeleteWireframe )
-    .then( onEnd(checkWireframeLinkAndEnd) )
+    .then( result => {
+      t.equal( result.hasTemplateLink, true, 'wireframe is present found and has creations')
+      return nightmare
+      .goto(`http://localhost:3000/wireframes/${data.templateId}`)
+      .click( 'a.js-delete-wireframe' )
+      .wait( waitTime )
+      .click( `a.js-dialog-confirm` )
+      .wait( waitTime )
+      .wait( `a[href="#wireframe-panel"]` )
+      .evaluate( findWireframeLink, data )
+    })
+    .then( onEnd( result => {
+      t.equal( result.hasntTemplateLink, true, 'wireframe is nowhere to be found anymore')
+    }) )
     .catch( onError )
   }
 
@@ -37,26 +49,9 @@ test('admin – delete a wireframe', t => {
     return { hasTemplateLink : templateLink.length > 1 }
   }
 
-  function checkLinksAndDeleteWireframe(result) {
-    t.equal( result.hasTemplateLink, true, 'wireframe is present found and has creations')
-
-    return nightmare
-    .goto(`http://localhost:3000/wireframes/${data.templateId}`)
-    .click( 'a.js-delete-wireframe' )
-    .wait( waitTime )
-    .click( `a.js-dialog-confirm` )
-    .wait( waitTime )
-    .wait( `a[href="#wireframe-panel"]` )
-    .evaluate( findWireframeLink, data )
-  }
-
   function findWireframeLink( data ) {
     const templateLink = document.querySelectorAll(`a[href="/wireframes/${data.templateId}"]`)
     return { hasntTemplateLink : templateLink.length === 0 }
-  }
-
-  function checkWireframeLinkAndEnd( result ) {
-    t.equal( result.hasntTemplateLink, true, 'wireframe is nowhere to be found anymore')
   }
 
 })
