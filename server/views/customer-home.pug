@@ -23,9 +23,10 @@ block content
       if summary.length
         a#tt-clear-filter.bs-table-header__filter(
           href=mergeQueries('/', {
-            page: 1,
-            sort: _query.sort,
-            dir:  _query.dir
+            page:   1,
+            sort:   _query.sort,
+            dir:    _query.dir,
+            limit:  _query.limit,
           } )
         )
           i.material-icons clear
@@ -131,7 +132,7 @@ block content
         div
         div.bs-table-filter-row__action
           a(
-            href=mergeQueries('/', {page: 1, sort: _query.sort, dir: _query.dir})
+            href=mergeQueries('/', {page: 1, sort: _query.sort, dir: _query.dir, limit: _query.limit})
           ).mdl-button.mdl-js-button.mdl-js-ripple-effect= __('filter.reset')
           button.mdl-button.mdl-js-button.mdl-button--accent(type="submit")= __('filter.submit')
 
