@@ -9,3 +9,4 @@ dist
 npm-debug.log
 *.orig
 /s3-*
+/server/md5public.json

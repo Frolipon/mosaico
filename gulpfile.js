@@ -255,7 +255,7 @@ function templates() {
     return cb();
   }
   return gulp.src('src/tmpl/*.html')
-  .pipe(( () => through.obj(passThrough, resizeFlush) )() )
+  .pipe( through.obj(passThrough, resizeFlush) )
   // templates has to be build on “build” folder
   // they will be require by editor app application
   .pipe(gulp.dest('build'))
@@ -374,6 +374,36 @@ function maintenance() {
   .pipe(gulp.dest( maintenanceFolder ))
 }
 
+//----- REVS
+
+var crypto = require('crypto')
+
+function rev() {
+  let revs = {}
+  function passThrough(file, enc, callback) {
+    var key         = path.relative(file.base, file.path)
+    var md5         = crypto.createHash('md5')
+    if (!file.contents) return callback(null)
+    var hash        = md5.update( file.contents.toString() ).digest( 'hex' )
+    revs['/' + key] = hash
+    callback( null )
+  }
+  function flush( cb ) {
+    let file = new $.util.File({
+      path:     'md5public.json',
+      contents: new Buffer( JSON.stringify(revs,  null, ' ') ),
+    })
+    this.push( file )
+    cb()
+  }
+
+  return gulp
+  .src( ['dist/**/*.*', 'res/**/*.*'] )
+  .pipe( through.obj(passThrough, flush) )
+  .pipe( gulp.dest('server') )
+
+}
+
 ////////
 // DEV
 ////////
@@ -458,6 +488,8 @@ function watchProdLike() {
 gulp.task( 'css',  css)
 gulp.task( 'js', js)
 gulp.task( 'assets',  assets )
+gulp.task( 'rev',  rev )
+gulp.task( 'templates',  templates )
 gulp.task( 'build', build )
 gulp.task( 'maintenance', gulp.series( cleanMaintenance, maintenance) )
 gulp.task( 'dev', gulp.series(
