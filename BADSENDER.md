@@ -267,3 +267,23 @@ Run all backoffice's tests:
 Run a specific test:
 
 `./node_modules/.bin/tape tests/functional/user-deactivation.js | ./node_modules/.bin/faucet`
+
+### S3 notes
+
+Backing up s3 buckets can be achieved with [s3 cli](http://docs.aws.amazon.com/cli/latest/reference/) (`brew install awscli` on a mac)
+
+Full s3 specific doucmentation can be [found here](http://docs.aws.amazon.com/cli/latest/reference/s3/index.html)
+
+then: 
+
+```
+aws configure
+```
+
+and finally:
+
+```
+aws s3 sync s3://{BUCKET_NAME} /home/ubuntu/s3/{BUCKET_NAME}/
+```
+
+[source](http://stackoverflow.com/questions/17832860/backup-strategies-for-aws-s3-bucket#answer-32927276)

@@ -8,3 +8,4 @@ dist
 .badsenderrc
 npm-debug.log
 *.orig
+/s3-*
