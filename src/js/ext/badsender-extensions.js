@@ -69,7 +69,6 @@ function templateUrlConverter(opts) {
 
 // this equivalent to the original app.js#applyBindingOptions
 function extendKnockout(opts) {
-
   // Change tinyMCE full editor options
   if (opts.lang === 'fr') {
     textEditor.language_url = '/tinymce-langs/fr_FR.js'
@@ -85,6 +84,7 @@ function extendKnockout(opts) {
       'no decimals': 'pas de décimales',
     } )
   }
+  textEditor = $.extend( {}, textEditor, opts.tinymce )
   ko.bindingHandlers.wysiwyg.fullOptions = textEditor
 
   // This is not used by knockout per se.

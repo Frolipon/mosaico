@@ -398,7 +398,13 @@ function rev() {
   }
 
   return gulp
-  .src( ['dist/**/*.*', 'res/**/*.*'] )
+  .src( [
+    'dist/**/*.*', 
+    'res/**/*.*',
+    '!res/lang/*.*',
+    'node_modules/material-design-lite/*.js',
+    'node_modules/material-design-icons-iconfont/dist/**/*.*',
+  ] )
   .pipe( through.obj(passThrough, flush) )
   .pipe( gulp.dest('server') )
 

@@ -71,14 +71,30 @@ module.exports = function () {
 
   //----- STATIC
 
+  const compiledStatic = express.static( path.join(__dirname, '../dist') )
+
+  function removeHash (req, res, next) {
+    req._restoreUrl = req.url
+    req.url = '/' + req.url.split('/').splice(2).join('/')
+    console.log('md5 asset – ', req._restoreUrl, req.url)
+    next()
+  }
+
+  function restoreUrl (req, res, next) {
+    req.url = req._restoreUrl
+    next()
+  }
+
   // compiled assets
-  app.use(express.static( path.join(__dirname, '../dist') ))
+  // app.get( '/:md5([a-zA-Z0-9]{32})*', removeHash, compiledStatic, restoreUrl )
+  app.use( compiledStatic )
+
   // commited assets
-  app.use(express.static( path.join(__dirname, '../res') ))
+  app.use( express.static( path.join(__dirname, '../res') ) )
   // libs
-  app.use('/lib/skins', express.static( path.join(__dirname,'../res/vendor/skins') ))
-  app.use(express.static( path.join(__dirname, '../node_modules/material-design-lite') ))
-  app.use(express.static( path.join(__dirname, '../node_modules/material-design-icons-iconfont/dist') ))
+  app.use( '/lib/skins', express.static( path.join(__dirname,'../res/vendor/skins') ) )
+  app.use( express.static( path.join(__dirname, '../node_modules/material-design-lite') ) )
+  app.use( express.static( path.join(__dirname, '../node_modules/material-design-icons-iconfont/dist') ) )
 
   //////
   // LOGGING
@@ -131,11 +147,18 @@ module.exports = function () {
   var creations         = require('./creations')
   var creationTransfer  = require('./creation-transfer')
   var filemanager       = require('./filemanager')
+  const md5public       = require('./md5public.json')
   var guard             = session.guard
 
   //----- EXPOSE DATAS TO VIEWS
 
   app.locals._config  = omit(config, ['_', 'configs', 'config'])
+
+  app.locals.md5Url    = function ( url ) {
+    return url
+    if (url in md5public) url = `/${md5public[ url ]}${url}`
+    return url
+  }
 
   app.locals.printJS  = function (data) {
     return JSON.stringify(data, null, '  ')
