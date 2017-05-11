@@ -105,4 +105,30 @@
     }
   }
 
+  //////
+  // S3 COPY (only used for syncing DBs, see ./bin/s3-sync)
+  //////
+
+  "s3Configs": {
+    "dev": {
+      "bucketName": "badsender",
+      "accessKeyId": "####",
+      "region": "####",
+      "secretAccessKey": "####"
+    },
+    "stage": {
+      "bucketName": "badsender-stage",
+      "accessKeyId": "####",
+      "region": "####",
+      "secretAccessKey": "####"
+    },
+    "production": {
+      "bucketName": "builder.badsender.com",
+      "accessKeyId": "####",
+      "region": "####",
+      "secretAccessKey": "####"
+    }
+
+  }
+
 }

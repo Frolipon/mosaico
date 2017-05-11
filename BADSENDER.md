@@ -272,7 +272,7 @@ Run a specific test:
 
 Backing up s3 buckets can be achieved with [s3 cli](http://docs.aws.amazon.com/cli/latest/reference/) (`brew install awscli` on a mac)
 
-Full s3 specific doucmentation can be [found here](http://docs.aws.amazon.com/cli/latest/reference/s3/index.html)
+Full s3 specific documentation can be [found here](http://docs.aws.amazon.com/cli/latest/reference/s3/index.html)
 
 then: 
 
