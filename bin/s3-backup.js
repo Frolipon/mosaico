@@ -1,15 +1,14 @@
 'use strict'
 
-const { spawn, exec } = require( 'child_process' )
-const which           = require( 'which' )
-const readline        = require( 'readline' )
-const inquirer        = require( 'inquirer' )
-const c               = require( 'chalk' )
-const path            = require( 'path' )
-const moment          = require( 'moment' )
+const { spawn }     = require( 'child_process' )
+const which         = require( 'which' )
+const readline      = require( 'readline' )
+const inquirer      = require( 'inquirer' )
+const c             = require( 'chalk' )
+const path          = require( 'path' )
+const moment        = require( 'moment' )
 
-const config          = require('../server/config')
-const u               = require('./_db-utils')
+const config        = require('../server/config')
 
 const { s3Configs } = config
 const aws           = which.sync( 'aws' )
