@@ -8,13 +8,13 @@ block content
         .message.error
           h2 error
           each message in messages.error
-            p= message
+            p= __(message)
 
       if (messages.success)
         .message.success
           h2 success
           each message in messages.success
-            p= message
+            p= __(message)
 
       input(type="hidden" name="username" value=_config.admin.username)
 
