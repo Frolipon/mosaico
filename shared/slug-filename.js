@@ -7,19 +7,18 @@ var getSlug = require('speakingurl')
 var extReg  = /\.[0-9a-z]+$/
 
 function slugFilename(name) {
-  var fileName    = name
+  var fileName      = name.toLowerCase().trim()
   // It seems that some files came here without extension O_O'
   // https://github.com/goodenough/mosaico/issues/71
   // Haven't been able to reproduce but secure it
-  var isValidName = extReg.test(name)
-  if (!isValidName) {
+  var hasExtension  = extReg.test( fileName )
+  if ( !hasExtension ) {
     console.log('[SLUGFILENAME] impossible to slug', name)
     return false
   }
-
-  var ext         = extReg.exec(name)[0]
-  fileName        = fileName.replace(ext, '')
-  fileName        = getSlug(fileName) + ext
+  var ext           = extReg.exec(fileName)[0]
+  fileName          = fileName.replace(ext, '')
+  fileName          = getSlug( fileName.trim() ) + ext
   return fileName
 }
 

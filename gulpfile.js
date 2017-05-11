@@ -399,7 +399,7 @@ function rev() {
 
   return gulp
   .src( [
-    'dist/**/*.*', 
+    'dist/**/*.*',
     'res/**/*.*',
     '!res/lang/*.*',
     'node_modules/material-design-lite/*.js',
@@ -440,6 +440,7 @@ const nodemonOptions = {
     '.badsenderrc',
     'index.js',
     'res/lang/*.js',
+    'shared/*.js',
   ],
 }
 

@@ -88,7 +88,7 @@ const activateUsers  = document.querySelectorAll('.js-user-activate')
 addListeners(activateUsers, 'click', askUserActivation)
 function askUserActivation(e) {
   e.preventDefault()
-  const link      = e.currentTarget  
+  const link      = e.currentTarget
   const userName  = link.dataset.name
   confirmLink.setAttribute( 'href', link.getAttribute('href') )
   openDialog( {
@@ -104,7 +104,7 @@ addListeners(deactivateUsers, 'click', askUserDeactivation)
 function askUserDeactivation(e) {
   e.preventDefault()
   const link      = e.currentTarget
-  const userName  = link.dataset.name  
+  const userName  = link.dataset.name
   confirmLink.setAttribute( 'href', link.getAttribute('href') )
   openDialog( {
     title:        'Deactivate',
@@ -122,7 +122,7 @@ function addListeners( elems, eventName, callback ) {
 }
 
 function getParent( elem, selector ) {
-  var parent = false
+  let parent = false
   for ( ; elem && elem !== document; elem = elem.parentNode ) {
     if ( elem.matches( selector ) ) {
       parent = elem
