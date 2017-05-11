@@ -28,7 +28,7 @@ Promise
   sourceName      = promptConf.source
   dbFrom          = db[sourceName]
   tmpFolder       = conf.images.tmpDir
-  let dumpCmd   = `mongodump ${u.setDbParams(dbFrom)} -o ${tmpFolder}`
+  let dumpCmd   = `mongodump ${u.setDbParams(dbFrom)} -o ${tmpFolder} --excludeCollectionsWithPrefix objectlabs`
   console.log(c.blue('Backing up'), sourceName, c.gray(dumpCmd))
   exec(dumpCmd, onDbDump)
 })
