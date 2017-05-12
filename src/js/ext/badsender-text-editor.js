@@ -89,12 +89,13 @@ function each(o, cb, s) {
 tinymce.PluginManager.add('fontsizedialog', fontsizedialog);
 
 function fontsizedialog(editor, url) {
+  console.dir(editor)
   var fontSizeMin     = 8
   var fontSizeMax     = 666
   var selectionFs     = false
   var dialogHelpText  = [
-    'minimum size: 8px',
-    'no decimals',
+    tinymce.util.I18n.translate('minimum size: 8px'),
+    tinymce.util.I18n.translate('no decimals'),
   ]
   .map( function (t) { return '• ' + t} )
   .join( '<br>' );
@@ -129,12 +130,12 @@ function fontsizedialog(editor, url) {
 
     function getFontSize(node) {
       if (node.style && node.style.fontSize) {
-        btnInstance.text('Font size: ' + node.style.fontSize)
+        btnInstance.text( tinymce.util.I18n.translate('Font size: ') + node.style.fontSize)
         selectionFs = node.style.fontSize
         return false
       }
       selectionFs = false
-      btnInstance.text('Font size')
+      btnInstance.text( tinymce.util.I18n.translate('Font size') )
     }
   }
 
@@ -144,6 +145,8 @@ function fontsizedialog(editor, url) {
 
     editor.windowManager.open({
       title: 'Enter a font-size',
+      width: 320,
+      height: 120,
       body: [
         {
           type:       'label',

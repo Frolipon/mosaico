@@ -16,9 +16,9 @@ html(lang=getLocale())
     link(href='https://fonts.googleapis.com/css?family=PT+Sans:400,700', rel='stylesheet', type='text/css')
 
     meta(name="viewport", content="width=1024, initial-scale=1")
-    script(src="/lib/badsender-lib-editor.js")
-    link(rel="stylesheet", href="/badsender-editor.css")
-    script(src="/badsender-editor.js")
+    script(src=md5Url('/lib/badsender-lib-editor.js') )
+    link(rel="stylesheet", href=md5Url('/badsender-editor.css') )
+    script(src=md5Url('/badsender-editor.js'))
     block head-content
 
   body.mo-standalone

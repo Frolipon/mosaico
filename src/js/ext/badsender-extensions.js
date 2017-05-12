@@ -13,6 +13,7 @@ var slugFilename  = require('../../../shared/slug-filename.js')
 var serverStorage = require('./badsender-server-storage')
 var editTitle     = require('./badsender-edit-title')
 var textEditor    = require('./badsender-text-editor')
+var gallery       = require('./badsender-gallery')
 
 function setEditorIcon(viewModel) {
   viewModel.logoPath  = '/media/editor-icon.png'
@@ -21,9 +22,10 @@ function setEditorIcon(viewModel) {
 }
 
 function extendViewModel(opts, customExtensions) {
-  customExtensions.push(serverStorage)
-  customExtensions.push(setEditorIcon)
-  customExtensions.push(editTitle)
+  customExtensions.push( serverStorage )
+  customExtensions.push( setEditorIcon )
+  customExtensions.push( editTitle )
+  customExtensions.push( gallery(opts) )
 }
 
 //////
@@ -31,6 +33,7 @@ function extendViewModel(opts, customExtensions) {
 //////
 
 function templateUrlConverter(opts) {
+  var assets = opts.metadata.assets || {}
   return function badsenderTemplateUrlConverter(url) {
     if (!url) return null
     // handle: [unsubscribe_link] or mailto:[mail]
@@ -48,15 +51,15 @@ function templateUrlConverter(opts) {
     //   *|UNSUB|*
     //   #pouic
     if (!extentionRegexp.test(url)) return null
-    // All images at upload are slugged
+    console.info('badsenderTemplateUrlConverter')
+    console.log(url)
+    // All images at uploaded are renamed with md5
     //    block thumbnails are based on html block ID
-    //    we need to retreive the file url by slugging the id
-    // The same applies for uploaded resources images:
-    //    html img src may differ from uploaded names
-    // No need to control slugFilename result (like in server-side)
-    //    It is done before for determining if it's an image or not
-    url = slugFilename(url)
-    url = opts.imgProcessorBackend + opts.metadata._wireframe  + '-' + url
+    //    => we need to maintain a dictionary of name -> md5 name
+    //    here come the assets block
+    // we still keep the slug part for backward compatibility reason with old image name convetions
+    url = slugFilename( url )
+    url = assets[ url ] ? opts.imgProcessorBackend + assets[ url ] : null
     return url
   }
 }
@@ -66,8 +69,22 @@ function templateUrlConverter(opts) {
 
 // this equivalent to the original app.js#applyBindingOptions
 function extendKnockout(opts) {
-
   // Change tinyMCE full editor options
+  if (opts.lang === 'fr') {
+    textEditor.language_url = '/tinymce-langs/fr_FR.js'
+    textEditor.language     = 'fr_FR'
+    tinymce.util.I18n.add('fr_FR', {
+      'Cancel': 'Annuler',
+      'in pixel': 'en pixel',
+      'Enter a font-size': 'Entrez une taille de police',
+      'Letter spacing': 'Interlettrage',
+      'Font size': 'Taille de police',
+      'Font size: ': 'Taille : ',
+      'minimum size: 8px': 'taille minimum : 8px',
+      'no decimals': 'pas de décimales',
+    } )
+  }
+  textEditor = $.extend( {}, textEditor, opts.tinymce )
   ko.bindingHandlers.wysiwyg.fullOptions = textEditor
 
   // This is not used by knockout per se.

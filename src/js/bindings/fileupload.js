@@ -44,6 +44,8 @@ ko.bindingHandlers['preloader'] = {
   }
 };
 
+if (process.env.MOSAICO) {
+
 // TODO we don't use advattr and advstyle, maybe we should simply remove this code.
 ko.bindingHandlers['advattr'] = {
   'init': function(element, valueAccessor, allBindings, viewModel, bindingContext) {
@@ -121,6 +123,8 @@ ko.bindingHandlers['advstyle'] = {
     });
   }
 };
+
+}
 
 // Utility to log inizialization and disposal of DOM elements.
 ko.bindingHandlers['domlog'] = {
@@ -250,6 +254,7 @@ ko.bindingHandlers['fileupload'] = {
       }
     });
 
+    // extendOptions is setted in app.js#start
     ko.utils.extend(options, ko.bindingHandlers['fileupload'].extendOptions);
 
     var working = 0;
@@ -281,6 +286,13 @@ ko.bindingHandlers['fileupload'] = {
       }
       return text;
     };
+
+    // 
+    if (options.uploadToTemplate) {
+      options.url = ko.bindingHandlers['fileupload'].extendOptions.url.template;
+    } else {
+      options.url = ko.bindingHandlers['fileupload'].extendOptions.url.mailing;
+    }
 
     $fu.fileupload(options);
 

@@ -5,6 +5,7 @@
 
 
 - [Heroku server configuration](#heroku-server-configuration)
+  - [buildpack](#buildpack)
   - [configuring environments variables](#configuring-environments-variables)
   - [Mail sending](#mail-sending)
   - [from email adress](#from-email-adress)
@@ -30,6 +31,14 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Heroku server configuration
+
+### buildpack
+
+In order for the image resize to work you will need this build pack:
+
+[https://github.com/alex88/heroku-buildpack-vips](https://github.com/alex88/heroku-buildpack-vips)
+
+Copy and paste this url in the `Buildpacks` section of `Settings`
 
 ### configuring environments variables
 
@@ -143,7 +152,7 @@ debug:          false,
 // redirect any http request to https
 forcessl:       false,
 images: {
-  // needed only if not using S3 image storage 
+  // needed only if not using S3 image storage
   uploadDir:    'uploads',
   // tmp directory name for image upload
   tmpDir:       'tmp',
@@ -155,15 +164,16 @@ images: {
 ## Dev prerequisite
 
 - [NodeJS 6](https://nodejs.org/en/)
-- [MongoDB v3.2.7](https://www.mongodb.com/) (if installed locally `mongod` to start)
-- [Imagemagick](http://www.imagemagick.org/script/index.php)
-- a SMTP server. [mailcatcher can help for local dev ](https://mailcatcher.me/) (`mailcatcher` to start)
+- [MongoDB v3.2.7](https://www.mongodb.com/) (if installed locally `mongod` to start) (`brew install mongod` on mac)
+- [Imagemagick](http://www.imagemagick.org/script/index.php) (`brew install imagemagick` on mac)
+- a SMTP server. [mailcatcher can help for local dev ](https://mailcatcher.me/) (`mailcatcher` to start) (`brew install ruby && gem install mailcatcher` on mac)
+- [sharp](http://sharp.dimens.io/en/stable/) should work out the box most of the time. In case of troubles see [sharp installation instructions](http://sharp.dimens.io/en/stable/install/). MacOs will need XCode in order to compile.
 
 You need to have:
 
 - clone/fork the project
 - in your terminal, go in the folder
-- run `npm install` in the root folder
+- run `npm run deps` in the root folder
 
 ## Updating the code
 
@@ -256,4 +266,25 @@ Run all backoffice's tests:
 
 Run a specific test:
 
-`./node_modules/.bin/tape tests/functional/user-deactivation.js`
+`./node_modules/.bin/tape tests/functional/user-deactivation.js | ./node_modules/.bin/faucet`
+
+### S3 notes
+
+#### requirements
+
+- [aws cli](http://docs.aws.amazon.com/cli/latest/reference/) – `brew install awscli` on a mac
+- `.badsenderc` filled with s3Configs parameters. See `.badsenderrc-example`
+
+[more details about why we use the aws cli](http://stackoverflow.com/questions/17832860/backup-strategies-for-aws-s3-bucket#answer-32927276)
+
+#### backing up to a local folder
+
+```
+npm run backup-s3
+```
+
+#### syncing a bucket from a local folder
+
+```
+npm run sync-s3
+```

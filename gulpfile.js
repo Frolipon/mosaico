@@ -255,7 +255,7 @@ function templates() {
     return cb();
   }
   return gulp.src('src/tmpl/*.html')
-  .pipe(( () => through.obj(passThrough, resizeFlush) )() )
+  .pipe( through.obj(passThrough, resizeFlush) )
   // templates has to be build on “build” folder
   // they will be require by editor app application
   .pipe(gulp.dest('build'))
@@ -286,7 +286,7 @@ function jsHome() {
   }))
 
   if (isWatch) {
-    b = watchify(b);
+    b = watchify(b)
     b.on('update', function () {
       $.util.log('bundle home app')
       bundleHome(b)
@@ -305,7 +305,45 @@ function bundleHome(b) {
   .pipe(gulp.dest(buildDir))
 }
 
-const js        = gulp.parallel( jsEditor, jsHome )
+//----- ADMIN JS
+
+function jsAdmin() {
+  var b = browserify({
+    cache:        {},
+    packageCache: {},
+    debug:        true,
+    entries:      ['./src/js-admin-backend/badsender-admin.js']
+  })
+  .transform(babelify, {
+    presets:      ['es2015'],
+  })
+  .transform(envify({
+    _:            'purge',
+    NODE_ENV:     env,
+    LOG:          isDev,
+  }))
+
+  if (isWatch) {
+    b = watchify(b)
+    b.on('update', function () {
+      $.util.log('bundle admin app')
+      bundleAdmin(b)
+    })
+  }
+  return bundleAdmin(b)
+
+}
+
+function bundleAdmin(b) {
+  return b.bundle()
+  .on('error', onError)
+  .pipe(source('badsender-admin.js'))
+  .pipe(vinylBuffer())
+  .pipe($.if(!isDev, $.uglify()))
+  .pipe(gulp.dest(buildDir))
+}
+
+const js        = gulp.parallel( jsEditor, jsHome, jsAdmin )
 js.description  = `build js for mosaico app and the for the rests of the application`
 
 ////////
@@ -336,6 +374,42 @@ function maintenance() {
   .pipe(gulp.dest( maintenanceFolder ))
 }
 
+//----- REVS
+
+var crypto = require('crypto')
+
+function rev() {
+  let revs = {}
+  function passThrough(file, enc, callback) {
+    var key         = path.relative(file.base, file.path)
+    var md5         = crypto.createHash('md5')
+    if (!file.contents) return callback(null)
+    var hash        = md5.update( file.contents.toString() ).digest( 'hex' )
+    revs['/' + key] = hash
+    callback( null )
+  }
+  function flush( cb ) {
+    let file = new $.util.File({
+      path:     'md5public.json',
+      contents: new Buffer( JSON.stringify(revs,  null, ' ') ),
+    })
+    this.push( file )
+    cb()
+  }
+
+  return gulp
+  .src( [
+    'dist/**/*.*',
+    'res/**/*.*',
+    '!res/lang/*.*',
+    'node_modules/material-design-lite/*.js',
+    'node_modules/material-design-icons-iconfont/dist/**/*.*',
+  ] )
+  .pipe( through.obj(passThrough, flush) )
+  .pipe( gulp.dest('server') )
+
+}
+
 ////////
 // DEV
 ////////
@@ -361,12 +435,23 @@ build.description = `rebuild all assets`
 const nodemonOptions = {
   script: 'server/workers.js',
   ext:    'js json',
-  watch:  ['server/**/*.js', '.badsenderrc', 'index.js'],
+  watch:  [
+    'server/**/*.js',
+    '.badsenderrc',
+    'index.js',
+    'res/lang/*.js',
+    'shared/*.js',
+  ],
 }
 
 let init = true
 function nodemon(cb) {
-  return $.nodemon(_.merge({env: { 'NODE_ENV': 'development' }}, nodemonOptions))
+  return $.nodemon(_.merge({
+    env: {
+      'NODE_ENV':     'development',
+      'VIPS_WARNING': false,
+    }
+  }, nodemonOptions))
   .on('start', () => {
     // https://gist.github.com/sogko/b53d33d4f3b40d3b4b2e#comment-1457582
     if (init) {
@@ -378,7 +463,7 @@ function nodemon(cb) {
 
 function bsAndWatch() {
   browserSync.init({
-    proxy: 'https://localhost',
+    proxy: 'http://localhost:3000',
     open: false,
     port: 7000,
     ghostMode: false,
@@ -410,6 +495,8 @@ function watchProdLike() {
 gulp.task( 'css',  css)
 gulp.task( 'js', js)
 gulp.task( 'assets',  assets )
+gulp.task( 'rev',  rev )
+gulp.task( 'templates',  templates )
 gulp.task( 'build', build )
 gulp.task( 'maintenance', gulp.series( cleanMaintenance, maintenance) )
 gulp.task( 'dev', gulp.series(

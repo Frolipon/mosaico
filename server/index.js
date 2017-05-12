@@ -15,6 +15,7 @@ const i18n            = require('i18n')
 const moment          = require('moment')
 const util            = require('util')
 const { merge, omit } = require('lodash')
+const createError     = require('http-errors')
 
 module.exports = function () {
 
@@ -70,14 +71,30 @@ module.exports = function () {
 
   //----- STATIC
 
+  const compiledStatic = express.static( path.join(__dirname, '../dist') )
+
+  function removeHash (req, res, next) {
+    req._restoreUrl = req.url
+    req.url = '/' + req.url.split('/').splice(2).join('/')
+    console.log('md5 asset – ', req._restoreUrl, req.url)
+    next()
+  }
+
+  function restoreUrl (req, res, next) {
+    req.url = req._restoreUrl
+    next()
+  }
+
   // compiled assets
-  app.use(express.static( path.join(__dirname, '../dist') ))
+  // app.get( '/:md5([a-zA-Z0-9]{32})*', removeHash, compiledStatic, restoreUrl )
+  app.use( compiledStatic )
+
   // commited assets
-  app.use(express.static( path.join(__dirname, '../res') ))
+  app.use( express.static( path.join(__dirname, '../res') ) )
   // libs
-  app.use('/lib/skins', express.static( path.join(__dirname,'../res/vendor/skins') ))
-  app.use(express.static( path.join(__dirname, '../node_modules/material-design-lite') ))
-  app.use(express.static( path.join(__dirname, '../node_modules/material-design-icons-iconfont/dist') ))
+  app.use( '/lib/skins', express.static( path.join(__dirname,'../res/vendor/skins') ) )
+  app.use( express.static( path.join(__dirname, '../node_modules/material-design-lite') ) )
+  app.use( express.static( path.join(__dirname, '../node_modules/material-design-icons-iconfont/dist') ) )
 
   //////
   // LOGGING
@@ -130,11 +147,18 @@ module.exports = function () {
   var creations         = require('./creations')
   var creationTransfer  = require('./creation-transfer')
   var filemanager       = require('./filemanager')
+  const md5public       = require('./md5public.json')
   var guard             = session.guard
 
   //----- EXPOSE DATAS TO VIEWS
 
   app.locals._config  = omit(config, ['_', 'configs', 'config'])
+
+  app.locals.md5Url    = function ( url ) {
+    return url
+    if (url in md5public) url = `/${md5public[ url ]}${url}`
+    return url
+  }
 
   app.locals.printJS  = function (data) {
     return JSON.stringify(data, null, '  ')
@@ -207,12 +231,18 @@ module.exports = function () {
   // regexp for checking valid mongoDB Ids
   // http://expressjs.com/en/api.html#app.param
   // http://stackoverflow.com/questions/20988446/regex-for-mongodb-objectid#20988824
-  app.param(['companyId', 'userId', 'wireId', 'creationId'], checkMongoId)
+  app.param(['companyId', 'userId', 'wireId', 'creationId', 'mongoId'], checkMongoId)
   function checkMongoId(req, res, next, mongoId) {
     if (/^[a-f\d]{24}$/i.test(mongoId)) return next()
     console.log('test mongoId INVALID', mongoId)
-    next({status: 404})
+    next( createError(404) )
   }
+
+  app.param(['placeholderSize'], (req, res, next, placeholderSize) => {
+    if ( /(\d+)x(\d+)\.png/.test(placeholderSize) ) return next()
+    console.log('placeholder format INVALID', placeholderSize)
+    next( createError(404) )
+  })
 
   //----- ADMIN
 
@@ -263,12 +293,12 @@ module.exports = function () {
   app.get('/login',                         guard('no-session'), render.login)
   app.get('/forgot',                        guard('no-session'), render.forgot)
   app.post('/forgot',                       guard('no-session'), users.userResetPassword)
-  app.get('/password/:token',               guard('no-session'), render.reset)
+  app.get('/password/:token',               guard('no-session'), users.showSetPassword)
   app.post('/password/:token',              guard('no-session'), users.setPassword)
 
   app.get('/logout',                        guard('user'), session.logout)
   app.get('/img/:imageName',                images.read)
-  app.get('/placeholder/:imageName',        images.checkImageCache, images.placeholder)
+  app.get('/placeholder/:placeholderSize',  images.checkImageCache, images.placeholder)
   app.get('/resize/:sizes/:imageName',      images.checkImageCache, images.checkSizes, images.resize)
   app.get('/cover/:sizes/:imageName',       images.checkImageCache, images.checkSizes, images.cover)
   app.get('/img/',                          images.handleOldImageUrl)
@@ -276,13 +306,14 @@ module.exports = function () {
   //----- USER
 
   app.all('/editor*',                       guard('user'))
-  app.get('/editor/:creationId/upload',     creations.listImages)
-  app.post('/editor/:creationId/upload',    creations.upload)
   app.get('/editor/:creationId',            creations.show)
   app.post('/editor/:creationId',           creations.update)
-  app.put('/editor/:creationId',            creations.rename)
   app.get('/editor',                        creations.create)
 
+  app.all('/upload*',                       guard('user'))
+  app.get('/upload/:mongoId',               images.listImages )
+  app.post('/upload/:mongoId',              images.upload )
+  
   app.all('/creation*',                       guard('user'))
   // This should replace GET /editor
   // app.post('/creations',                  (req, res, next) => res.redirect('/'))

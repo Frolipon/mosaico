@@ -78,7 +78,7 @@ function onRemoteConfirmation(results) {
 function dumpDB(error, stdout, stderr) {
   if (error) return console.log(c.red('error in cleaning'))
   console.log(c.green('cleaning done'))
-  let dumpCmd   = `mongodump ${u.setDbParams(dbFrom)} -o ${tmpFolder}`
+  let dumpCmd   = `mongodump ${u.setDbParams(dbFrom)} -o ${tmpFolder} --excludeCollectionsWithPrefix objectlabs`
   console.log(c.blue('dumping'), c.gray(dumpCmd))
   var dbDump    = exec(dumpCmd, replicateDB)
   dbDump.stderr.on('data', u.logData)

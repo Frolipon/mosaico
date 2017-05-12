@@ -587,12 +587,17 @@ function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
     // console.log("viewModel.log", category, msg);
   };
 
+  // Can't keep that piece of code: interfere with my own listener
+  if (process.env.MOSAICO) {
+
   // automatically load the gallery when the gallery tab is selected
   viewModel.selectedImageTab.subscribe(function(newValue) {
     if (newValue == 1 && viewModel.galleryLoaded() === false) {
       viewModel.loadGallery();
     }
   }, viewModel, 'change');
+
+  }
 
   return viewModel;
 

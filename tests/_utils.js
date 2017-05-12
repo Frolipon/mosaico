@@ -4,6 +4,9 @@ const path      = require('path')
 const c         = require('chalk')
 const args      = require('yargs').argv
 
+// can be usefull in some edge case
+// https://github.com/Mr0grog/nightmare-real-mouse
+
 // http://lea.verou.me/2016/12/resolve-promises-externally-with-this-one-weird-trick/
 function defer() {
   var res, rej
@@ -28,7 +31,7 @@ function createWindow(show = false) {
 function connectUser(email = 'p@p.com', password = 'p' ) {
   return nightmare => {
     return nightmare
-    .goto('http://localhost:3000')
+    .goto('http://localhost:3000?lang=en')
     .insert('#email-field', email)
     .insert('#password-field', password)
     .click('form[action*="/login"] [type=submit]')
@@ -40,8 +43,8 @@ function connectUser(email = 'p@p.com', password = 'p' ) {
 function connectAdmin() {
   return nightmare => {
     return nightmare
-    .goto('http://localhost:3000/admin')
-    .insert('#password-field', 'toto')
+    .goto('http://localhost:3000/admin?lang=en')
+    .insert('#password-field', 'admin')
     .click('form[action*="/login"] [type=submit]')
     .wait(10)
     .wait('.js-admin-home')

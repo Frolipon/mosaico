@@ -55,14 +55,14 @@ $('.js-rename').on('click', e => {
 $('.js-post').on('click', e => {
   var name = $inputRename.val()
   $.ajax({
-    method: 'PUT',
+    method: 'POST',
     url:    route,
     data:   {
       name: name,
     }
   })
-  .then( creation => {
-    $nameLink.text(creation.name)
+  .then( mosaicoCreation => {
+    $nameLink.text(mosaicoCreation.meta.name)
     notif.MaterialSnackbar.showSnackbar({
       message: window.badesenderI18n.snackbarRenameMessage,
     })

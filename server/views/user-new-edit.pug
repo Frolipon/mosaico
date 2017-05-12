@@ -26,25 +26,26 @@ block content
 
         if !user.isDeactivated
           li.mdl-list__item
-            form.mdl-list__item-primary-content(action='/users/reset' method="post")
+            form.mdl-list__item-primary-content.js-reset-user(action='/users/reset' method="post" data-name=user.safename)
               .material-icons.mdl-list__item-icon vpn_key
               input(type="hidden" name="redirect" value=user.url.show)
-              button(type="submit" name="id" value=user._id)
+              input(type="hidden" name="id" value=user._id)
+              button(type="submit")
                 | #{user.status.actionMsg}
 
           li.mdl-list__item
-            a.mdl-list__item-primary-content(
+            a.mdl-list__item-primary-content.js-user-deactivate(
               href=mergeQueries(user.url.delete, {redirect: user.url.show})
-              onclick="return confirm('Are you sure you want to deactivate this user')"
+              data-name=user.safename
             )
               .material-icons.mdl-list__item-icon airline_seat_individual_suite
               | deactivate
 
         else
           li.mdl-list__item
-            a.mdl-list__item-primary-content(
+            a.mdl-list__item-primary-content.js-user-activate(
               href=mergeQueries(user.url.restore, {redirect: user.url.show})
-              onclick="return confirm('Are you sure you want to activate this user')"
+              data-name=user.safename
             )
               .material-icons.mdl-list__item-icon accessibility
               | activate

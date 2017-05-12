@@ -28,13 +28,13 @@ block content
             .material-icons.mdl-list__item-icon report_problem
             | NO MARKUP
         li.mdl-list__item: span.mdl-list__item-primary-content deleting a template will also remove every mailings using this one
-        - var deleteUrl = wireframe.url.delete + '?redirect=' + wireframe.url.backTo
-        li.mdl-list__item: a.mdl-list__item-primary-content(href=deleteUrl)
+        - var deleteUrl = mergeQueries(wireframe.url.delete, {redirect: wireframe.url.backTo })
+        li.mdl-list__item: a.mdl-list__item-primary-content.js-delete-wireframe(data-name=wireframe.name href=deleteUrl )
           .material-icons.mdl-list__item-icon delete_forever
           | delete
-        if wireframe.images.length
+        if wireframe.url.imgCover
           li.mdl-list__item: span.mdl-list__item-primary-content Preview:
-      if wireframe.images.length
+      if wireframe.url.imgCover
         div(style="max-height: 300px; overflow-y: auto; margin: 0 16px; outline: 1px solid #ff9f00")
           img(src=wireframe.url.imgCover style="width: 100%; height: auto;")
 
@@ -85,14 +85,14 @@ block content
                 | download markup
 
         //- Image listing
-        if wireframe.images.length
+        if wireframe.imagesList.length
           .mdl-cell.mdl-cell--12-col.mdl-card.mdl-shadow--2dp
-            .mdl-card__title: .mdl-card__title-text Images (#{wireframe.images.length})
+            .mdl-card__title: .mdl-card__title-text Images (#{wireframe.imagesList.length})
             details.mdl-card__supporting-text
               summary show
               ul
-                for image in wireframe.images
-                  li: a(href='/img/' + image)= image
+                for image in wireframe.imagesList
+                  li: a(href=image.url)= image.name
 
     button(type="submit").mdl-button.mdl-js-button.mdl-button--fab.mdl-js-ripple-effect.mdl-button--colored
       i.material-icons save
@@ -103,11 +103,3 @@ block content
         each message in messages.success
           span= message
       button.mdl-snackbar__action(type="button")
-
-    script.
-      (function() {
-      'use strict';
-        setTimeout(function () {
-          document.querySelector('#notification').classList.remove('mdl-snackbar--active')
-        }, 2700)
-      }())

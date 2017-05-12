@@ -18,3 +18,4 @@
 /LICENSE
 npm-debug.log
 .DS_Store
+/s3-*

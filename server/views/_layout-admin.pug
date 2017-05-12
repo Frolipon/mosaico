@@ -46,7 +46,16 @@ html(lang=getLocale())
 
       main.mdl-layout__content(class=page === 'full-width-layout' ? 'mdl-grid mdl-grid--no-spacing' : '' )
         block content
+
         if _config.debug
           footer(style="background: #eee")
             pre= JSON.stringify(data, null, '  ')
             pre= _debug
+            
+    dialog.js-dialog-confirm.mdl-dialog
+      h4.mdl-dialog__title.js-dialog-title
+      .mdl-dialog__content: p.js-dialog-description
+      .mdl-dialog__actions
+        a(href="#").js-dialog-confirm.mdl-button.mdl-button--accent.mdl-js-button ok
+        button(type="button").js-dialog-cancel.js-close-rename-dialog.mdl-button cancel
+    script(defer src=md5Url('/badsender-admin.js'))

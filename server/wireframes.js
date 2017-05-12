@@ -61,21 +61,21 @@ function show(req, res, next) {
   // CREATE
   if (!wireId) {
     return Companies
-    .findById(companyId)
-    .then( (company) => {
-      res.render('wireframe-new-edit', { data: { company: company, }} )
+    .findById( companyId )
+    .then( company => {
+      res.render('wireframe-new-edit', { data: { company, }} )
     })
     .catch(next)
   }
 
   // UPDATE
   Wireframes
-  .findById(req.params.wireId)
+  .findById( req.params.wireId )
   .populate('_user')
   .populate('_company')
-  .then( (wireframe) => {
-    if (!wireframe) return next(createError(404))
-    res.render('wireframe-new-edit', { data: { wireframe: wireframe, }} )
+  .then( wireframe => {
+    if (!wireframe) return next( createError(404) )
+    res.render('wireframe-new-edit', { data: { wireframe, }} )
   })
   .catch(next)
 }
@@ -103,59 +103,47 @@ function update(req, res, next) {
 
   filemanager
   .parseMultipart(req, {
-    prefix:     wireId,
-    formatter: 'wireframes',
+    // add a `wireframe` prefix to differ from user uploaded template assets
+    prefix:     `wireframe-${wireId}`,
+    formatter:  'wireframes',
   })
   .then(onParse)
   .catch(next)
 
-  function onParse(body) {
-    // as of now ./parseMultipart#wireframes formatter return both files & fields
-    // could simply return fields
-    body = body.fields
+  function onParse( body ) {
     console.log('files success')
     var dbRequest = wireId ?
-      Wireframes.findById(wireId)
-      : Promise.resolve(new Wireframes())
+      Wireframes.findById( wireId )
+      : Promise.resolve( new Wireframes() )
 
     dbRequest
-    .then( (wireframe) => {
+    .then( wireframe => {
       const nameChange  = body.name !== wireframe.name
       // custom update function
-      wireframe         = _.assignIn(wireframe, _.omit(body, ['images']))
-      // merge images array
-      // could be done in `images setter`
-      // but won't be able to remove files…
-      wireframe.images  = _.isArray(wireframe.images)
-        ? wireframe.images.concat(body.images)
-        : body.images
-      wireframe.images = _.compact( _.uniq(wireframe.images) ).sort()
-      // form image name may differ from uploaded image name
-      // make it coherent
-      wireframe.images = wireframe.images.map( img => slugFilename(img) )
-      wireframe.images = wireframe.images.filter( img => img !== false )
+      wireframe         = _.assignIn(wireframe, _.omit(body, ['images', 'assets']))
+      wireframe.assets  = _.assign( {}, wireframe.assets || {}, body.assets )
 
       // copy wireframe name in creation
       if (wireId && nameChange) {
         Creations
-        .find({_wireframe: wireId})
+        .find( { _wireframe: wireId } )
         .then( creations => {
           creations.forEach( creation => {
             creation.wireframe = body.name
-            creation.save().catch(console.log)
+            creation.save().catch( console.log )
           })
         })
-        .catch(console.log)
+        .catch( console.log )
       }
       // return
       return wireframe.save()
     })
-    .then( (wireframe) => {
+    .then( wireframe => {
       console.log('wireframe success', wireId ? 'updated' : 'created')
       req.flash('success', wireId ? 'updated' : 'created')
       return res.redirect(wireframe.url.show)
     })
-    .catch(err => handleValidatorsErrors(err, req, res, next))
+    .catch( err => handleValidatorsErrors(err, req, res, next) )
   }
 }
 

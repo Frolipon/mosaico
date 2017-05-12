@@ -4,7 +4,7 @@
 
 @import 'style_mosaico.less';
 
-@fa-font-path: "fa/fonts";
+@fa-font-path: "/fa/fonts";
 
 @import (less) "../../bower_components/toastr/toastr.css";
 
@@ -73,6 +73,11 @@
       line-height: @topbar-height - 4px;
     }
   }
+}
+
+#main-wysiwyg-area {
+  // this fix glitching screen in Chrome when hovering editable blocs
+  background: white;
 }
 
 .addblockbutton {
@@ -479,4 +484,60 @@
 
 .mce-fontsizedialogbutton {
   width: 120px !important;
+}
+
+////////
+// gallery tabs & panels
+////////
+
+.gallery-panel {
+  text-align: center;
+
+  .uploadzone {
+    margin-bottom: 1em;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .mo-uploadzone {
+    position: relative; 
+    padding: 2em; 
+    border: 2px dotted #808080;
+  }
+  .fileupload {
+    z-index: 10; 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0; 
+    min-width: 100%; 
+    min-height: 100%; 
+    font-zie: 999px; 
+    text-align: right; 
+    opacity: 0; 
+    outline: none; 
+    cursor: inherit; 
+    display: block;
+  }
+  .workzone {
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0; 
+    overflow: hidden;
+  }
+  .progress {
+    opacity: .5; 
+    width: 80%; 
+    margin-left: 10%; 
+    position: absolute; 
+    bottom: 30%; 
+    height: 20px; 
+    border: 2px solid black;
+  }
+  .progress-bar {
+    height: 20px; 
+    background-color: black;
+  }
 }

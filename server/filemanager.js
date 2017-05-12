@@ -4,6 +4,7 @@ const _           = require('lodash')
 const fs          = require('fs-extra')
 const url         = require('url')
 const path        = require('path')
+const mime        = require('mime-types')
 const AWS         = require('aws-sdk')
 const chalk       = require('chalk')
 const formidable  = require('formidable')
@@ -209,7 +210,7 @@ if (config.isAws) {
 // UPLOAD
 //////
 
-var formatters = {
+const formatters = {
   editor:     handleEditorUpload,
   wireframes: handleWireframesUploads,
 }
@@ -218,9 +219,10 @@ var formatters = {
 function parseMultipart(req, options) {
   return new Promise(function (resolve, reject) {
     // parse a file upload
-    var form        = new formidable.IncomingForm()
-    var uploads     = []
+    const form      = new formidable.IncomingForm()
+    const uploads   = []
     form.multiples  = true
+    form.hash       = 'md5'
     form.uploadDir  = config.images.tmpDir
     form.parse(req, onEnd)
     form.on('file', onFile)
@@ -230,10 +232,8 @@ function parseMultipart(req, options) {
       console.log(chalk.green('form.parse', uploads.length))
       // wait all TMP files to be moved in the good location (s3 or local)
       Promise
-      .all(uploads)
-      .then(function () {
-        return formatters[options.formatter](fields, files, resolve)
-      })
+      .all( uploads )
+      .then( () => formatters[ options.formatter ](fields, files, resolve) )
       .catch(reject)
     }
 
@@ -243,13 +243,20 @@ function parseMultipart(req, options) {
       // markup will be saved in DB
       if (name === 'markup') return
       // put all other files in the right place (S3 \\ local)
-      console.log('on file', chalk.green(name))
+      console.log('on file', chalk.green(name) )
       // slug every uploaded file name
       // user may put accent and/or spaces…
-      var fileName  = slugFilename(file.name)
+      let fileName      = slugFilename( file.name )
+      // ensure that files are having the right extention
+      // (files can be uploaded with extname missing…)
+      fileName          = fileName.replace( path.extname( fileName ), '' )
       if (!fileName) return console.warn('unable to upload', file.name)
-      file.name     = options.prefix + '-' + fileName
-      uploads.push(write(file))
+      const ext         = mime.extension( file.type )
+      // name is only made of the file hash
+      file.name         = `${ options.prefix }-${ file.hash }.${ ext }`
+      // original name is needed for templates assets (preview/other images…)
+      file.originalName = `${ fileName }.${ ext }`
+      uploads.push( write(file) )
     }
   })
 }
@@ -259,14 +266,13 @@ function parseMultipart(req, options) {
 function imageToFields(fields, file) {
   if (file.size === 0) return
   if (!file.name) return
-  fields.images = fields.images || []
-  fields.images.push(file.name)
+  fields.assets                       = fields.assets || {}
+  fields.assets[ file.originalName ]  = file.name
 }
 
 function handleWireframesUploads(fields, files, resolve) {
   // images
   // we want to store any images that have been uploaded on the current model
-
   if (files.images) {
     if (Array.isArray(files.images)) {
       files.images.forEach( file => imageToFields(fields, file) )
@@ -280,13 +286,12 @@ function handleWireframesUploads(fields, files, resolve) {
     // read content from file system
     // no worry about performance: only admin will do it
     readFile(files.markup.path)
-    .then(function (text) {
-      console.log(text.toString())
+    .then( text => {
       fields.markup = text
-      resolve({fields: fields, files: files})
+      resolve( fields )
     })
   } else {
-    resolve({fields: fields, files: files})
+    resolve( fields )
   }
 }
 
@@ -312,8 +317,8 @@ function handleEditorUpload(fields, files, resolve) {
   console.log('HANDLE JQUERY FILE UPLOAD')
   var file  = files['files[]']
   file      = _.assign({}, file, {
-    url:          '/img/' + file.name,
-    deleteUrl:    '/img/' + file.name,
+    url:          `/img/${file.name}`,
+    deleteUrl:    `/img/${file.name}`,
     thumbnailUrl: `/cover/150x150/${file.name}`,
   })
   resolve({ files: [file] , })

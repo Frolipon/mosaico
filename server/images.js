@@ -1,21 +1,26 @@
 'use strict';
 
-const fs            = require('fs')
-const url           = require('url')
-const path          = require('path')
-const gm            = require('gm').subClass({imageMagick: true})
-const createError   = require('http-errors')
-const util          = require('util')
-const stream        = require('stream')
-const probe         = require('probe-image-size')
-const { duration }  = require('moment')
-const { green, red, bgGreen,
-}                   =  require('chalk')
+const fs              = require('fs')
+const url             = require('url')
+const path            = require('path')
+const gm              = require('gm').subClass({imageMagick: true})
+const sharp           = require('sharp')
+const createError     = require('http-errors')
+const util            = require('util')
+const stream          = require('stream')
+const probe           = require('probe-image-size')
+const { duration }    = require('moment')
+const { 
+  green, 
+  red, 
+  bgGreen, }          =  require('chalk')
 
 const config          = require('./config')
 const {
   streamImage,
-  writeStream, }      = require('./filemanager')
+  writeStream,
+  list,
+  parseMultipart, }   = require('./filemanager')
 const { Cacheimages } = require('./models')
 
 console.log('[IMAGES] config.images.cache', config.images.cache)
@@ -33,7 +38,7 @@ function handleOldImageUrl(req, res, next) {
   if (!imageName[1])      return next( createError(404) )
   imageName       = imageName[1]
   const method    = req.query.method
-  const sizes     = req.query.params ? req.query.params.split(',') : [0, 0];
+  const sizes     = req.query.params ? req.query.params.split(',') : [0, 0]
   const width     = sizes[0]
   const height    = sizes[1]
   console.warn(`[IMAGE] old url for path ${req.originalUrl}`)
@@ -44,8 +49,7 @@ function handleOldImageUrl(req, res, next) {
 // IMAGE UTILS
 //////
 
-// let cacheControl  = config.isDev ? duration( 10, 'minutes') : duration( 1, 'years')
-let cacheControl  = config.isDev ? duration( 10, 'minutes') : duration( 1, 'days')
+let cacheControl  = config.isDev ? duration( 30, 'minutes') : duration( 1, 'years')
 cacheControl      = cacheControl.asSeconds()
 
 // TODO better handling of Cache-Control
@@ -72,17 +76,39 @@ function needResize(value, width, height) {
   return true
 }
 
-function handleFileStreamError(next) {
-  return function (err) {
-    // Local => ENOENT || S3 => NoSuchKey
-    const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
-    if (isNotFound) return next( createError(404) )
-    next(err)
-    console.log('resize error')
-  }
+const handleFileStreamError = next => err => {
+  console.log( red('read stream error') )
+  // Local => ENOENT || S3 => NoSuchKey
+  const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
+  if (isNotFound) return next( createError(404) )
+  next(err)
 }
 
-// used to stream an resize/placeholder result
+const onWriteResizeEnd = datas => () => {
+  const { path, name, imageName, } = datas
+
+  // save in DB for cataloging
+  new Cacheimages({
+    path,
+    name,
+    imageName,
+  })
+  .save()
+  .then( ci => console.log( green('cache image infos saved in DB', path )) )
+  .catch( e => {
+    console.log( red(`[IMAGE] can't save cache image infos in DB`), path )
+    console.log( util.inspect( e ) )
+  })
+
+}
+
+const onWriteResizeError = path => e => {
+  console.log(`[IMAGE] can't upload resize/placeholder result`, path)
+  console.log( util.inspect( e ) )
+}
+
+// Those 2 functions handle both streaming a reized image and saving in cache
+// any reading error is handled beforehand by `checksize`
 function streamToResponseAndCacheImage(req, res, next) {
 
   return function streamToResponse(err, stdout, stderr) {
@@ -95,7 +121,6 @@ function streamToResponseAndCacheImage(req, res, next) {
     const streamToResponse  = stdout.pipe( new stream.PassThrough() )
 
     // STREAM ASSET TO RESPONSE
-    addCacheControl( res )
     streamToResponse.pipe( res )
 
     // SAVE ASSET FOR FURTHER USE
@@ -106,40 +131,34 @@ function streamToResponseAndCacheImage(req, res, next) {
     const name          = path.replace(/^\//, '').replace(/\//g, '_')
 
     writeStream( streamToS3, name )
-    .then( onWriteEnd)
-    .catch( onWriteError )
-
-    function onWriteEnd() {
-      // save in DB for cataloging
-      new Cacheimages({
-        path,
-        name,
-        imageName,
-      })
-      .save()
-      .then( ci => console.log( green('cache image infos saved in DB', path )) )
-      .catch( e => {
-        console.log( red(`[IMAGE] can't save cache image infos in DB`), path )
-        console.log( util.inspect( e ) )
-      })
-    }
-
-    function onWriteError( e ) {
-      console.log(`[IMAGE] can't upload resize/placeholder result`, path)
-      console.log( util.inspect( e ) )
-    }
+    .then( onWriteResizeEnd({ path, name, imageName, }) )
+    .catch( onWriteResizeError(path) )
   }
+}
+
+function handleSharpStream(req, res, next, pipeline) {
+  const { path }      = req
+  const { imageName } = req.params
+  // transform /cover/100x100/filename.jpg => cover_100x100_filename.jpg
+  const name          = req.path.replace(/^\//, '').replace(/\//g, '_')
+
+  // prepare sending to response
+  pipeline.clone().pipe( res )
+
+  // prepare sending to cache
+  if (config.images.cache) {
+    writeStream( pipeline.clone(), name )
+    .then( onWriteResizeEnd({ path, name, imageName, }) )
+    .catch( onWriteResizeError(path) )
+  }
+  // flow readstream into the pipeline!
+  // this has to be done after of course :D
+  streamImage( imageName ).pipe( pipeline )
 }
 
 const bareStreamToResponse = (req, res, next) => imageName => {
   const imageStream = streamImage( imageName )
-  imageStream.on('error', err => {
-    console.log( red('read stream error') )
-    // Local => ENOENT || S3 => NoSuchKey
-    const isNotFound = err.code === 'ENOENT' || err.code === 'NoSuchKey'
-    if (isNotFound) return next( createError(404) )
-    next( err )
-  })
+  imageStream.on('error', handleFileStreamError(next) )
   // We have to end stream manually on res stream error (can happen if user close connection before end)
   // If not done, we will have a memory leaks
   // https://groups.google.com/d/msg/nodejs/wtmIzV0lh8o/cz3wqBtDc-MJ
@@ -162,6 +181,10 @@ const bareStreamToResponse = (req, res, next) => imageName => {
 
 // TODO gif can be optimized by using image-min
 // https://www.npmjs.com/package/image-min
+
+// Sharp can print harmless warn messages:
+// =>   vips warning: VipsJpeg: error reading resolution
+// https://github.com/lovell/sharp/issues/657
 
 function checkImageCache(req, res, next) {
   if (!config.images.cache) return next()
@@ -188,24 +211,20 @@ function checkImageCache(req, res, next) {
 function checkSizes(req, res, next) {
   const [ width, height ] = getTargetDimensions( req.params.sizes )
   const { imageName }     = req.params
-  console.log('[CHECKSIZES]', imageName, { width, height } )
+  // console.log('[CHECKSIZES]', imageName, { width, height } )
   const imgStream         = streamImage( imageName )
 
   probe( imgStream )
   .then( imageDatas => {
-    console.log(`[CHECKSIZES] success`)
     // abort connection;
     // https://github.com/nodeca/probe-image-size/blob/master/README.md#example
     imgStream.destroy()
     if ( !needResize( imageDatas, width, height ) ) {
-      console.log(`[CHECKSIZES] don't need resize`)
       return bareStreamToResponse( req, res, next )( imageName )
     }
 
     req.imageDatas  = imageDatas
     res.set('Content-Type', imageDatas.mime )
-
-    console.log(`[CHECKSIZES] continue to resize`)
 
     next()
   })
@@ -227,33 +246,51 @@ function resize(req, res, next) {
   const { imageDatas }    = req
   const { imageName }     = req.params
   const [ width, height ] = getTargetDimensions( req.params.sizes )
-  const img               = gm( streamImage( imageName ) ).autoOrient()
 
-  console.log('[RESIZE]', imageName)
-  if ( imageDatas.type === 'gif' ) img.coalesce()
-  img
-  .resize( width, height )
-  .stream( streamToResponseAndCacheImage(req, res, next) )
+  addCacheControl( res )
+
+  if ( imageDatas.type === 'gif' ) {
+    return gm( streamImage( imageName ) )
+    .autoOrient()
+    .coalesce()
+    .resize( width, height )
+    .stream( streamToResponseAndCacheImage(req, res, next) )
+  }
+
+  const pipeline = sharp().resize( width, height )
+  handleSharpStream(req, res, next, pipeline)
 }
 
 function cover(req, res, next) {
   const { imageDatas }    = req
   const { imageName }     = req.params
   const [ width, height ] = getTargetDimensions( req.params.sizes )
-  const img               = gm( streamImage( imageName ) ).autoOrient()
 
-  console.log('[COVER]', imageName)
-  if ( imageDatas.type === 'gif' ) img.coalesce()
-  img
-  .resize( width, height + '^' )
-  .gravity( 'Center')
-  .extent( width, height + '>' )
-  .stream( streamToResponseAndCacheImage(req, res, next) )
+  addCacheControl( res )
+
+  if ( imageDatas.type === 'gif' ) {
+    return gm( streamImage( imageName ) )
+    .autoOrient()
+    .coalesce()
+    // Append a ^ to the geometry so that the image aspect ratio is maintained when the image is resized,
+    // but the resulting width or height are treated as minimum values rather than maximum values.
+    .resize( width, height + '^' )
+    .gravity( 'Center')
+    // Use > to change the dimensions of the image only if its width or height exceeds the geometry specification.
+    // < resizes the image only if both of its dimensions are less than the geometry specification.
+    // For example, if you specify '640x480>' and the image size is 256x256, the image size does not change.
+    // However, if the image is 512x512 or 1024x1024, it is resized to 480x480.
+    .extent( width, height + '>' )
+    .stream( streamToResponseAndCacheImage(req, res, next) )
+  }
+
+  const pipeline = sharp().resize( width, height )
+  handleSharpStream(req, res, next, pipeline)
 
 }
 
 function placeholder(req, res, next) {
-  var sizes               = /(\d+)x(\d+)\.png/.exec(req.params.imageName)
+  var sizes               = /(\d+)x(\d+)\.png/.exec(req.params.placeholderSize)
   var width               = ~~sizes[1]
   var height              = ~~sizes[2]
   const streamPlaceholder = streamToResponseAndCacheImage( req, res, next )
@@ -275,6 +312,25 @@ function placeholder(req, res, next) {
   streamPlaceholder( null, out.stream('png'), null)
 }
 
+function listImages( req, res, next ) {
+  list( req.params.mongoId )
+  .then( files => res.json({ files }) )
+  .catch( next )
+}
+
+function upload( req, res, next ) {
+  parseMultipart( req, {
+    prefix:     req.params.mongoId,
+    formatter:  'editor',
+  } )
+  .then( onParse )
+  .catch( next )
+
+  function onParse( datas4fileupload ) {
+    res.send( JSON.stringify(datas4fileupload) )
+  }
+}
+
 module.exports = {
   handleOldImageUrl,
   cover,
@@ -283,4 +339,6 @@ module.exports = {
   checkImageCache,
   checkSizes,
   read,
+  listImages,
+  upload,
 }

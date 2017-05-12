@@ -32,13 +32,13 @@ function handleCreationName(viewModel) {
     viewModel.notifier.info(viewModel.t('edit-title-ajax-pending'))
 
     $.ajax({
-      method: 'PUT',
+      method: 'POST',
       url:    viewModel.metadata.url.update,
       data:   {
         name: viewModel.metadata.name(),
       },
-      success: function (creation) {
-        viewModel.metadata.name( creation.name )
+      success: function (mosaicoCreation) {
+        viewModel.metadata.name( mosaicoCreation.meta.name )
         viewModel.notifier.success(viewModel.t('edit-title-ajax-success'))
       },
       error: function () {

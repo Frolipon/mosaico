@@ -176,12 +176,17 @@ function userResetPassword(req, res, next) {
 function setPassword(req, res, next) {
   Users
   .findOne({
-    token: req.params.token,
-    email: req.body.username,
+    token:        req.params.token,
+    tokenExpire:  { $gt: Date.now() },
   })
   .then( user => {
     if (!user) {
-      req.flash('error', {message: 'no token or bad email address'})
+      req.flash('error', {message: 'password.token.invalid'})
+      res.redirect(req.path)
+      return Promise.resolve(false)
+    }
+    if (req.body.password !== req.body.passwordconfirm) {
+      req.flash('error', {message: 'password.nomatch'})
       res.redirect(req.path)
       return Promise.resolve(false)
     }
@@ -189,9 +194,27 @@ function setPassword(req, res, next) {
   })
   .then( user => {
     if (!user) return
-    res.redirect('/login')
+    req.login(user, err => {
+      if (err) return next(err)
+      res.redirect('/')
+    })
+    
   })
   .catch(next)
+}
+
+function showSetPassword(req, res, next) {
+  const { token } = req.params
+  Users
+  .findOne( { 
+    token,
+    tokenExpire: { $gt: Date.now() },
+  } )
+  .then( user => {
+    const data = !user ? { noToken: true } : { token }
+    return res.render( 'password-reset', { data } )
+  })
+  .catch( next )
 }
 
 module.exports = {
@@ -203,4 +226,5 @@ module.exports = {
   adminResetPassword,
   userResetPassword,
   setPassword,
+  showSetPassword,
 }

@@ -9,6 +9,7 @@ const {
 
 test('admin – deactivate a user', t => {
   const nightmare           = createWindow(false)
+  const waitTime            = 10
   const { onEnd, onError }  = getTeardownHandlers(t, nightmare)
   const data                = { _id: '576ba0049f9d3c2c13362d7c' }
 
@@ -18,7 +19,9 @@ test('admin – deactivate a user', t => {
   function start() {
     nightmare
     .use( connectAdmin() )
+    .wait( waitTime )
     .goto(`http://localhost:3000/users/${data._id}`)
+    .wait( waitTime )
     .evaluate( () => {
       const iconEl  = document.querySelector('.mdl-list li:nth-child(5) i')
       const icon    = iconEl ? iconEl.textContent : 'no icon to display on user card'
@@ -28,7 +31,7 @@ test('admin – deactivate a user', t => {
     .then( checkUserIsDeactivated )
     .then( checkDeactivatedIsntInCompanyListing )
     .then( onEnd( result => {
-      t.equal(result.errorMessage, 'no user', `user can't connect anymore`)
+      t.equal(result.errorMessage, `This account doens't exist or hasn't been activated`, `user can't connect anymore`)
     } ) )
     .catch( onError )
   }
@@ -36,10 +39,12 @@ test('admin – deactivate a user', t => {
   function checkUserIsActive(result) {
     t.equal(result.icon, 'check', 'use is active to begin with')
     return nightmare
-    .click(`a[href="/users"]`)
-    .wait()
-    .click(`a[href^="/users/${data._id}?_method=DELETE"]`)
-    .wait()
+    .click( `a[href="/users"]` )
+    .wait( waitTime )
+    .click( `a[href^="/users/${data._id}?_method=DELETE"]` )
+    .wait( waitTime )
+    .click( `a.js-dialog-confirm` )
+    .wait( waitTime )
     .evaluate( _id => {
       const userLinkEl  = document.querySelector(`a[href="/users/${_id}`)
       const line        = userLinkEl.parentNode.parentNode
@@ -56,7 +61,9 @@ test('admin – deactivate a user', t => {
     data.userEmail = result.userEmail
     return nightmare
     .goto( result.companyLink )
+    .wait( waitTime )
     .click(`a[href="#user-panel"]`)
+    .wait( waitTime )
     .evaluate( _id => {
       return {
         userLinkEl: document.querySelector(`#user-panel a[href="/users/${_id}`),
@@ -87,6 +94,7 @@ test('admin – deactivate & reactivate a user', t => {
   const nightmare           = createWindow( false )
   const { onEnd, onError }  = getTeardownHandlers(t, nightmare)
   const data                = { _id: '576ba0049f9d3c2c13362d7c' }
+  const waitTime            = 10
 
   t.plan(3)
   setupDB().then(start).catch( onError )
@@ -95,9 +103,11 @@ test('admin – deactivate & reactivate a user', t => {
     nightmare
     .use( connectAdmin() )
     .goto(`http://localhost:3000/users/${data._id}`)
-    .wait()
+    .wait( waitTime )
     .click(`a[href^="/users/${data._id}?_method=DELETE"]`)
-    .wait()
+    .wait( waitTime )
+    .click( `a.js-dialog-confirm` )
+    .wait( waitTime )
     .evaluate( () => {
       const iconEl  = document.querySelector('.mdl-list li:nth-child(4) i')
       const icon    = iconEl ? iconEl.textContent : 'no icon to display on user card'
@@ -116,7 +126,9 @@ test('admin – deactivate & reactivate a user', t => {
 
     return nightmare
     .click( `a[href^="/users/${data._id}/restore"]` )
-    .wait()
+    .wait( waitTime )
+    .click( `a.js-dialog-confirm` )
+    .wait( waitTime )
     .evaluate( _id => {
       const iconEl      = document.querySelector('.mdl-list li:nth-child(5) i')
       const icon        = iconEl ? iconEl.textContent : 'no icon to display on user card for .mdl-list li:nth-child(5) i'
@@ -129,9 +141,9 @@ test('admin – deactivate & reactivate a user', t => {
     t.equal( result.icon, 'report_problem', 'user link deactivated in user card')
     return nightmare
     .goto( result.companyLink )
-    .wait()
+    .wait( waitTime )
     .click(`a[href="#user-panel"]`)
-    .wait()
+    .wait( waitTime )
     .evaluate( _id => {
       const userLinkEl = document.querySelector(`#user-panel a[href="/users/${_id}`)
       if (!userLinkEl) return { status: false }

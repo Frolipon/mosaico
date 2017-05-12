@@ -13,15 +13,15 @@
 
   //----- OR use https://github.com/nodemailer/nodemailer-wellknown
 
-  "emailTransport": {
-    "provider": "GandiMail",
-    "auth": { "user": "####", "pass": "####" }
-  },
+  // "emailTransport": {
+  //   "provider": "GandiMail",
+  //   "auth": { "user": "####", "pass": "####" }
+  // },
 
   //----- complementary informations
 
   "emailOptions": {
-    "from": "Pouic Clapou <pouic@clapou.name>" // sender address
+    "from": "Badsender local <test@badsender.fr>" // sender address
   },
 
   //////
@@ -63,7 +63,7 @@
   "host": "www.your-hostname-without-protocal.com",
 
   "admin": {
-    "password": "toto"
+    "password": "admin"
   },
 
   // show complentary informations on the front-end
@@ -103,6 +103,32 @@
       "user": "####",
       "password": "####"
     }
+  }
+
+  //////
+  // S3 COPY (only used for syncing DBs, see ./bin/s3-sync)
+  //////
+
+  "s3Configs": {
+    "dev": {
+      "bucketName": "badsender",
+      "accessKeyId": "####",
+      "region": "####",
+      "secretAccessKey": "####"
+    },
+    "stage": {
+      "bucketName": "badsender-stage",
+      "accessKeyId": "####",
+      "region": "####",
+      "secretAccessKey": "####"
+    },
+    "production": {
+      "bucketName": "builder.badsender.com",
+      "accessKeyId": "####",
+      "region": "####",
+      "secretAccessKey": "####"
+    }
+
   }
 
 }

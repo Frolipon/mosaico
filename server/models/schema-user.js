@@ -9,6 +9,7 @@ const tmpl          = require('blueimp-tmpl')
 const bcrypt        = require('bcryptjs')
 const validator     = require('validator')
 const randtoken     = require('rand-token')
+const moment        = require('moment')
 
 const config              = require('../config')
 const { normalizeString } = require('./utils')
@@ -52,6 +53,9 @@ const UserSchema    = Schema({
   },
   token: {
     type:     String,
+  },
+  tokenExpire: {
+    type:     Date,
   },
   isDeactivated: {
     type:     Boolean,
@@ -140,10 +144,11 @@ UserSchema.methods.deactivate = function deactivate() {
 }
 
 UserSchema.methods.resetPassword = function resetPassword(lang, type) {
-  var user      = this
-  user.password = void(0)
-  user.token    = randtoken.generate(30)
-  lang          = lang ? lang : 'en'
+  var user          = this
+  user.password     = void(0)
+  user.token        = randtoken.generate(30)
+  user.tokenExpire  = moment().add(1, 'weeks')
+  lang              = lang ? lang : 'en'
 
   return new Promise(function (resolve, reject) {
     user
@@ -162,17 +167,18 @@ UserSchema.methods.resetPassword = function resetPassword(lang, type) {
           url:  `http://${config.host}/password/${user.token}?lang=${lang}`,
         })),
       })
-      .then( _ =>  resolve(updatedUser) )
+      .then( _ => resolve(updatedUser) )
       .catch(reject)
     }
   })
 }
 
 UserSchema.methods.setPassword = function setPassword(password, lang) {
-  var user      = this
-  user.token    = void(0)
-  user.password = password
-  lang          = lang ? lang : 'en'
+  var user          = this
+  user.token        = void(0)
+  user.tokenExpire  = void(0)
+  user.password     = password
+  lang              = lang ? lang : 'en'
 
   return new Promise(function (resolve, reject) {
     user

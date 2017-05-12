@@ -247,9 +247,10 @@ function show(req, res, next) {
   }
   Creations
   .findOne( addCompanyFilter(req.user, { _id: req.params.creationId}) )
+  .populate( '_wireframe', '_id assets' )
   .then( creation => {
-    if (!creation) return next(createError(404))
-    res.render('editor', { data: _.assign({}, data, creation.mosaico) })
+    if (!creation) return next( createError(404) )
+    res.render('editor', { data: _.assign( {}, data, creation.mosaico) })
   })
   .catch(next)
 }
@@ -386,8 +387,10 @@ function update(req, res, next) {
   .catch( next )
 
   function handleCreation(creation) {
-    if (!creation) return next(createError(404))
-    creation.data = req.body.data
+    if (!creation) return next( createError(404) )
+    creation.data = req.body.data || creation.data
+    // use res.__ because (not req) it's where i18n is always up to date (index.js#192)
+    creation.name = normalizeString( req.body.name ) || res.__('home.saved.noname')
     // http://mongoosejs.com/docs/schematypes.html#mixed
     creation.markModified('data')
 
@@ -398,56 +401,11 @@ function update(req, res, next) {
   }
 }
 
-function rename(req, res, next) {
-  if (!req.xhr) return next( createError(501) ) // Not Implemented
-
-  Creations
-  .findOne( addCompanyFilter(req.user, { _id: req.params.creationId}) )
-  .then( handleCreation )
-  .catch( next )
-
-  function handleCreation(creation) {
-    if (!creation) return next( createError(404) )
-    // use res.__ because (not req) it's where i18n is always up to date (index.js#192)
-    creation.name = normalizeString( req.body.name ) || res.__('home.saved.noname')
-
-    creation
-    .save()
-    // don't shortcut to .then( res.json ) it breaks app…
-    .then( creation => res.json(creation) )
-    .catch( next )
-  }
-}
-
 function remove(req, res, next) {
   const creationId  = req.params.creationId
   Creations
   .findByIdAndRemove(creationId)
   .then( c => res.redirect('/') )
-  .catch(next)
-}
-
-// should upload image on a specific client bucket
-// -> can't handle live resize
-function upload(req, res, next) {
-  console.log(chalk.green('UPLOAD'))
-  filemanager
-  .parseMultipart( req, {
-    prefix:     req.params.creationId,
-    formatter:  'editor',
-  } )
-  .then(onParse)
-  .catch(next)
-
-  function onParse(datas4fileupload) {
-    res.send(JSON.stringify(datas4fileupload))
-  }
-}
-
-function listImages(req, res, next) {
-  filemanager
-  .list( req.params.creationId )
-  .then( files => res.json({ files }) )
   .catch(next)
 }
 
@@ -480,9 +438,6 @@ module.exports = {
   remove,
   updateLabels,
   bulkRemove,
-  rename,
   create,
-  upload,
-  listImages,
   duplicate,
 }
