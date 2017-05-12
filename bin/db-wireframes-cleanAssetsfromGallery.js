@@ -6,7 +6,7 @@
 //    - value is the name as uploaded on the S3 (or local)
 
 const c             = require('chalk')
-const util          = require('util')
+const { inspect }   = require('util')
 const inquirer      = require('inquirer')
 const AWS           = require('aws-sdk')
 const { without }   = require('lodash')
@@ -17,7 +17,7 @@ const { connectDB, connection, Wireframes} = require('../server/models')
 const prefix        = c.blue('[UPDATE WIREFRAME ASSETS]')
 let s3
 let s3Config
-let Bucket 
+let Bucket
 
 function defer() {
   var res, rej
@@ -54,7 +54,7 @@ selectDb
   AWS.config.update( s3Config )
   s3 = new AWS.S3()
   connectDB( dbUrl(selectedDb) )
-  
+
 })
 .catch( logErrorAndExit )
 
@@ -91,28 +91,31 @@ function handleWireframes( wireframes ) {
     s3.listObjectsV2(s3ListParams, onFileListing)
 
     function onFileListing(err, data) {
-      console.log('s3 call done')
+      console.log('s3 call done – wireframe.name')
       if (err) {
         console.log('error')
         console.log(err)
-      } 
+      }
+
+      console.log( inspect(data.Contents, {colors: true, depth: 2 }) )
 
       Promise
       .all( data.Contents.map( copyImage ) )
       .then( deleteImages )
       .then( updateImagePath )
-      .then( dfd.resolve ) 
+      .then( dfd.resolve )
       .catch( dfd.reject )
     }
 
     function copyImage( image ) {
-      console.log('s3 – moving images')
+      console.log(`s3 – moving images – ${image.Key? image.Key : image}`)
       const copyDfd = defer()
       s3.copyObject({
         Bucket,
         CopySource: `${Bucket}/${image.Key}`,
         Key:        `wireframe-${image.Key}`,
       }, ( err, data ) => {
+        if (err && err.code === 'NoSuchKey') return copyDfd.resolve({})
         if (err) return copyDfd.reject(err)
         copyDfd.resolve( {Key: image.Key} )
       })
@@ -121,17 +124,25 @@ function handleWireframes( wireframes ) {
 
     function deleteImages( images ) {
       console.log('s3 – cleaning bucket')
+      images = images.filter( img => img.key != null )
+      console.log( inspect(images, {colors: true, depth: 2 }) )
       const deleteDfd       = defer()
-      const s3DeleteParams  = {
-        Bucket,
-        Delete: {
-          Objects: images
+      if (images.length) {
+        const s3DeleteParams  = {
+          Bucket,
+          Delete: {
+            Objects: images
+          }
         }
+        s3.deleteObjects(s3DeleteParams, ( err, data ) => {
+          if (err && err.code === 'NoSuchKey') return deleteDfd.resolve()
+          if (err) return deleteDfd.reject( err )
+          deleteDfd.resolve()
+        })
+      } else {
+        setTimeout( deleteDfd.resolve, 1 )
       }
-      s3.deleteObjects(s3DeleteParams, ( err, data ) => {
-        if (err) return deleteDfd.reject( err )
-        deleteDfd.resolve()
-      })
+
       return deleteDfd
     }
 
@@ -148,7 +159,7 @@ function handleWireframes( wireframes ) {
     }
 
     return dfd
-    
+
   })
 
 

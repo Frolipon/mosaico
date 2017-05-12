@@ -270,20 +270,21 @@ Run a specific test:
 
 ### S3 notes
 
-Backing up s3 buckets can be achieved with [s3 cli](http://docs.aws.amazon.com/cli/latest/reference/) (`brew install awscli` on a mac)
+#### requirements
 
-Full s3 specific documentation can be [found here](http://docs.aws.amazon.com/cli/latest/reference/s3/index.html)
+- [aws cli](http://docs.aws.amazon.com/cli/latest/reference/) – `brew install awscli` on a mac
+- `.badsenderc` filled with s3Configs parameters. See `.badsenderrc-example`
 
-then: 
+[more details about why we use the aws cli](http://stackoverflow.com/questions/17832860/backup-strategies-for-aws-s3-bucket#answer-32927276)
 
-```
-aws configure
-```
-
-and finally:
+#### backing up to a local folder
 
 ```
-aws s3 sync s3://{BUCKET_NAME} /home/ubuntu/s3/{BUCKET_NAME}/
+npm run backup-s3
 ```
 
-[source](http://stackoverflow.com/questions/17832860/backup-strategies-for-aws-s3-bucket#answer-32927276)
+#### syncing a bucket from a local folder
+
+```
+npm run sync-s3
+```

@@ -1,5 +1,10 @@
 'use strict'
 
+// This script will download all the images present on a specific bucket in a local folder
+// require awscli to be installed
+// `brew install awscli` on a mac
+// credentials should be specified in the .badsenderc following s3Configs parameters specified in .badsenderrc-example
+
 const { spawn }     = require( 'child_process' )
 const which         = require( 'which' )
 const readline      = require( 'readline' )
@@ -8,7 +13,7 @@ const c             = require( 'chalk' )
 const path          = require( 'path' )
 const moment        = require( 'moment' )
 
-const config        = require('../server/config')
+const config        = require( '../server/config' )
 
 const { s3Configs } = config
 const aws           = which.sync( 'aws' )
