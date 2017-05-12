@@ -124,25 +124,37 @@ function handleWireframes( wireframes ) {
 
     function deleteImages( images ) {
       console.log('s3 – cleaning bucket')
-      images = images.filter( img => img.key != null )
-      console.log( inspect(images, {colors: true, depth: 2 }) )
       const deleteDfd       = defer()
-      if (images.length) {
+      const s3ListParams = {
+        Bucket,
+        Prefix: `${wireframe._id}`,
+      }
+      s3.listObjectsV2(s3ListParams, (err, data) => {
+        if (err) return deleDfd.reject( err )
+        if ( !data.Contents.length ) return setTimeout( deleteDfd.resolve, 1 )
+        // console.log( inspect(data.Contents, {colors: true, depth: 2 }) )
+        const Objects = data.Contents.filter( img => img.Key != null ).map( img => {
+          return  { Key: img.Key }
+        } )
+        console.log( inspect(Objects, {colors: true, depth: 2 }) )
+        if (!Objects.length) return deleteDfd.resolve()
         const s3DeleteParams  = {
           Bucket,
           Delete: {
-            Objects: images
-          }
+            Objects: Objects,
+          },
         }
+        console.log( s3DeleteParams )
         s3.deleteObjects(s3DeleteParams, ( err, data ) => {
-          if (err && err.code === 'NoSuchKey') return deleteDfd.resolve()
+          if (err && err.code === 'NoSuchKey') {
+            console.log( err )
+            return deleteDfd.resolve()
+          }
           if (err) return deleteDfd.reject( err )
           deleteDfd.resolve()
         })
-      } else {
-        setTimeout( deleteDfd.resolve, 1 )
-      }
 
+      })
       return deleteDfd
     }
 
@@ -151,6 +163,7 @@ function handleWireframes( wireframes ) {
       const newAssets = {}
       Object.keys( wireframe.assets ).forEach( key => {
         const value = wireframe.assets[ key ]
+        if ( /^wireframe-/.test( value ) ) return
         newAssets[ key ] = `wireframe-${value}`
       })
       wireframe.assets = newAssets
