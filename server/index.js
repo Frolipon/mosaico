@@ -17,6 +17,7 @@ const { duration }    = moment
 const util            = require('util')
 const { merge, omit } = require('lodash')
 const createError     = require('http-errors')
+const helmet          = require('helmet')
 
 module.exports = function () {
 
@@ -30,7 +31,8 @@ module.exports = function () {
 
   var app = express()
 
-  app.set('trust proxy', true)
+  app.set( 'trust proxy', true )
+  app.use( helmet() )
 
   function forcessl(req, res, next) {
     if (req.header('x-forwarded-proto') === 'https') return next()
