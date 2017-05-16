@@ -28,21 +28,24 @@ block head-content
           },
           // messages are done in app.js#start
         },
-        //- https://www.tinymce.com/docs/configure/url-handling/
-        tinymce: {}, 
-        //- tinymce: {
-        //-   external_plugins: {
-        //-     paste:        "#{ md5Url('/lib/plugins/paste/plugin.js') }",
-        //-     link:         "#{ md5Url('/lib/plugins/link/plugin.js') }",
-        //-     hr:           "#{ md5Url('/lib/plugins/hr/plugin.js') }",
-        //-     lists:        "#{ md5Url('/lib/plugins/lists/plugin.js') }",
-        //-     textcolor:    "#{ md5Url('/lib/plugins/textcolor/plugin.js') }",    
-        //-     colorpicker:  "#{ md5Url('/lib/plugins/colorpicker/plugin.js') }",      
-        //-     code:         "#{ md5Url('/lib/plugins/code/plugin.js') }",
-        //-   },
-        //-   theme_url:      "#{ md5Url('/lib/themes/modern/theme.js') }",
-        //-   skin_url:       "/lib/skins/gray-flat/skin.min.css",
-        //- },
+        //- this a general config for tinymce
+        //- this will be used in badsender-extensions.js for both fullOptions & standardOptions
+        tinymce: {
+          //- https://www.tinymce.com/docs/configure/integration-and-setup/#external_plugins
+          external_plugins: {
+            paste:        "#{ md5Url('/lib/plugins/paste/plugin.js') }",
+            link:         "#{ md5Url('/lib/plugins/link/plugin.js') }",
+            hr:           "#{ md5Url('/lib/plugins/hr/plugin.js') }",
+            lists:        "#{ md5Url('/lib/plugins/lists/plugin.js') }",
+            textcolor:    "#{ md5Url('/lib/plugins/textcolor/plugin.js') }",
+            colorpicker:  "#{ md5Url('/lib/plugins/colorpicker/plugin.js') }",
+            code:         "#{ md5Url('/lib/plugins/code/plugin.js') }",
+          },
+          //- https://www.tinymce.com/docs/configure/editor-appearance/#theme_url
+          theme_url:      "#{ md5Url('/lib/themes/modern/theme.js') }",
+          //- https://www.tinymce.com/docs/configure/editor-appearance/#skin_url
+          skin_url:       "/lib/skins/gray-flat",
+        },
       }, plugins);
       if (!ok) {
         console.error("config not setted properly");

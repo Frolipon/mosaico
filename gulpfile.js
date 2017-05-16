@@ -379,19 +379,31 @@ function maintenance() {
 var crypto = require('crypto')
 
 function rev() {
-  let revs = {}
+  let revs = []
+  function sortByName( a, b ) {
+    const nameA = a.name.toUpperCase()
+    const nameB = b.name.toUpperCase()
+    if (nameA < nameB) return -1
+    if (nameA > nameB) return 1
+    return 0
+  }
   function passThrough(file, enc, callback) {
     var key         = path.relative(file.base, file.path)
     var md5         = crypto.createHash('md5')
     if (!file.contents) return callback(null)
     var hash        = md5.update( file.contents.toString() ).digest( 'hex' )
-    revs['/' + key] = hash
+    revs.push({'name': '/' + key, hash})
     callback( null )
   }
   function flush( cb ) {
+    const md5Object = {}
+    // keep the json in alphabetical order
+    revs.sort(sortByName).forEach( r => {
+      md5Object[ r.name ] = r.hash
+    })
     let file = new $.util.File({
       path:     'md5public.json',
-      contents: new Buffer( JSON.stringify(revs,  null, ' ') ),
+      contents: new Buffer( JSON.stringify(md5Object,  null, ' ') ),
     })
     this.push( file )
     cb()
@@ -428,7 +440,8 @@ toc.description   = `Regenerate TOC for BADSENDER.md`
 const cleanAll    = cb => del( [ buildDir, 'build' ], cb )
 const build       = gulp.series(
   cleanAll,
-  gulp.parallel( editorLib, js, css, assets )
+  gulp.parallel( editorLib, js, css, assets ),
+  rev
 )
 build.description = `rebuild all assets`
 
@@ -474,6 +487,7 @@ function bsAndWatch() {
     'src/css/**/*.less',
     'src/css-backend/**/*.styl'],     css )
   gulp.watch('src/tmpl/*.html',       templates )
+  gulp.watch( [`${buildDir}/**/*.css`, `${buildDir}/**/*.js`], rev )
 }
 
 let initProd = true
