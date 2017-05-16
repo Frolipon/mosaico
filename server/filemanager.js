@@ -36,7 +36,7 @@ function formatFilenameForFront(filename) {
 }
 
 if (config.isAws) {
-  AWS.config.update(config.storage.aws)
+  AWS.config.update( config.storage.aws )
   var s3    = new AWS.S3()
 
   // http://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-examples.html#Amazon_Simple_Storage_Service__Amazon_S3_

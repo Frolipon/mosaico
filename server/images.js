@@ -9,10 +9,11 @@ const createError     = require('http-errors')
 const util            = require('util')
 const stream          = require('stream')
 const probe           = require('probe-image-size')
+const Gifsicle        = require('gifsicle-stream')
 const { duration }    = require('moment')
-const { 
-  green, 
-  red, 
+const {
+  green,
+  red,
   bgGreen, }          =  require('chalk')
 
 const config          = require('./config')
@@ -102,6 +103,11 @@ const onWriteResizeEnd = datas => () => {
 
 }
 
+// transform /cover/100x100/filename.jpg => cover_100x100_filename.jpg
+const getResizedImageName = path => {
+  return path.replace( /^\// , '' ).replace( /\//g , '_' )
+}
+
 const onWriteResizeError = path => e => {
   console.log(`[IMAGE] can't upload resize/placeholder result`, path)
   console.log( util.inspect( e ) )
@@ -136,17 +142,19 @@ function streamToResponseAndCacheImage(req, res, next) {
   }
 }
 
+// sharp has a .clone() methods
+// use this instead of new stream.PassThrough()
 function handleSharpStream(req, res, next, pipeline) {
   const { path }      = req
   const { imageName } = req.params
-  // transform /cover/100x100/filename.jpg => cover_100x100_filename.jpg
-  const name          = req.path.replace(/^\//, '').replace(/\//g, '_')
 
   // prepare sending to response
   pipeline.clone().pipe( res )
 
   // prepare sending to cache
   if (config.images.cache) {
+    const name          = getResizedImageName( req.path )
+
     writeStream( pipeline.clone(), name )
     .then( onWriteResizeEnd({ path, name, imageName, }) )
     .catch( onWriteResizeError(path) )
@@ -154,6 +162,28 @@ function handleSharpStream(req, res, next, pipeline) {
   // flow readstream into the pipeline!
   // this has to be done after of course :D
   streamImage( imageName ).pipe( pipeline )
+}
+
+// unlike sharp, no .clone() method
+// do it in a “standard” way
+const handleGifStream = (req, res, next, gifProcessor) => {
+  const { path }      = req
+  const { imageName } = req.params
+
+  const resizedStream     = streamImage( imageName ).pipe( gifProcessor )
+  const streamForResponse = resizedStream.pipe( new stream.PassThrough() )
+
+  streamForResponse.pipe( res )
+
+  // if (!config.images.cache) return
+
+  const streamForSave     = resizedStream.pipe( new stream.PassThrough() )
+  const name              = getResizedImageName( path )
+
+  writeStream( streamForSave, name )
+  .then( onWriteResizeEnd({path, name, imageName}) )
+  .catch( onWriteResizeError(path) )
+
 }
 
 const bareStreamToResponse = (req, res, next) => imageName => {
@@ -242,23 +272,77 @@ function read(req, res, next) {
 // http://www.imagemagick.org/Usage/anim_opt/#frame_opt
 // http://www.graphicsmagick.org/Magick++/Image.html
 
+// https://www.npmjs.com/package/gifsicle
+// const {execFile} = require('child_process');
+// const gifsicle = require('gifsicle');
+
+// execFile(gifsicle, ['-o', 'output.gif', 'input.gif'], err => {
+//     console.log('Image minified!');
+// });
+
+// # Scale to a given width with unspecified height
+// gifsicle --resize-fit-width 300 -i animation.gif > animation-300px.gif
+
+// # Scale to a given height with unspecified width
+// gifsicle --resize-fit-height 100 -i animation.gif > animation-100px.gif
+
+// # Clip to size
+// gifsicle --resize 300x200  -i animation.gif > animation-clipped.gif
+
 function resize(req, res, next) {
   const { imageDatas }    = req
+  const { path }          = req
   const { imageName }     = req.params
   const [ width, height ] = getTargetDimensions( req.params.sizes )
 
   addCacheControl( res )
 
-  if ( imageDatas.type === 'gif' ) {
-    return gm( streamImage( imageName ) )
-    .autoOrient()
-    .coalesce()
-    .resize( width, height )
-    .stream( streamToResponseAndCacheImage(req, res, next) )
+  console.log(imageName)
+
+  if ( imageDatas.type !== 'gif' ) {
+    const pipeline = sharp().resize( width, height )
+    return handleSharpStream(req, res, next, pipeline)
   }
 
-  const pipeline = sharp().resize( width, height )
-  handleSharpStream(req, res, next, pipeline)
+  // console.log('[RESIZE GIF]', imageName)
+  const gifProcessor = new Gifsicle(['--resize-fit-width', `${width}`, '--resize-colors', '64'])
+
+  return handleGifStream(req, res, next, gifProcessor)
+
+//   const resizedStream     = streamImage( imageName ).pipe( gifProcessor )
+//   const streamForResponse = resizedStream.pipe( new stream.PassThrough() )
+
+//   streamForResponse.pipe( res )
+
+//   // if (!true) return
+//   console.log('STREAM FOR SAVE')
+//   const streamForSave     = resizedStream.pipe( new stream.PassThrough() )
+
+// // stream to S3/folder
+//   // const streamToS3    = stdout.pipe( new stream.PassThrough() )
+//   const name          = getResizedImageName( path )
+
+//   writeStream( streamForSave, name )
+//   .then( onWriteResizeEnd({path, name, imageName}) )
+//   .catch( onWriteResizeError(path) )
+
+    // streamToResponse.pipe( res )
+
+    // return streamImage( imageName )
+    // .pipe( gifProcessor )
+    // // .pipe( streamToResponseAndCacheImage(req, res, next) )
+    // // .pipe( bareStreamToResponse(req, res, next) )
+    // .pipe( res )
+
+    // return
+
+    // return gm( streamImage( imageName ) )
+    // .autoOrient()
+    // .coalesce()
+    // .resize( width, height )
+    // .stream( streamToResponseAndCacheImage(req, res, next) )
+
+
 }
 
 function cover(req, res, next) {
@@ -268,24 +352,36 @@ function cover(req, res, next) {
 
   addCacheControl( res )
 
-  if ( imageDatas.type === 'gif' ) {
-    return gm( streamImage( imageName ) )
-    .autoOrient()
-    .coalesce()
-    // Append a ^ to the geometry so that the image aspect ratio is maintained when the image is resized,
-    // but the resulting width or height are treated as minimum values rather than maximum values.
-    .resize( width, height + '^' )
-    .gravity( 'Center')
-    // Use > to change the dimensions of the image only if its width or height exceeds the geometry specification.
-    // < resizes the image only if both of its dimensions are less than the geometry specification.
-    // For example, if you specify '640x480>' and the image size is 256x256, the image size does not change.
-    // However, if the image is 512x512 or 1024x1024, it is resized to 480x480.
-    .extent( width, height + '>' )
-    .stream( streamToResponseAndCacheImage(req, res, next) )
+  if ( imageDatas.type !== 'gif' ) {
+    const pipeline = sharp().resize( width, height )
+    return handleSharpStream(req, res, next, pipeline)
+
+    // return gm( streamImage( imageName ) )
+    // .autoOrient()
+    // .coalesce()
+    // // Append a ^ to the geometry so that the image aspect ratio is maintained when the image is resized,
+    // // but the resulting width or height are treated as minimum values rather than maximum values.
+    // .resize( width, height + '^' )
+    // .gravity( 'Center')
+    // // Use > to change the dimensions of the image only if its width or height exceeds the geometry specification.
+    // // < resizes the image only if both of its dimensions are less than the geometry specification.
+    // // For example, if you specify '640x480>' and the image size is 256x256, the image size does not change.
+    // // However, if the image is 512x512 or 1024x1024, it is resized to 480x480.
+    // .extent( width, height + '>' )
+    // .stream( streamToResponseAndCacheImage(req, res, next) )
   }
 
-  const pipeline = sharp().resize( width, height )
-  handleSharpStream(req, res, next, pipeline)
+  console.log('[COVER GIF]', imageName)
+  const gifProcessor = new Gifsicle(['--resize-fit', `${ width }x${ height }`, '--resize-colors', '64'])
+  // const gifProcessor = new Gifsicle(['--resize-fit-width', '133'])
+
+  return handleGifStream(req, res, next, gifProcessor)
+
+  // return streamImage( imageName )
+  // .pipe( gifProcessor )
+  // // .pipe( streamToResponseAndCacheImage(req, res, next) )
+  // // .pipe( bareStreamToResponse(req, res, next) )
+  // .pipe( res )
 
 }
 

@@ -48,6 +48,7 @@
     "express-session": "^1.15.2",
     "formidable": "^1.0.17",
     "fs-extra": "^3.0.1",
+    "gifsicle-stream": "^0.3.1",
     "gm": "^1.23.0",
     "he": "^1.1.1",
     "helmet": "^3.6.0",

@@ -8,7 +8,7 @@ var denodeify   = require('denodeify')
 var { inspect } = require('util')
 var mkdirp      = denodeify( require('fs-extra').mkdirs )
 
-// default config is made for easy use on local dev
+// default config is made for an easy use on local dev
 var config  = rc('badsender', {
   debug:          false,
   forcessl:       false,
