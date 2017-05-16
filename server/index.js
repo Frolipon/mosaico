@@ -13,6 +13,7 @@ const favicon         = require('serve-favicon')
 const cookieParser    = require('cookie-parser')
 const i18n            = require('i18n')
 const moment          = require('moment')
+const { duration }    = moment
 const util            = require('util')
 const { merge, omit } = require('lodash')
 const createError     = require('http-errors')
@@ -72,7 +73,9 @@ module.exports = function () {
   //----- STATIC
 
   const md5public             = require( './md5public.json' )
-  const compiledStatic        = express.static( path.join(__dirname, '../dist') )
+  const maxAge                = config.isDev ? duration( 30, 'minutes') : duration( 1, 'years')
+  const staticOptions         = { maxAge: maxAge.as( 'milliseconds' ) }
+  const compiledStatic        = express.static( path.join(__dirname, '../dist'), staticOptions )
   const compiledStaticNoCache = express.static( path.join(__dirname, '../dist') )
 
   app.locals.md5Url    = url => {
@@ -84,13 +87,12 @@ module.exports = function () {
     const { md5 }     = req.params
     const staticPath  = req.url.replace(`/${ md5 }`, '')
     req._restoreUrl   = req.url
-
     if ( md5public[ staticPath ] === md5 ) {
       req.url           = staticPath
     // we don't want statics to be cached by the browser if the md5 is invalid
     // pass it ti the next static handler which doens't set cache
     } else {
-      console.log('[MD5] bad hash for', staticPath, md5)
+      // console.log('[MD5] bad hash for', staticPath, md5)
       req._staticPath   = staticPath
     }
     next()
@@ -352,7 +354,7 @@ module.exports = function () {
   // everyhting that go there without an error should be treated as a 404
   app.use(function (req, res, next) {
     if (req.xhr) return  res.status(404).send('not found')
-    return res.render('error-404')
+    return res.status(404).render('error-404')
   })
 
   app.use(function (err, req, res, next) {
