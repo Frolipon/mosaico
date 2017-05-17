@@ -1,9 +1,5 @@
-'use strict';
+'use strict'
 
-const fs              = require('fs')
-const url             = require('url')
-const path            = require('path')
-const gm              = require('gm').subClass({imageMagick: true})
 const sharp           = require('sharp')
 const createError     = require('http-errors')
 const util            = require('util')
@@ -300,41 +296,69 @@ function cover(req, res, next) {
   }
 
   // Scale to the same size as the target
-  const scale         = [ '--scale', `${ height / newHeight }` ]
+  const scale   = [ '--scale', `${ height / newHeight }` ]
 
   // Resize to be sure that the sizes are equals
   // as we have done some rounding before, there may be some slighty differences in sizes
   // --resize will no preserve aspect-ratio…
   // …but it should be unoticable as we are mostly speaking of 1 or 2 pixels
-  const resize        = [ '--resize', `${ width }x${ height }`, '--resize-colors', '64' ]
+  const resize  = [ '--resize', `${ width }x${ height }`, '--resize-colors', '64' ]
 
-  const gifProcessor  = new Gifsicle([...crop, ...scale, ...resize])
+  const gifProcessor = new Gifsicle([...crop, ...scale, ...resize])
 
   return handleGifStream(req, res, next, gifProcessor)
 }
 
-function placeholder(req, res, next) {
-  var sizes               = /(\d+)x(\d+)\.png/.exec(req.params.placeholderSize)
-  var width               = ~~sizes[1]
-  var height              = ~~sizes[2]
-  const streamPlaceholder = streamToResponseAndCacheImage( req, res, next )
-  var out                 = gm(width, height, '#707070')
-  res.set('Content-Type', 'image/png')
-  var x = 0, y = 0
-  var size = 40
-  // stripes
-  while (y < height) {
-    out = out
-    .fill('#808080')
-    .drawPolygon([x, y], [x + size, y], [x + size*2, y + size], [x + size*2, y + size*2])
-    .drawPolygon([x, y + size], [x + size, y + size*2], [x, y + size*2])
-    x = x + size * 2
-    if (x > width) { x = 0; y = y + size*2 }
-  }
-  // text
-  out = out.fill('#B0B0B0').fontSize(20).drawText(0, 0, `${width} x ${height}`, 'center')
-  streamPlaceholder( null, out.stream('png'), null)
+const stripeSize  = 55
+const lightStripe = `#808080`
+const darkStripe  = `#707070`
+const textColor   = `#B0B0B0`
+function generatePlaceholderSVG(width, height) {
+  // centering text in SVG
+  // http://stackoverflow.com/questions/5546346/how-to-place-and-center-text-in-an-svg-rectangle#answer-31522006
+  return `<svg width="${ width }" height="${ height }">
+    <defs>
+    <pattern id="pattern" width="${ stripeSize }" height="1" patternUnits="userSpaceOnUse" patternTransform="rotate(-45 0 0)">
+      <line stroke="${ lightStripe }" stroke-width="${ stripeSize }px" y2="10"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="0" width="${ width }" height="${ height }" fill="${ darkStripe }" />
+  <rect x="0" y="0" width="${ width }" height="${ height }" fill="url(#pattern)" />
+  <text x="50%" y="50%" alignment-baseline="middle" text-anchor="middle" fill="${ textColor }" font-family="Verdana" font-size="20">
+    ${ width } x ${ height }
+  </text>
+</svg>`
 }
+
+function placeholder(req, res, next) {
+  const { path }            = req
+  const { placeholderSize } = req.params
+  const sizes     = /(\d+)x(\d+)\.png/.exec( placeholderSize )
+  const width     = ~~sizes[1]
+  const height    = ~~sizes[2]
+  const svgBuffer = new Buffer( generatePlaceholderSVG( width, height ) )
+  const pipeline  = sharp( svgBuffer ).png()
+
+  addCacheControl( res )
+  res.set( 'Content-Type', 'image/png' )
+
+  // don't use handleSharpStream()
+  // we don't read a file but feed a buffer
+  // prepare sending to response
+  pipeline.clone().pipe( res )
+
+  // prepare sending to cache
+  if (!config.images.cache) return
+  const name      = getResizedImageName( req.path )
+
+  writeStream( pipeline.clone(), name )
+  .then( onWriteResizeEnd({ path, name, imageName: placeholderSize }) )
+  .catch( onWriteResizeError(path) )
+}
+
+//////
+// OTHER THINGS
+//////
 
 function listImages( req, res, next ) {
   list( req.params.mongoId )
