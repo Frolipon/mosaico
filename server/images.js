@@ -113,8 +113,7 @@ const onWriteResizeError = path => e => {
   console.log( util.inspect( e ) )
 }
 
-// sharp has a .clone() methods
-// use this instead of new stream.PassThrough()
+// sharp's pipeline are different from usual streams
 function handleSharpStream(req, res, next, pipeline) {
   const { path }      = req
   const { imageName } = req.params
@@ -146,7 +145,7 @@ const handleGifStream = (req, res, next, gifProcessor) => {
 
   streamForResponse.pipe( res )
 
-  // if (!config.images.cache) return
+  if (!config.images.cache) return
 
   const streamForSave     = resizedStream.pipe( new stream.PassThrough() )
   const name              = getResizedImageName( path )
@@ -177,7 +176,7 @@ const bareStreamToResponse = (req, res, next) => imageName => {
 }
 
 //////
-// IMAGE HANDLING
+// IMAGE CHECKS
 //////
 
 // TODO gif can be optimized by using image-min
@@ -237,28 +236,9 @@ function read(req, res, next) {
   bareStreamToResponse(req, res, next)( imageName )
 }
 
-// about resizing GIF
-// only speek about scaling & not cropping…
-// http://stackoverflow.com/questions/6098441/resizing-animated-gif-using-graphicsmagick
-// http://www.imagemagick.org/Usage/anim_opt/#frame_opt
-// http://www.graphicsmagick.org/Magick++/Image.html
-
-// https://www.npmjs.com/package/gifsicle
-// const {execFile} = require('child_process');
-// const gifsicle = require('gifsicle');
-
-// execFile(gifsicle, ['-o', 'output.gif', 'input.gif'], err => {
-//     console.log('Image minified!');
-// });
-
-// # Scale to a given width with unspecified height
-// gifsicle --resize-fit-width 300 -i animation.gif > animation-300px.gif
-
-// # Scale to a given height with unspecified width
-// gifsicle --resize-fit-height 100 -i animation.gif > animation-100px.gif
-
-// # Clip to size
-// gifsicle --resize 300x200  -i animation.gif > animation-clipped.gif
+//////
+// IMAGE GENERATION
+//////
 
 function resize(req, res, next) {
   const { imageDatas }    = req
@@ -268,15 +248,15 @@ function resize(req, res, next) {
 
   addCacheControl( res )
 
-  console.log(imageName)
-
+  // Sharp can't handle animated gif
   if ( imageDatas.type !== 'gif' ) {
     const pipeline = sharp().resize( width, height )
     return handleSharpStream(req, res, next, pipeline)
   }
 
-  // console.log('[RESIZE GIF]', imageName)
-  const gifProcessor = new Gifsicle(['--resize-fit-width', `${width}`, '--resize-colors', '64'])
+  const resizeFit     = ['--resize-fit']
+  resizeFit.push( `${ width ? width : '_' }x${ height ? height : '_' }` )
+  const gifProcessor  = new Gifsicle([...resizeFit, '--resize-colors', '64'])
 
   return handleGifStream(req, res, next, gifProcessor)
 }
@@ -288,26 +268,21 @@ function cover(req, res, next) {
 
   addCacheControl( res )
 
+  // Sharp can't handle animated gif
   if ( imageDatas.type !== 'gif' ) {
     const pipeline = sharp().resize( width, height )
     return handleSharpStream(req, res, next, pipeline)
   }
 
-  console.log('[COVER GIF]', imageName)
-
   // there is no build-in cover method with gifsicle
   // http://www.lcdf.org/gifsicle/man.html
-
   const originalWidth       = imageDatas.width
   const originalHeight      = imageDatas.height
-
   const widthRatio          = originalWidth / width
   const heightRatio         = originalHeight / height
-
   let newWidth              = originalWidth
   let newHeight             = originalHeight
   const crop                = [ '--crop' ]
-  const scale               = [ '--scale' ]
 
   // Trim the image to have the same ratio as the target
   // This operation is done before everything else by gifsicle
@@ -325,7 +300,7 @@ function cover(req, res, next) {
   }
 
   // Scale to the same size as the target
-  scale.push( `${ height / newHeight }`)
+  const scale         = [ '--scale', `${ height / newHeight }` ]
 
   // Resize to be sure that the sizes are equals
   // as we have done some rounding before, there may be some slighty differences in sizes
