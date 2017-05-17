@@ -336,6 +336,10 @@ function placeholder(req, res, next) {
   streamPlaceholder( null, out.stream('png'), null)
 }
 
+//////
+// OTHER THINGS
+//////
+
 function listImages( req, res, next ) {
   list( req.params.mongoId )
   .then( files => res.json({ files }) )
