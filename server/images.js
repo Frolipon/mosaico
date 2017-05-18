@@ -376,9 +376,19 @@ function read(req, res, next) {
 // wireframes assets (preview & template fixed assets)…
 // …are handled separatly in wireframes.js#update
 
+
+// destroy an image is not a real deletion
+// because:
+//  - those images can be still used inside creations
+//  - we are not sure that cropped images are cached
+//  - even thhougt an image can be used at it's original size (no cropped image cache)
+// so:
+//  - we just flag this image in the gallery table as not visible
 function destroy(req, res, next) {
   if (!req.xhr) return next( createError(501) ) // Not Implemented
   const { imageName }   = req.params
+  // TODO get the related gallery
+  // TODO change from files to hiddenFiles
   console.log('remove', imageName)
   res.status(200).send({status: 'ok'})
 }
@@ -391,7 +401,7 @@ function listImages( req, res, next ) {
   Galleries
   .findOne({
     creationOrWireframeId: mongoId,
-  })
+  }, 'files' )
   .lean()
   .then( onGallery )
   .catch( next )
@@ -400,12 +410,6 @@ function listImages( req, res, next ) {
     if (gallery) return res.json( gallery )
     // create the gallery in DB
     list( mongoId )
-    .then( files => {
-      return files.map( file => {
-        file.visible = true
-        return file
-      })
-    })
     .then( files => {
       // we need to wait for the gallery to be saved in DB
       // showing a gallery without those informations…
@@ -430,9 +434,10 @@ function listImages( req, res, next ) {
 
 function upload( req, res, next ) {
   if (!req.xhr) return next( createError(501) ) // Not Implemented
-
   const { mongoId } = req.params
-
+  // TODO check first if the file is not present in the gallery hiddenFiles
+  // TODO if presents change from hiddenFiles to files and return this image
+  // TODO if NOT upload the image and add it to the gallery files
   parseMultipart( req, {
     prefix:     req.params.mongoId,
     formatter:  'editor',
