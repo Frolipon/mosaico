@@ -1,24 +1,25 @@
 'use strict'
 
-const sharp           = require('sharp')
-const createError     = require('http-errors')
-const util            = require('util')
-const stream          = require('stream')
-const probe           = require('probe-image-size')
-const Gifsicle        = require('gifsicle-stream')
-const { duration }    = require('moment')
+const sharp           = require( 'sharp' )
+const createError     = require( 'http-errors' )
+const util            = require( 'util' )
+const stream          = require( 'stream' )
+const probe           = require( 'probe-image-size' )
+const Gifsicle        = require( 'gifsicle-stream' )
+const mime            = require( 'mime-types' )
+const { duration }    = require( 'moment' )
 const {
   green,
   red,
-  bgGreen, }          =  require('chalk')
+  bgGreen, }          = require( 'chalk' )
 
 const config          = require('./config')
 const {
   streamImage,
   writeStream,
   list,
-  parseMultipart, }   = require('./filemanager')
-const { Cacheimages } = require('./models')
+  parseMultipart, }   = require( './filemanager' )
+const { Cacheimages } = require( './models' )
 
 console.log('[IMAGES] config.images.cache', config.images.cache)
 
@@ -152,8 +153,9 @@ const handleGifStream = (req, res, next, gifProcessor) => {
 
 }
 
-const bareStreamToResponse = (req, res, next) => imageName => {
+const streamImageToResponse = (req, res, next, imageName) => {
   const imageStream = streamImage( imageName )
+  const contentType = mime.lookup( imageName )
   imageStream.on('error', handleFileStreamError(next) )
   // We have to end stream manually on res stream error (can happen if user close connection before end)
   // If not done, we will have a memory leaks
@@ -161,6 +163,11 @@ const bareStreamToResponse = (req, res, next) => imageName => {
   // https://groups.google.com/forum/#!topic/nodejs/A8wbaaPmmBQ
   imageStream.once('readable', e => {
     addCacheControl( res )
+    // try to guess content-type from filename
+    // we should do a better thing like a fs-stat
+    // but we want the response to be as quick as possible
+    if ( contentType ) res.set( 'Content-Type', contentType )
+
     imageStream
     .pipe( res )
     // response doens't have a 'close' event but a finish one
@@ -199,7 +206,7 @@ function checkImageCache(req, res, next) {
   function onCacheimage( cacheInformations ) {
     if (cacheInformations === null) return next()
     console.log( bgGreen.black(path), 'already in cache' )
-    bareStreamToResponse(req, res, next)( cacheInformations.name )
+    streamImageToResponse(req, res, next, cacheInformations.name)
   }
 
 }
@@ -216,7 +223,7 @@ function checkSizes(req, res, next) {
     // https://github.com/nodeca/probe-image-size/blob/master/README.md#example
     imgStream.destroy()
     if ( !needResize( imageDatas, width, height ) ) {
-      return bareStreamToResponse( req, res, next )( imageName )
+      return streamImageToResponse( req, res, next, imageName )
     }
 
     req.imageDatas  = imageDatas
@@ -229,7 +236,7 @@ function checkSizes(req, res, next) {
 
 function read(req, res, next) {
   const { imageName }   = req.params
-  bareStreamToResponse(req, res, next)( imageName )
+  streamImageToResponse(req, res, next, imageName)
 }
 
 //////
