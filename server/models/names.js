@@ -6,4 +6,5 @@ module.exports = Object.freeze({
   CreationModel:    'Creation',
   CompanyModel:     'Company',
   CacheimageModel:  'Cacheimage',
+  GalleryModel:     'Gallery',
 })

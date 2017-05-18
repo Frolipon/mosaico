@@ -1,8 +1,9 @@
+'use strict'
+
 const { Schema }    = require('mongoose')
 const { ObjectId }  = Schema.Types
 
 const { normalizeString } = require('./utils')
-const { CompanyModel }    = require('./names')
 
 const CacheimageSchema = Schema({
   path: {

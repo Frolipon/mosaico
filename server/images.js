@@ -2,7 +2,7 @@
 
 const sharp           = require( 'sharp' )
 const createError     = require( 'http-errors' )
-const util            = require( 'util' )
+const { inspect }     = require( 'util' )
 const stream          = require( 'stream' )
 const probe           = require( 'probe-image-size' )
 const Gifsicle        = require( 'gifsicle-stream' )
@@ -19,7 +19,7 @@ const {
   writeStream,
   list,
   parseMultipart, }   = require( './filemanager' )
-const { Cacheimages } = require( './models' )
+const { Cacheimages, Galleries } = require( './models' )
 
 console.log('[IMAGES] config.images.cache', config.images.cache)
 
@@ -95,7 +95,7 @@ const onWriteResizeEnd = datas => () => {
   .then( ci => console.log( green('cache image infos saved in DB', path )) )
   .catch( e => {
     console.log( red(`[IMAGE] can't save cache image infos in DB`), path )
-    console.log( util.inspect( e ) )
+    console.log( inspect( e ) )
   })
 
 }
@@ -107,7 +107,7 @@ const getResizedImageName = path => {
 
 const onWriteResizeError = path => e => {
   console.log(`[IMAGE] can't upload resize/placeholder result`, path)
-  console.log( util.inspect( e ) )
+  console.log( inspect( e ) )
 }
 
 // sharp's pipeline are different from usual streams
@@ -200,7 +200,7 @@ function checkImageCache(req, res, next) {
   .then( onCacheimage )
   .catch( e => {
     console.log('[CHECKSIZES] error in image cache check')
-    console.log( util.inspect(e) )
+    console.log( inspect(e) )
     next()
   } )
 
@@ -368,19 +368,71 @@ function read(req, res, next) {
   streamImageToResponse(req, res, next, imageName)
 }
 
+//////
+// EDITOR SPECIFIC
+//////
+
+// Those functions are accessible only from the editor
+// wireframes assets (preview & template fixed assets)…
+// …are handled separatly in wireframes.js#update
+
 function destroy(req, res, next) {
+  if (!req.xhr) return next( createError(501) ) // Not Implemented
   const { imageName }   = req.params
   console.log('remove', imageName)
   res.status(200).send({status: 'ok'})
 }
 
 function listImages( req, res, next ) {
-  list( req.params.mongoId )
-  .then( files => res.json({ files }) )
+  if (!req.xhr) return next( createError(501) ) // Not Implemented
+
+  const { mongoId } = req.params
+
+  Galleries
+  .findOne({
+    creationOrWireframeId: mongoId,
+  })
+  .lean()
+  .then( onGallery )
   .catch( next )
+
+  function onGallery( gallery ) {
+    if (gallery) return res.json( gallery )
+    // create the gallery in DB
+    list( mongoId )
+    .then( files => {
+      return files.map( file => {
+        file.visible = true
+        return file
+      })
+    })
+    .then( files => {
+      // we need to wait for the gallery to be saved in DB
+      // showing a gallery without those informations…
+      // …is risking that “deletion” won't persist in editor
+      return new Galleries({
+        creationOrWireframeId: mongoId,
+        files,
+      })
+      .save()
+    })
+    .then( newGallery => {
+      console.log( green('image gallery created in DB'))
+      res.json( newGallery )
+    })
+    .catch( e => {
+      console.log( red(`[IMAGE] can't save image gallery infos in DB`), path )
+      console.log( inspect( e ) )
+      next( e )
+    })
+  }
 }
 
 function upload( req, res, next ) {
+  if (!req.xhr) return next( createError(501) ) // Not Implemented
+
+  const { mongoId } = req.params
+
   parseMultipart( req, {
     prefix:     req.params.mongoId,
     formatter:  'editor',

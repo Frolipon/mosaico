@@ -24,9 +24,6 @@ const WireframeSchema = Schema({
   markup: {
     type:       String,
   },
-  images: {
-    type:       [],
-  },
   // change from images array to assets for 1 reason
   // mosaico get the block thumbs image by looking the ID of the block
   // alas images are named with `${wireframeId}-${imageHash}.${ext}`
