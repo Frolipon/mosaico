@@ -376,6 +376,9 @@ function bulkRemove(req, res, next) {
 // OTHERS ACTIONS
 //////
 
+function listImages(req, res, next) {
+  res.status( 200 ).send({status: 'ok'})
+}
 
 // TODO merge update & rename
 function update(req, res, next) {

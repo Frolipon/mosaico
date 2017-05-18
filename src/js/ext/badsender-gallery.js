@@ -10,8 +10,8 @@ function galleryLoader( opts ) {
 
   return function (viewModel) {
 
-    viewModel.mailingGallery        = ko.observableArray([]).extend({ paging: 16 })
-    viewModel.templateGallery       = ko.observableArray([]).extend({ paging: 16 })
+    viewModel.mailingGallery        = ko.observableArray([]).extend({ paging: 12 })
+    viewModel.templateGallery       = ko.observableArray([]).extend({ paging: 12 })
     viewModel.mailingGalleryStatus  = ko.observable(false)
     viewModel.templateGalleryStatus = ko.observable(false)
 
@@ -48,7 +48,7 @@ function galleryLoader( opts ) {
     viewModel.loadTemplateImage     = loadImage( 'template' )
 
     var galleryOpen = viewModel.showGallery.subscribe( function( newValue ) {
-      if (newValue === true && viewModel.mailingGalleryStatus() === false) { 
+      if (newValue === true && viewModel.mailingGalleryStatus() === false) {
         viewModel.loadMailingGallery()
         galleryOpen.dispose()
       }

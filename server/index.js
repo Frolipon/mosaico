@@ -81,6 +81,9 @@ module.exports = function () {
   const compiledStaticNoCache = express.static( path.join(__dirname, '../dist') )
 
   app.locals.md5Url    = url => {
+    // disable md5 on dev
+    // better for hot reload
+    if ( config.isDev ) return url
     if (url in md5public) url = `/${md5public[ url ]}${url}`
     return url
   }
@@ -320,6 +323,7 @@ module.exports = function () {
 
   app.get('/logout',                        guard('user'), session.logout)
   app.get('/img/:imageName',                images.read)
+  app.delete('/img/:imageName',             guard('no-session'), images.destroy)
   app.get('/placeholder/:placeholderSize',  images.checkImageCache, images.placeholder)
   app.get('/resize/:sizes/:imageName',      images.checkImageCache, images.checkSizes, images.resize)
   app.get('/cover/:sizes/:imageName',       images.checkImageCache, images.checkSizes, images.cover)

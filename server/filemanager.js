@@ -16,6 +16,7 @@ const readDir     = denodeify( fs.readdir )
 
 const config        = require('./config')
 const slugFilename  = require('../shared/slug-filename.js')
+const thumbnailSize = `111x111`
 var streamImage
 var writeFromPath
 var writeStream
@@ -29,9 +30,9 @@ var copyImages
 function formatFilenameForFront(filename) {
   return {
     name:         filename,
-    url:          '/img/' + filename,
-    deleteUrl:    '/img/' + filename,
-    thumbnailUrl: `/cover/150x150/${filename}`,
+    url:          `/img/${ filename }`,
+    deleteUrl:    `/img/${ filename }`,
+    thumbnailUrl: `/cover/${ thumbnailSize }/${filename}`,
   }
 }
 
@@ -319,7 +320,7 @@ function handleEditorUpload(fields, files, resolve) {
   file      = _.assign({}, file, {
     url:          `/img/${file.name}`,
     deleteUrl:    `/img/${file.name}`,
-    thumbnailUrl: `/cover/150x150/${file.name}`,
+    thumbnailUrl: `/cover/${ thumbnailSize }/${ file.name }`,
   })
   resolve({ files: [file] , })
 }

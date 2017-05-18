@@ -14,6 +14,7 @@ var serverStorage = require('./badsender-server-storage')
 var editTitle     = require('./badsender-edit-title')
 var textEditor    = require('./badsender-text-editor')
 var gallery       = require('./badsender-gallery')
+var removeImage   = require('./badsender-remove-gallery-image')
 
 function setEditorIcon(viewModel) {
   viewModel.logoPath  = '/media/editor-icon.png'
@@ -26,6 +27,7 @@ function extendViewModel(opts, customExtensions) {
   customExtensions.push( setEditorIcon )
   customExtensions.push( editTitle )
   customExtensions.push( gallery(opts) )
+  customExtensions.push( removeImage(opts) )
 }
 
 //////

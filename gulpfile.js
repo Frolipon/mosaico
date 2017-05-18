@@ -1,6 +1,7 @@
 'use strict';
 
 const gulp            = require('gulp')
+const path            = require('path')
 const $               = require('gulp-load-plugins')()
 const browserSync     = require('browser-sync').create()
 const { reload }      = browserSync
@@ -121,6 +122,13 @@ function mosaicoLib() {
     },
   })
 
+  // Can't replace jQuery with newer version
+  // https://github.com/jquery/jquery/issues/3181#issuecomment-226964470
+  // => Uncaught TypeError: elem.getClientRects is not a function
+  // .filter( name => !/bower_components\/jquery\/dist\/jquery\.js$/.test(name)  )
+  // // replace old version of jQuery
+  // bowerfiles.unshift( path.join(__dirname, './node_modules/jquery/dist/jquery.js') )
+
   const editorLibs = gulp
   .src( bowerfiles )
   .pipe( $.filter(['*.js', '**/*.js']) )
@@ -222,7 +230,6 @@ jsEditor.description  = `Bundle mosaico app, without libraries`
 
 //----- MOSAICO'S KNOCKOUT TEMPLATES: see -> combineKOTemplates.js
 
-const path          = require('path')
 const through       = require('through2')
 const babelify      = require('babelify')
 const StringDecoder = require('string_decoder').StringDecoder
@@ -251,10 +258,16 @@ function templates() {
       base: './',
       path: 'templates.js',
       contents: new Buffer(result),
-    }));
-    return cb();
+    }))
+    return cb()
   }
-  return gulp.src('src/tmpl/*.html')
+  return gulp
+  .src([
+    'src/tmpl/*.html',
+    // replace some original templates but custome ones
+    'src/tmpl-badsender/*.html',
+    '!src/tmpl/gallery-images.tmpl.html',
+  ])
   .pipe( through.obj(passThrough, resizeFlush) )
   // templates has to be build on “build” folder
   // they will be require by editor app application
@@ -486,8 +499,7 @@ function bsAndWatch() {
   gulp.watch([
     'src/css/**/*.less',
     'src/css-backend/**/*.styl'],     css )
-  gulp.watch('src/tmpl/*.html',       templates )
-  gulp.watch( [`${buildDir}/**/*.css`, `${buildDir}/**/*.js`], rev )
+  gulp.watch( ['src/tmpl/*.html', 'src/tmpl-badsender/*.html'], templates )
 }
 
 let initProd = true

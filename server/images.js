@@ -165,6 +165,7 @@ const streamImageToResponse = (req, res, next, imageName) => {
     addCacheControl( res )
     // try to guess content-type from filename
     // we should do a better thing like a fs-stat
+    // http://stackoverflow.com/questions/13485933/createreadstream-send-file-http#answer-13486341
     // but we want the response to be as quick as possible
     if ( contentType ) res.set( 'Content-Type', contentType )
 
@@ -205,7 +206,7 @@ function checkImageCache(req, res, next) {
 
   function onCacheimage( cacheInformations ) {
     if (cacheInformations === null) return next()
-    console.log( bgGreen.black(path), 'already in cache' )
+    // console.log( bgGreen.black(path), 'already in cache' )
     streamImageToResponse(req, res, next, cacheInformations.name)
   }
 
@@ -232,11 +233,6 @@ function checkSizes(req, res, next) {
     next()
   })
   .catch( handleFileStreamError( next ) )
-}
-
-function read(req, res, next) {
-  const { imageName }   = req.params
-  streamImageToResponse(req, res, next, imageName)
 }
 
 //////
@@ -367,6 +363,17 @@ function placeholder(req, res, next) {
 // OTHER THINGS
 //////
 
+function read(req, res, next) {
+  const { imageName }   = req.params
+  streamImageToResponse(req, res, next, imageName)
+}
+
+function destroy(req, res, next) {
+  const { imageName }   = req.params
+  console.log('remove', imageName)
+  res.status(200).send({status: 'ok'})
+}
+
 function listImages( req, res, next ) {
   list( req.params.mongoId )
   .then( files => res.json({ files }) )
@@ -394,6 +401,7 @@ module.exports = {
   checkImageCache,
   checkSizes,
   read,
+  destroy,
   listImages,
   upload,
 }
