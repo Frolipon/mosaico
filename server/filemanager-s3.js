@@ -36,7 +36,7 @@ function writeStreamFromPath( file ) {
     Key:    file.name,
     Body:   source,
   }, function(err, data) {
-    console.log(err, data)
+    // console.log(err, data)
   })
 }
 
@@ -64,7 +64,7 @@ function writeStreamFromStream( source, name ) {
 
 // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#listObjectsV2-property
 // https://github.com/matthew-andrews/denodeify#advanced-usage
-const listObjectsV2 = denodeify( s3.listObjectsV2, (err, data) => {
+const listObjectsV2 = denodeify( s3.listObjectsV2.bind( s3 ), (err, data) => {
   if ( data && data.Contents ) {
     data = data.Contents.map( file => formatName(file.Key))
   }
@@ -78,7 +78,7 @@ function listImages( prefix ) {
 }
 
 // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#copyObject-property
-const copyObject = denodeify( s3.copyObject )
+const copyObject = denodeify( s3.copyObject.bind( s3 ) )
 function copyImages(oldPrefix, newPrefix) {
 
   return listImages(oldPrefix)
