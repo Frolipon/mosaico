@@ -16,7 +16,7 @@ const {
 const config          = require('./config')
 const {
   streamImage,
-  writeStream,
+  writeStreamFromStream,
   list,
   parseMultipart, }   = require( './filemanager' )
 const { Cacheimages, Galleries } = require( './models' )
@@ -122,7 +122,7 @@ function handleSharpStream(req, res, next, pipeline) {
   if (config.images.cache) {
     const name          = getResizedImageName( req.path )
 
-    writeStream( pipeline.clone(), name )
+    writeStreamFromStream( pipeline.clone(), name )
     .then( onWriteResizeEnd({ path, name, imageName, }) )
     .catch( onWriteResizeError(path) )
   }
@@ -147,7 +147,7 @@ const handleGifStream = (req, res, next, gifProcessor) => {
   const streamForSave     = resizedStream.pipe( new stream.PassThrough() )
   const name              = getResizedImageName( path )
 
-  writeStream( streamForSave, name )
+  writeStreamFromStream( streamForSave, name )
   .then( onWriteResizeEnd({path, name, imageName}) )
   .catch( onWriteResizeError(path) )
 
@@ -354,7 +354,7 @@ function placeholder(req, res, next) {
   if (!config.images.cache) return
   const name      = getResizedImageName( req.path )
 
-  writeStream( pipeline.clone(), name )
+  writeStreamFromStream( pipeline.clone(), name )
   .then( onWriteResizeEnd({ path, name, imageName: placeholderSize }) )
   .catch( onWriteResizeError(path) )
 }
@@ -442,10 +442,8 @@ function upload( req, res, next ) {
 
   })
   .then( ([uploads, gallery]) => {
-    console.log('UPLOAD')
-    console.log(uploads)
-    // have to send the single file data because that's what jqueryFileupload expect
-    // Or not
+    // send only the new uploads
+    // front-application will iterate over them to update the gallery previews
     res.send( JSON.stringify(uploads) )
   })
   .catch( next )
@@ -471,6 +469,8 @@ function destroy(req, res, next) {
     creationOrWireframeId: mongoId,
   })
   .then( gallery => {
+    // TODO handle non existing gallery
+    // mongoID could be incorrect
     const { files }   = gallery
     const imageIndex  = files.findIndex( file =>  file.name === imageName )
     files.splice(imageIndex, 1)

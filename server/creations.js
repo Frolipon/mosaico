@@ -13,6 +13,7 @@ const filemanager   = require('./filemanager')
 const {
   Wireframes,
   Creations,
+  Galleries,
   Users,
   addCompanyFilter,
   addStrictCompanyFilter,
@@ -376,11 +377,6 @@ function bulkRemove(req, res, next) {
 // OTHERS ACTIONS
 //////
 
-function listImages(req, res, next) {
-  res.status( 200 ).send({status: 'ok'})
-}
-
-// TODO merge update & rename
 function update(req, res, next) {
   if (!req.xhr) return next(createError(501)) // Not Implemented
 
@@ -413,25 +409,48 @@ function remove(req, res, next) {
 }
 
 function duplicate(req, res, next) {
+  const { creationId }    = req.params
 
-  Creations
-  .findOne( addCompanyFilter(req.user, { _id: req.params.creationId}) )
-  .then( onCreation )
-  .catch( next )
+  Promise
+  .all([
+    Creations.findOne( addCompanyFilter(req.user, { _id: creationId }) ),
+    Galleries.findOne( { creationOrWireframeId: creationId } ),
+  ])
+  // Be sure that all images are duplicated before saving the duplicated creation
+  .then( duplicateImages )
+  .then( saveCreation )
+  .then( redirectToHome )
+  .catch( err => {
+    if (err.responseSend) return
+    next( err )
+  } )
 
-  function onCreation(creation) {
-    if (!creation) return next(createError(404))
-    creation
-    .duplicate( req.user )
-    .then( onDuplicate )
-    .catch( next )
+  function duplicateImages([creation, gallery]) {
+    if (!creation) {
+      next( createError(404) )
+      // Early return out of the promise chain
+      return Promise.reject( {responseSend: true} )
+    }
+    const duplicatedCreation = creation.duplicate( req.user )
+    return Promise.all([
+      duplicatedCreation,
+      gallery,
+      filemanager.copyImages( req.params.creationId, duplicatedCreation._id ),
+    ])
   }
 
-  function onDuplicate(newCreation) {
-    filemanager
-    .copyImages( req.params.creationId, newCreation._id )
-    .then( _ => res.redirect('/') )
+  function saveCreation( [duplicatedCreation, gallery] ) {
+    return Promise.all( [duplicatedCreation.save(), gallery ])
   }
+
+  function redirectToHome( [duplicatedCreation, gallery] ) {
+    res.redirect('/')
+    // if gallery can't be created it's not a problem
+    // it will be created when opening the duplicated creation
+    // we only loose hidden images
+    if ( gallery ) gallery.duplicate( duplicatedCreation._id ).save()
+  }
+
 }
 
 module.exports = {
