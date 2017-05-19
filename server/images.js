@@ -411,14 +411,17 @@ function listImages( req, res, next ) {
 // upload & update gallery
 function upload( req, res, next ) {
   if (!req.xhr) return next( createError(501) ) // Not Implemented
-  const { mongoId } = req.params
-
-  parseMultipart( req, {
-    prefix:     req.params.mongoId,
+  const { mongoId }       = req.params
+  const multipartOptions  = {
+    prefix:     mongoId,
     formatter:  'editor',
-  } )
-  .then( uploads => {
-    const gallery = Galleries.findOne({ creationOrWireframeId: mongoId })
+  }
+
+  Promise.all([
+    parseMultipart( req,  multipartOptions),
+    Galleries.findOne({ creationOrWireframeId: mongoId }),
+  ])
+  .then( ([uploads, gallery]) => {
     if ( gallery ) return Promise.all( [uploads, gallery] )
     // gallery could not be created at this point
     // without opening galleries panel in the editor no automatic DB gallery creation :(
@@ -427,17 +430,13 @@ function upload( req, res, next ) {
   .then( ([uploads, gallery]) => {
 
     uploads.files.forEach( upload => {
-      const imageName = upload.name
-      const { files, hiddenFiles } = gallery
+      const imageName   = upload.name
+      const { files }   = gallery
       const imageIndex  = files.findIndex( file =>  file.name === imageName )
-      const hiddenIndex = hiddenFiles.findIndex( file =>  file.name === imageName )
-
-      if ( hiddenIndex < 0 ) gallery.hiddenFiles = hiddenFiles.slice( hiddenIndex, 1 )
       if ( imageIndex < 0 ) files.push( upload )
     })
 
     gallery.markModified( 'files' )
-    gallery.markModified( 'hiddenFiles' )
 
     return Promise.all([uploads, gallery.save()])
 
@@ -472,12 +471,10 @@ function destroy(req, res, next) {
     creationOrWireframeId: mongoId,
   })
   .then( gallery => {
-    const { files, hiddenFiles } = gallery
-    const imageIndex = files.findIndex( file =>  file.name === imageName )
-    hiddenFiles.push( files[imageIndex] )
+    const { files }   = gallery
+    const imageIndex  = files.findIndex( file =>  file.name === imageName )
     files.splice(imageIndex, 1)
     gallery.markModified( 'files' )
-    gallery.markModified( 'hiddenFiles' )
     return gallery.save()
   })
   .then( gallery => {

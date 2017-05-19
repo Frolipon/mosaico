@@ -17,9 +17,6 @@ const GallerySchema = Schema({
   files: {
     type:       [],
   },
-  hiddenFiles: {
-    type:       [],
-  },
 }, { timestamps: false })
 
 module.exports = GallerySchema
