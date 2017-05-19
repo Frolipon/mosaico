@@ -82,16 +82,12 @@ const copyObject = denodeify( s3.copyObject.bind( s3 ) )
 function copyImages(oldPrefix, newPrefix) {
 
   return listImages(oldPrefix)
-  .then( files => {
-    files = files.map( copy )
-    return Promise.all( files )
-  })
+  .then( files => Promise.all( files.map( copy ) ))
 
   function copy(file) {
-    const src = config.storage.aws.bucketName + '/' + file.name
-    return s3.copyObject({
+    return copyObject({
       Bucket:     config.storage.aws.bucketName,
-      CopySource: src,
+      CopySource: config.storage.aws.bucketName + '/' + file.name,
       Key:        file.name.replace(oldPrefix, newPrefix),
     })
   }
