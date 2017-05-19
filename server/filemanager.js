@@ -15,17 +15,15 @@ const readFile    = denodeify( fs.readFile )
 const readDir     = denodeify( fs.readdir )
 
 const config        = require('./config')
+const defer         = require( './helpers/create-promise' )
 const slugFilename  = require('../shared/slug-filename.js')
+
 const thumbnailSize = `111x111`
 var streamImage
 var writeFromPath
 var writeStream
 var listImages
 var copyImages
-
-//////
-// AWS
-//////
 
 function formatFilenameForFront(filename) {
   return {
@@ -35,6 +33,10 @@ function formatFilenameForFront(filename) {
     thumbnailUrl: `/cover/${ thumbnailSize }/${filename}`,
   }
 }
+
+//////
+// AWS
+//////
 
 if (config.isAws) {
   AWS.config.update( config.storage.aws )
@@ -211,59 +213,6 @@ if (config.isAws) {
 // UPLOAD
 //////
 
-const formatters = {
-  editor:     handleEditorUpload,
-  wireframes: handleWireframesUploads,
-}
-
-// multipart/form-data
-function parseMultipart(req, options) {
-  return new Promise(function (resolve, reject) {
-    // parse a file upload
-    const form      = new formidable.IncomingForm()
-    const uploads   = []
-    form.multiples  = true
-    form.hash       = 'md5'
-    form.uploadDir  = config.images.tmpDir
-    form.parse(req, onEnd)
-    form.on('file', onFile)
-
-    function onEnd(err, fields, files) {
-      if (err) return reject(err)
-      console.log(chalk.green('form.parse', uploads.length))
-      // wait all TMP files to be moved in the good location (s3 or local)
-      Promise
-      .all( uploads )
-      .then( () => formatters[ options.formatter ](fields, files, resolve) )
-      .catch(reject)
-    }
-
-    function onFile(name, file) {
-      // remove empty files
-      if (file.size === 0) return
-      // markup will be saved in DB
-      if (name === 'markup') return
-      // put all other files in the right place (S3 \\ local)
-      console.log('on file', chalk.green(name) )
-      // slug every uploaded file name
-      // user may put accent and/or spaces…
-      let fileName      = slugFilename( file.name )
-      // ensure that files are having the right extention
-      // (files can be uploaded with extname missing…)
-      fileName          = fileName.replace( path.extname( fileName ), '' )
-      if (!fileName) return console.warn('unable to upload', file.name)
-      const ext         = mime.extension( file.type )
-      // name is only made of the file hash
-      file.name         = `${ options.prefix }-${ file.hash }.${ ext }`
-      // original name is needed for templates assets (preview/other images…)
-      file.originalName = `${ fileName }.${ ext }`
-      uploads.push( write(file) )
-    }
-  })
-}
-
-//----- WIREFRAME FILEUPLOAD
-
 function imageToFields(fields, file) {
   if (file.size === 0) return
   if (!file.name) return
@@ -296,34 +245,67 @@ function handleWireframesUploads(fields, files, resolve) {
   }
 }
 
-//----- EDITOR FILEUPLOAD
-
-// Datas for jquery file upload
-// name: 'sketchbook-342.jpg',
-// size: 412526,
-// type: 'image/jpeg',
-// modified: undefined,
-// deleteType: 'DELETE',
-// options: [Object],
-// key: 'upload_851cd88617b1963ee471e6537697d24c',
-// versions: [Object],
-// proccessed: true,
-// width: 1149,
-// height: 1080,
-// fields: {},
-// url: 'http://localhost:3000/uploads/sketchbook-342.jpg',
-// deleteUrl: 'http://localhost:3000/uploads/sketchbook-342.jpg',
-// thumbnailUrl: 'http://localhost:3000/uploads/thumbnail/sketchbook-342.jpg'
 function handleEditorUpload(fields, files, resolve) {
   console.log('HANDLE JQUERY FILE UPLOAD')
   var file  = files['files[]']
-  file      = _.assign({}, file, {
-    url:          `/img/${file.name}`,
-    deleteUrl:    `/img/${file.name}`,
-    thumbnailUrl: `/cover/${ thumbnailSize }/${ file.name }`,
-  })
-  resolve({ files: [file] , })
+  file      = formatFilenameForFront( file.name )
+  // knockout jquery-fileupload binding expect this format
+  resolve({ files: [file] })
 }
+
+const formatters = {
+  editor:     handleEditorUpload,
+  wireframes: handleWireframesUploads,
+}
+
+// multipart/form-data
+function parseMultipart(req, options) {
+  const deferred = defer()
+
+  // parse a file upload
+  const form      = new formidable.IncomingForm()
+  const uploads   = []
+  form.multiples  = true
+  form.hash       = 'md5'
+  form.uploadDir  = config.images.tmpDir
+  form.parse(req, onEnd)
+  form.on('file', onFile)
+
+  function onFile(name, file) {
+    // remove empty files
+    if (file.size === 0) return
+    // markup will be saved in DB
+    if (name === 'markup') return
+    // put all other files in the right place (S3 \\ local)
+    console.log('on file', chalk.green(name) )
+    // slug every uploaded file name
+    // user may put accent and/or spaces…
+    let fileName      = slugFilename( file.name )
+    // ensure that files are having the right extention
+    // (files can be uploaded with extname missing…)
+    fileName          = fileName.replace( path.extname( fileName ), '' )
+    if (!fileName) return console.warn('unable to upload', file.name)
+    const ext         = mime.extension( file.type )
+    // name is only made of the file hash
+    file.name         = `${ options.prefix }-${ file.hash }.${ ext }`
+    // original name is needed for templates assets (preview/other images…)
+    file.originalName = `${ fileName }.${ ext }`
+    uploads.push( write(file) )
+  }
+
+  function onEnd(err, fields, files) {
+    if (err) return deferred.reject( err )
+    console.log(chalk.green('form.parse', uploads.length))
+    // wait all TMP files to be moved in the good location (s3 or local)
+    Promise
+    .all( uploads )
+    .then( () => formatters[ options.formatter ](fields, files, deferred.resolve) )
+    .catch( deferred.reject )
+  }
+
+  return deferred
+}
+
 
 //////
 // EXPOSE

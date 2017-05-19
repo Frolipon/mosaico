@@ -13,19 +13,12 @@ const GallerySchema = Schema({
     type:       ObjectId,
     unique:     true,
     required:   true,
-    // set:        normalizeString,
   },
   files: {
     type:       [],
-    // unique:     true,
-    // required:   true,
-    // set:        normalizeString,
   },
   hiddenFiles: {
     type:       [],
-    // unique:     true,
-    // required:   true,
-    // set:        normalizeString,
   },
 }, { timestamps: false })
 

@@ -372,26 +372,21 @@ function read(req, res, next) {
 // EDITOR SPECIFIC
 //////
 
+function createGallery( mongoId ) {
+  // create the gallery in DB
+  return list( mongoId )
+  .then( files => {
+    return new Galleries({
+      creationOrWireframeId: mongoId,
+      files,
+    })
+    .save()
+  })
+}
+
 // Those functions are accessible only from the editor
 // wireframes assets (preview & template fixed assets)…
 // …are handled separatly in wireframes.js#update
-
-
-// destroy an image is not a real deletion
-// because:
-//  - those images can be still used inside creations
-//  - we are not sure that cropped images are cached
-//  - even thhougt an image can be used at it's original size (no cropped image cache)
-// so:
-//  - we just flag this image in the gallery table as not visible
-function destroy(req, res, next) {
-  if (!req.xhr) return next( createError(501) ) // Not Implemented
-  const { imageName }   = req.params
-  // TODO get the related gallery
-  // TODO change from files to hiddenFiles
-  console.log('remove', imageName)
-  res.status(200).send({status: 'ok'})
-}
 
 function listImages( req, res, next ) {
   if (!req.xhr) return next( createError(501) ) // Not Implemented
@@ -403,51 +398,92 @@ function listImages( req, res, next ) {
     creationOrWireframeId: mongoId,
   }, 'files' )
   .lean()
-  .then( onGallery )
+  .then( gallery => {
+    if ( gallery ) return Promise.resolve( gallery )
+    return createGallery( mongoId )
+  })
+  .then( gallery => {
+    res.json( gallery )
+  })
   .catch( next )
-
-  function onGallery( gallery ) {
-    if (gallery) return res.json( gallery )
-    // create the gallery in DB
-    list( mongoId )
-    .then( files => {
-      // we need to wait for the gallery to be saved in DB
-      // showing a gallery without those informations…
-      // …is risking that “deletion” won't persist in editor
-      return new Galleries({
-        creationOrWireframeId: mongoId,
-        files,
-      })
-      .save()
-    })
-    .then( newGallery => {
-      console.log( green('image gallery created in DB'))
-      res.json( newGallery )
-    })
-    .catch( e => {
-      console.log( red(`[IMAGE] can't save image gallery infos in DB`), path )
-      console.log( inspect( e ) )
-      next( e )
-    })
-  }
 }
 
+// upload & update gallery
 function upload( req, res, next ) {
   if (!req.xhr) return next( createError(501) ) // Not Implemented
   const { mongoId } = req.params
-  // TODO check first if the file is not present in the gallery hiddenFiles
-  // TODO if presents change from hiddenFiles to files and return this image
-  // TODO if NOT upload the image and add it to the gallery files
+
   parseMultipart( req, {
     prefix:     req.params.mongoId,
     formatter:  'editor',
   } )
-  .then( onParse )
-  .catch( next )
+  .then( uploads => {
+    const gallery = Galleries.findOne({ creationOrWireframeId: mongoId })
+    if ( gallery ) return Promise.all( [uploads, gallery] )
+    // gallery could not be created at this point
+    // without opening galleries panel in the editor no automatic DB gallery creation :(
+    return Promise.all( [uploads, createGallery( mongoId ) ])
+  })
+  .then( ([uploads, gallery]) => {
 
-  function onParse( datas4fileupload ) {
-    res.send( JSON.stringify(datas4fileupload) )
-  }
+    uploads.files.forEach( upload => {
+      const imageName = upload.name
+      const { files, hiddenFiles } = gallery
+      const imageIndex  = files.findIndex( file =>  file.name === imageName )
+      const hiddenIndex = hiddenFiles.findIndex( file =>  file.name === imageName )
+
+      if ( hiddenIndex < 0 ) gallery.hiddenFiles = hiddenFiles.slice( hiddenIndex, 1 )
+      if ( imageIndex < 0 ) files.push( upload )
+    })
+
+    gallery.markModified( 'files' )
+    gallery.markModified( 'hiddenFiles' )
+
+    return Promise.all([uploads, gallery.save()])
+
+  })
+  .then( ([uploads, gallery]) => {
+    console.log('UPLOAD')
+    console.log(uploads)
+    // have to send the single file data because that's what jqueryFileupload expect
+    // Or not
+    res.send( JSON.stringify(uploads) )
+  })
+  .catch( next )
+}
+
+// destroy an image is not a real deletion…
+// …because those images can be still used inside creations:
+//  - cache can be inactive
+//  - if active: we are not sure that cropped images are cached
+//  - even thougt every cropped images are cached
+//    an image can be used at it's original size (no cropped image cache)
+// so:
+//  - we just flag this image in the gallery table as not visible
+function destroy(req, res, next) {
+  if (!req.xhr) return next( createError(501) ) // Not Implemented
+  const { imageName }   = req.params
+  let mongoId = /^([a-f\d]{24})-/.exec( imageName )
+  if ( !mongoId ) return next( createError(422) ) // UnprocessableEntity
+  mongoId     = mongoId[ 1 ]
+
+  Galleries
+  .findOne({
+    creationOrWireframeId: mongoId,
+  })
+  .then( gallery => {
+    const { files, hiddenFiles } = gallery
+    const imageIndex = files.findIndex( file =>  file.name === imageName )
+    hiddenFiles.push( files[imageIndex] )
+    files.splice(imageIndex, 1)
+    gallery.markModified( 'files' )
+    gallery.markModified( 'hiddenFiles' )
+    return gallery.save()
+  })
+  .then( gallery => {
+    res.send( {files: gallery.files} )
+  })
+  .catch( next )
 }
 
 module.exports = {

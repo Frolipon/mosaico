@@ -3,6 +3,7 @@
 var console = require('console')
 var $       = require('jquery')
 var ko      = require('knockout')
+var _find   = require('lodash.find')
 
 function galleryLoader( opts ) {
 
@@ -33,10 +34,21 @@ function galleryLoader( opts ) {
       }
     }
 
+    // this is used as a paramater in fileupload binding
+    // see toolbox.tmpl.html `#toolimagesgallery fileupload`
+    // fileupload binding will iterate on every uploaded file and call this callback
+    // fileupload.js => e.type == 'fileuploaddone' for more details
     function loadImage( type ) {
       var gallery  = viewModel[ type + 'Gallery' ]
       var status   = viewModel[ type + 'GalleryStatus' ]
       return function ( img ) {
+        var imageName         = img.name
+        // beware of calling gallery(), because it is a knockout observable and not a real array
+        var isAlreadyUploaded = _find( gallery(), function( file ) {
+          return file.name === imageName
+        })
+        console.log(isAlreadyUploaded)
+        if ( isAlreadyUploaded ) return
         gallery.unshift( img )
         status( gallery().length )
       }

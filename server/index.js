@@ -323,7 +323,7 @@ module.exports = function () {
 
   app.get('/logout',                        guard('user'), session.logout)
   app.get('/img/:imageName',                images.read)
-  app.delete('/img/:imageName',             guard('no-session'), images.destroy)
+  app.delete('/img/:imageName',             guard('user'), images.destroy)
   app.get('/placeholder/:placeholderSize',  images.checkImageCache, images.placeholder)
   app.get('/resize/:sizes/:imageName',      images.checkImageCache, images.checkSizes, images.resize)
   app.get('/cover/:sizes/:imageName',       images.checkImageCache, images.checkSizes, images.cover)
