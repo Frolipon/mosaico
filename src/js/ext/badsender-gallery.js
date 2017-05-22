@@ -43,12 +43,16 @@ function galleryLoader( opts ) {
       var status   = viewModel[ type + 'GalleryStatus' ]
       return function ( img ) {
         var imageName         = img.name
-        // beware of calling gallery(), because it is a knockout observable and not a real array
+        // call gallery(), because it is a knockout observable and not a real array
+        // Don't show twice the same image
         var isAlreadyUploaded = _find( gallery(), function( file ) {
           return file.name === imageName
         })
-        console.log(isAlreadyUploaded)
         if ( isAlreadyUploaded ) return
+        // Don't update the gallery until it has been opened once
+        // This was leading to preventing the whole gallery to be fetched…
+        // … if we had uploaded an image in the editor
+        if ( status() === false ) return
         gallery.unshift( img )
         status( gallery().length )
       }
