@@ -543,7 +543,7 @@
 }
 
 ////////
-// IMAGE GALLERY
+// IMAGE GALLERY TOOLBOX
 ////////
 
 @gallery-gutter: 4px;
@@ -593,4 +593,20 @@
 }
 .draggable-item:hover .gallery-thumbs__remove {
   display: flex;
+}
+
+////////
+// IMAGE GALLERY DIALOG
+////////
+
+@dialog-margin: 32px;
+
+#dialogGallery {
+  position: fixed;
+  top: @dialog-margin;
+  right: @dialog-margin;
+  bottom: @dialog-margin;
+  left: @dialog-margin;
+  background: white;
+  z-index: 130;
 }

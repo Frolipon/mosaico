@@ -21,7 +21,6 @@
     icons: { primary: 'fa fa-fw fa-picture-o', secondary: null }, text: true, label: $root.t('Gallery') }"><label title="Show image gallery" for="showGallery" data-bind="attr: { title: $root.t('Show image gallery') }">show gallery</label></input>
     </span>
 
-    <!-- CREATION NAME -->
     <!-- ko template: {name: 'edit-name' } --># creation name #<!-- /ko -->
 
     <input id="previewFrameToggle" type="checkbox" data-bind="checked: $root.showPreviewFrame, button: { refreshOn: $root.showPreviewFrame, icons: { primary: 'fa fa-fw fa-tablet', secondary: null }, text: false, label: $root.t('Preview') }"><label title="Show live preview" for="previewFrameToggle" data-bind="attr: { title: $root.t('Show live preview') }">PREVIEW</label></input>
@@ -54,6 +53,8 @@
     <!-- /ko -->
     </div>
   </div>
+
+  <!-- ko template: {name: 'dialog-select-image' } --># dialog image selection #<!-- /ko -->
 
   <!-- ko if: $root.showToolbox -->
   <div id="main-toolbox" class="mo" data-bind="scrollable: true, withProperties: { templateMode: 'edit' }">

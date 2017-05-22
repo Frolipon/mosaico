@@ -408,6 +408,8 @@ function remove(req, res, next) {
   .catch(next)
 }
 
+
+// TODO while duplicating we should copy only the used images by the creation
 function duplicate(req, res, next) {
   const { creationId }    = req.params
 
