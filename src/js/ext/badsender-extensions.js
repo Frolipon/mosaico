@@ -27,7 +27,7 @@ function extendViewModel(opts, customExtensions) {
   customExtensions.push( setEditorIcon )
   customExtensions.push( editTitle )
   customExtensions.push( gallery(opts) )
-  customExtensions.push( removeImage(opts) )
+  customExtensions.push( removeImage )
 }
 
 //////
