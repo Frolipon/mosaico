@@ -76,6 +76,9 @@ var loader = function (viewModel) {
     var email = viewModel.t('Insert here the recipient email address')
     email     = global.prompt(viewModel.t("Test email address"), email)
 
+    // Don't validate `null` values => isEmail will error
+    if ( !email ) return testCmd.enabled(true)
+
     if (!isEmail(email)) {
       global.alert(viewModel.t('Invalid email address'));
       return testCmd.enabled(true)
