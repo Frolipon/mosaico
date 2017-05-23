@@ -65,6 +65,7 @@
       bgimage {
         label: Background Image;
         widget: bgimage;
+        size: 200x100;
       }
       weight {
         label: Graisse;
@@ -231,6 +232,14 @@
         theme: contentTheme;
       }
 
+      /*
+      // BACKGROUND IMAGE BLOCK
+      */
+
+      bgimageBlock {
+        label: a block with 2 differents images;
+      }
+
     }
   </style>
 
@@ -313,15 +322,35 @@
       Some background-image block
     </h3>
 
-    <dl style="border: 5px solid #eee;">
-      <dt style="background: #eee;">Url of the background-image</dt>
-      <dd style="height: 20px; -ko-bind-text: @bgimage"></dd>
-    </dl>
+    <table width="100%" cellpadding="0" border="0" cellspacing="0">
+      <tr>
+        <td align="center" valign="top" width="50%">
+          <dl style="border: 5px solid #eee;">
+            <dt style="background: #eee;">Url of the FIRST background-image</dt>
+            <dd style="height: 20px; -ko-bind-text: @firstBgimage"></dd>
+          </dl>
 
-    <dl style="border: 5px solid #ebe;">
-      <dt style="background: #ebe;">background-image</dt>
-      <dd style="height: 300px;"></dd>
-    </dl>
+          <dl style="border: 5px solid #ebe;">
+            <dt style="background: #ebe;">background-image</dt>
+            <dd style="height: 150px;" ></dd>
+          </dl>
+
+        </td>
+        <td align="center" valign="top" width="50%">
+
+          <dl style="border: 5px solid #eee;">
+            <dt style="background: #eee;">Url of the SECOND background-image</dt>
+            <dd style="height: 20px; -ko-bind-text: @secondBgimage"></dd>
+          </dl>
+
+          <dl style="border: 5px solid #ebe;">
+            <dt style="background: #ebe;">background-image</dt>
+            <dd style="height: 150px;"></dd>
+          </dl>
+
+        </td>
+      </tr>
+    </table>
 
   </div>
 
