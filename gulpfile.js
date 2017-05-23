@@ -63,15 +63,17 @@ function cleanCss(cb) {
 function cssEditor() {
   return gulp
   .src('src/css/badsender-editor.less')
-  .pipe($.less())
-  .pipe($.postcss([
+  .pipe( $.if(isDev, $.plumber(onError)) )
+  .pipe( $.if(isDev, $.sourcemaps.init()) )
+  .pipe( $.less() )
+  .pipe( $.postcss([
     autoprefixer({ browsers: ['ie 10', 'last 2 versions'], }),
-  ]))
-  .pipe(cssProd())
-  .pipe($.rename('badsender-editor.css'))
-  .pipe($.if(!isDev, $.cleanCss()))
-  .pipe(gulp.dest(buildDir))
-  .pipe($.if(isDev, reload({stream: true})))
+  ]) )
+  .pipe( $.if(isDev, cssDev(), cssProd()) )
+  .pipe( $.rename('badsender-editor.css') )
+  .pipe( $.if(!isDev, $.cleanCss()) )
+  .pipe( gulp.dest(buildDir) )
+  .pipe( $.if(isDev, reload({stream: true})) )
 }
 
 function cssApp() {
@@ -256,7 +258,7 @@ function templates() {
     templates.push(content)
     return cb(null)
   }
-  function resizeFlush(cb) {
+  function flush(cb) {
     var result  = "var templateSystem = require('../src/js/bindings/choose-template.js');\n";
     result      = result + "document.addEventListener('DOMContentLoaded', function(event) {\n";
     result      = result + templates.join('\n') + '\n';
@@ -276,7 +278,7 @@ function templates() {
     'src/tmpl-badsender/*.html',
     '!src/tmpl/gallery-images.tmpl.html',
   ])
-  .pipe( through.obj(passThrough, resizeFlush) )
+  .pipe( through.obj(passThrough, flush) )
   // templates has to be build on “build” folder
   // they will be require by editor app application
   .pipe(gulp.dest('build'))

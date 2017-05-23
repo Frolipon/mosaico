@@ -157,7 +157,9 @@
     &.ui-state-active {
       border-top: 0;
     }
-    &.ui-button-disabled, &.ui-button-disabled .ui-icon, &.ui-button-disabled .ui-button-text {
+    &.ui-button-disabled,
+    &.ui-button-disabled .ui-icon,
+    &.ui-button-disabled .ui-button-text {
       color: mix(@mosaico-ui-background-color, @tab-text-color);
     }
   }
@@ -434,10 +436,20 @@
 }
 
 ////////
-// GALLERY
+// GALLERY TABS
 ////////
 
-#toolimagestab {
+// `slidebar` is the wrapper of the gallery
+// originaly it's 3px less than the left bar
+.slidebar {
+  width: @leftsidebar-width;
+}
+
+// .mo seems to be the wrapper for not interfering with mailing HTML
+.mo .tabs_horizontal:not(#tooltabs) {
+  .ui-tabs-nav {
+    background: @mosaico-background-color;
+  }
   .ui-tabs-panel {
     border: 0;
   }
@@ -450,7 +462,58 @@
       padding-right: 1em;
     }
   }
+
+  li.ui-state-active a {
+    background: white;
+  }
 }
+
+//----- IMAGE GALLERY DIALOG
+
+@dialog-margin: 32px;
+
+#dialogGallery {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, .8);
+  padding: @dialog-margin;
+  display: flex;
+  justify-content: center;
+
+  .tabs_horizontal {
+    background: white;
+    width: 100%;
+    max-width: 1024px;
+    position: relative;
+  }
+
+  .close {
+    visibility: hidden;
+    cursor: pointer;
+    width: 24px;
+    display: block;
+    position: absolute;
+    top: 6px;
+    right: 6px;
+
+    &:before {
+      visibility: visible;
+      font-size: 24px;
+      font-family: FontAwesome;
+      content: '\f00d';
+      position: relative;
+      top: 0px;
+      right: 0px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+}
+
 
 
 ////////
@@ -593,20 +656,4 @@
 }
 .draggable-item:hover .gallery-thumbs__remove {
   display: flex;
-}
-
-////////
-// IMAGE GALLERY DIALOG
-////////
-
-@dialog-margin: 32px;
-
-#dialogGallery {
-  position: fixed;
-  top: @dialog-margin;
-  right: @dialog-margin;
-  bottom: @dialog-margin;
-  left: @dialog-margin;
-  background: white;
-  z-index: 130;
 }

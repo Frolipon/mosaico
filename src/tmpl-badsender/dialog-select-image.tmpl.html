@@ -1,46 +1,49 @@
 <!-- ko if: $root.showDialogGallery() -->
-<aside id="dialogGallery" class="tabs_horizontal" data-bind="tabs: { active: $root.selectedImageTab }">
-  <ul>
-    <li data-bind="tooltips: {}"><a title="gallery-mailing" data-local="true" href="#dialoggallery" data-bind="attr: { title: $root.t('gallery-mailing') }, text: $root.t('gallery-mailing')">gallery-mailing</a></li>
-    <li data-bind="tooltips: {}"><a title="gallery-template" data-local="true" href="#dialoggallerytemplate" data-bind="attr: { title: $root.t('gallery-template') }, text: $root.t('gallery-template')">gallery-template</a></li>
-  </ul>
-
-  <div id="dialoggallery" class="gallery-panel">
-  <!-- ko if: $root.mailingGalleryStatus() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadMailingGallery, button: { disabled: $root.mailingGalleryStatus, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.mailingGalleryStatus() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gallery #</a><!-- /ko -->
-
-    <!-- ko if: $root.mailingGalleryStatus() === 'loading' -->
-      <div class="galleryEmpty" data-bind="text: $root.t('gallery-mailing-loading')">Loading mailing gallery…</div>
-    <!-- /ko -->
-    <!-- ko if: $root.mailingGalleryStatus() === 0 -->
-      <div class="galleryEmpty" data-bind="text: $root.t('gallery-mailing-empty')">The mailing gallery is empty</div>
-    <!-- /ko -->
-    <ul data-bind="foreach: mailingGallery">
-      <!-- ko if: typeof thumbnailUrl != 'undefined' -->
-      <li>
-        <img style="display: block;" data-bind="tooltips: {}, attr: { src: thumbnailUrl, 'title': $root.t('Drag this image and drop it on any template image placeholder') }"/>
-      </li>
-      <!-- /ko -->
+<!-- should use ui-dialog -->
+<aside id="dialogGallery" class="mo">
+  <div class="tabs_horizontal" data-bind="tabs: { active: $root.selectedImageTab }">
+    <div class="close" data-bind="click: $root.closeDialogGallery;">X</div>
+    <ul>
+      <li data-bind="tooltips: {}"><a title="gallery-mailing" data-local="true" href="#dialoggallery" data-bind="attr: { title: $root.t('gallery-mailing') }, text: $root.t('gallery-mailing')">gallery-mailing</a></li>
+      <li data-bind="tooltips: {}"><a title="gallery-template" data-local="true" href="#dialoggallerytemplate" data-bind="attr: { title: $root.t('gallery-template') }, text: $root.t('gallery-template')">gallery-template</a></li>
     </ul>
-  </div>
 
-  <div id="dialoggallerytemplate" class="gallery-panel">
-    <!-- ko if: $root.templateGalleryStatus() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadTemplateGallery, button: { disabled: $root.templateGalleryStatus, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.templateGalleryStatus() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gallery #</a><!-- /ko -->
+    <div id="dialoggallery" class="gallery-panel">
+    <!-- ko if: $root.mailingGalleryStatus() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadMailingGallery, button: { disabled: $root.mailingGalleryStatus, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.mailingGalleryStatus() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gallery #</a><!-- /ko -->
 
-
-    <!-- ko if: $root.templateGalleryStatus() === 'loading' -->
-      <div class="galleryEmpty" data-bind="text: $root.t('gallery-mailing-loading')">Loading template gallery...</div>
-    <!-- /ko -->
-    <!-- ko if: $root.templateGalleryStatus() === 0 -->
-      <div class="galleryEmpty" data-bind="text: $root.t('gallery-mailing-empty')">The template gallery is empty</div>
-    <!-- /ko -->
-    <ul data-bind="foreach: templateGallery">
-      <!-- ko if: typeof thumbnailUrl != 'undefined' -->
-      <li>
-        <img style="display: block;" data-bind="tooltips: {}, attr: { src: thumbnailUrl, 'title': $root.t('Drag this image and drop it on any template image placeholder') }"/>
-      </li>
+      <!-- ko if: $root.mailingGalleryStatus() === 'loading' -->
+        <div class="galleryEmpty" data-bind="text: $root.t('gallery-mailing-loading')">Loading mailing gallery…</div>
       <!-- /ko -->
-    </ul>
-  </div>
+      <!-- ko if: $root.mailingGalleryStatus() === 0 -->
+        <div class="galleryEmpty" data-bind="text: $root.t('gallery-mailing-empty')">The mailing gallery is empty</div>
+      <!-- /ko -->
+      <ul data-bind="foreach: mailingGallery">
+        <!-- ko if: typeof thumbnailUrl != 'undefined' -->
+        <li data-bind="click: $root.setBgImage.bind($element, name);">
+          <img style="display: block;" data-bind="attr: { src: thumbnailUrl }"/>
+        </li>
+        <!-- /ko -->
+      </ul>
+    </div>
 
+    <div id="dialoggallerytemplate" class="gallery-panel">
+      <!-- ko if: $root.templateGalleryStatus() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadTemplateGallery, button: { disabled: $root.templateGalleryStatus, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.templateGalleryStatus() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gallery #</a><!-- /ko -->
+
+
+      <!-- ko if: $root.templateGalleryStatus() === 'loading' -->
+        <div class="galleryEmpty" data-bind="text: $root.t('gallery-mailing-loading')">Loading template gallery...</div>
+      <!-- /ko -->
+      <!-- ko if: $root.templateGalleryStatus() === 0 -->
+        <div class="galleryEmpty" data-bind="text: $root.t('gallery-mailing-empty')">The template gallery is empty</div>
+      <!-- /ko -->
+      <ul data-bind="foreach: templateGallery">
+        <!-- ko if: typeof thumbnailUrl != 'undefined' -->
+        <li>
+          <img style="display: block;" data-bind="tooltips: {}, attr: { src: thumbnailUrl, 'title': $root.t('Drag this image and drop it on any template image placeholder') }"/>
+        </li>
+        <!-- /ko -->
+      </ul>
+    </div>
+  </div>
 </aside>
 <!-- /ko -->
