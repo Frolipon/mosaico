@@ -239,6 +239,8 @@
       bgimageBlock {
         label: a block with 2 differents images;
       }
+      bgimageBlock firstBgimage {   label: left image; }
+      bgimageBlock secondBgimage {  label: right image; }
 
     }
   </style>
@@ -325,29 +327,22 @@
     <table width="100%" cellpadding="0" border="0" cellspacing="0">
       <tr>
         <td align="center" valign="top" width="50%">
-          <dl style="border: 5px solid #eee;">
-            <dt style="background: #eee;">Url of the FIRST background-image</dt>
-            <dd style="height: 20px;"></dd>
-          </dl>
-
           <dl style="border: 5px solid #ebe;">
-            <dt style="background: #ebe;">background-image</dt>
-            <dd style="height: 100px; background: no-repeat center center; background-image: url('http://dummyimage.com/150x100/666666/fff'); -ko-background-image: @firstText;" ></dd>
+            <dt style="background: #ebe;">Url of the FIRST background-image (using style background-image)</dt>
+            <dd style="height: 100px; background: no-repeat center center; background-image: url('http://dummyimage.com/200x100/666666/fff'); -ko-background-image: url(@[firstBgimage]);" ></dd>
           </dl>
-
         </td>
         <td align="center" valign="top" width="50%">
-
-          <dl style="border: 5px solid #eee;">
-            <dt style="background: #eee;">Url of the SECOND background-image</dt>
-            <dd style="height: 20px;"></dd>
-          </dl>
-
           <dl style="border: 5px solid #ebe;">
-            <dt style="background: #ebe;">background-image</dt>
-            <dd style="height: 100px; background: no-repeat center center; background-image:  url('http://dummyimage.com/150x100/666666/fff'); -ko-background-image: @secondBgimage;" ></dd>
+            <dt style="background: #ebe;">Url of the SECOND background-image (using table background attribute)</dt>
+            <dd style="height: 100px; text-align: center">
+              <table width="200">
+                <tr>
+                  <td background="http://dummyimage.com/200x100/666666/fff" style="height:100px; -ko-attr-background: @secondBgimage;"></td>
+                </tr>
+              </table>
+            </dd>
           </dl>
-
         </td>
       </tr>
     </table>
