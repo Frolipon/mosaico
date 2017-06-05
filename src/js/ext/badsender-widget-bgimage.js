@@ -30,7 +30,7 @@ function html( propAccessor, onfocusbinding, { size } ) {
   size = isValidSize( size ) ? size : parameters.size
 
   return `
-    <input size="7" type="text" id="${propAccessor}" data-bind="value: ${propAccessor}, ${onfocusbinding}" />
+    <input size="7" type="text" value="nothing" id="${propAccessor}" data-bind="value: ${propAccessor}, ${onfocusbinding}" />
     <button data-bind="click: $root.openDialogGallery.bind($element, '${propAccessor}', '${size}');">pick an image</button>
   `
 }
@@ -40,7 +40,7 @@ function viewModel( vm ) {
   vm.currentBgimage     = ko.observable( false )
   vm.currentBgsize      = ko.observable( false )
   vm.setBgImage         = ( imageName, img, event ) => {
-    vm.currentBgimage()( `/cover/${ vm.currentBgsize() }/${ imageName }` )
+    vm.currentBgimage()( `url("/cover/${ vm.currentBgsize() }/${ imageName }")` )
     vm.closeDialogGallery()
   }
   vm.openDialogGallery = ( propAccessor, size, blockProperties, event ) => {
