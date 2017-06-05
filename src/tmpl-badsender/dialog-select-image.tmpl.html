@@ -38,8 +38,8 @@
       <!-- /ko -->
       <ul data-bind="foreach: templateGallery">
         <!-- ko if: typeof thumbnailUrl != 'undefined' -->
-        <li>
-          <img style="display: block;" data-bind="tooltips: {}, attr: { src: thumbnailUrl, 'title': $root.t('Drag this image and drop it on any template image placeholder') }"/>
+        <li data-bind="click: $root.setBgImage.bind($element, name);">
+          <img style="display: block;" data-bind="attr: { src: thumbnailUrl }"/>
         </li>
         <!-- /ko -->
       </ul>
