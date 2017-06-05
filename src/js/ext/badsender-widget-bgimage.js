@@ -40,7 +40,8 @@ function viewModel( vm ) {
   vm.currentBgimage     = ko.observable( false )
   vm.currentBgsize      = ko.observable( false )
   vm.setBgImage         = ( imageName, img, event ) => {
-    vm.currentBgimage()( `url("/cover/${ vm.currentBgsize() }/${ imageName }")` )
+    // vm.currentBgimage()( `url("/cover/${ vm.currentBgsize() }/${ imageName }")` )
+    vm.currentBgimage()( `/cover/${ vm.currentBgsize() }/${ imageName }` )
     vm.closeDialogGallery()
   }
   vm.openDialogGallery = ( propAccessor, size, blockProperties, event ) => {
