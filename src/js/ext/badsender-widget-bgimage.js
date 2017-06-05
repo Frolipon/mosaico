@@ -56,6 +56,13 @@ function viewModel( vm ) {
     vm.currentBgimage( false )
     vm.showDialogGallery( false )
   }
+
+  const dialogGalleryOpen = vm.showDialogGallery.subscribe( newValue => {
+    if (newValue === true && vm.mailingGalleryStatus() === false) {
+      vm.loadMailingGallery()
+      dialogGalleryOpen.dispose()
+    }
+  })
 }
 
 module.exports = {
