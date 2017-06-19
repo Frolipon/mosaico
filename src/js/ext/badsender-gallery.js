@@ -11,8 +11,8 @@ function galleryLoader( opts ) {
 
   return function (viewModel) {
 
-    viewModel.mailingGallery        = ko.observableArray([]).extend({ paging: 12 })
-    viewModel.templateGallery       = ko.observableArray([]).extend({ paging: 12 })
+    viewModel.mailingGallery        = ko.observableArray([])
+    viewModel.templateGallery       = ko.observableArray([])
     viewModel.mailingGalleryStatus  = ko.observable(false)
     viewModel.templateGalleryStatus = ko.observable(false)
 
@@ -51,7 +51,7 @@ function galleryLoader( opts ) {
         if ( isAlreadyUploaded ) return
         // Don't update the gallery until it has been opened once
         // This was leading to preventing the whole gallery to be fetched…
-        // … if we had uploaded an image in the editor
+        // …if we had uploaded an image in the editor
         if ( status() === false ) return
         gallery.unshift( img )
         status( gallery().length )

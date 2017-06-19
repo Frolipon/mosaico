@@ -26,7 +26,7 @@
     <!-- /ko -->
     <!-- ko block: content --><!-- /ko -->
   </div>
-  
+
   <div id="toolstyles" data-bind="scrollable: true, withProperties: { templateMode: 'styler' }">
     <!-- ko if: typeof $root.content().theme === 'undefined' || typeof $root.content().theme().scheme === 'undefined' || $root.content().theme().scheme() === 'custom' -->
       <!-- ko if: $root.selectedBlock() !== null -->
@@ -41,7 +41,7 @@
     <!-- /ko -->
   </div>
 </div>
-        
+
 <div id="toolimages" class="slidebar" data-bind="scrollable: true, css: { hidden: $root.showGallery() === false }">
   <div class="close" data-bind="click: $root.showGallery.bind($element, false);">X</div>
   <span class="pane-title" data-bind="text: $root.t('gallery-title')">Galleries:</span>
@@ -54,17 +54,7 @@
     </ul>
 
     <div id="toolimagesgallery" class="gallery-panel">
-      <div data-drop-content="Drop here" class="img-dropzone pane uploadzone" data-bind="attr: { 'data-drop-content': $root.t('Drop here') }, fudroppable: { activeClass: 'ui-state-highlight', hoverClass: 'ui-state-draghover' }">
-        <div class="mo-uploadzone">
-           <input class="fileupload" type="file" multiple name="files[]" data-bind="fileupload: { onerror: $root.notifier.error, onfile: $root.loadMailingImage }">
-           <span data-bind="text: $root.t('Click or drag files here')">Click or drag files here</span>
-           <div class="workzone">
-             <div class="progress">
-               <div class="progress-bar progress-bar-success"></div>
-             </div>
-           </div>
-        </div>
-      </div>
+      <!-- ko template: {name: 'gallery-upload', data: { type: 'mailing' } } --># mailing gallery fileupload #<!-- /ko -->
     <!-- ko if: $root.mailingGalleryStatus() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadMailingGallery, button: { disabled: $root.mailingGalleryStatus, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.mailingGalleryStatus() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gallery #</a><!-- /ko -->
 
 
@@ -74,17 +64,7 @@
     </div>
 
     <div id="toolimagesgallerytemplate" class="gallery-panel">
-      <div data-drop-content="Drop here" class="img-dropzone pane uploadzone" data-bind="attr: { 'data-drop-content': $root.t('Drop here') }, fudroppable: { activeClass: 'ui-state-highlight', hoverClass: 'ui-state-draghover' }">
-        <div class="mo-uploadzone">
-           <input class="fileupload" type="file" multiple name="files[]" data-bind="fileupload: { onerror: $root.notifier.error, onfile: $root.loadTemplateImage, uploadToTemplate: true }">
-           <span data-bind="text: $root.t('Click or drag files here')">Click or drag files here</span>
-           <div class="workzone">
-             <div class="progress">
-               <div class="progress-bar progress-bar-success"></div>
-             </div>
-           </div>
-        </div>
-        </div>
+      <!-- ko template: {name: 'gallery-upload', data: { type: 'template' } } --># mailing template fileupload #<!-- /ko -->
 
       <!-- ko if: $root.templateGalleryStatus() === false --><a class="loadbutton" title="Show images from the gallery" href="javascript:void(0)" data-bind="attr: { title: $root.t('Show images from the gallery') }, click: $root.loadTemplateGallery, button: { disabled: $root.templateGalleryStatus, icons: { primary: 'fa fa-fw fa-picture-o' }, label: $root.templateGalleryStatus() == 'loading' ? $root.t('Loading...') : $root.t('Load gallery'), text: true }"># load gallery #</a><!-- /ko -->
 
@@ -100,7 +80,7 @@
 
 <div id="tooldebug" class="slidebar" data-bind="css: { hidden: $root.debug() === false }">
   <div class="close" data-bind="click: $root.debug.bind($element, false);">X</div>
-  
+
   <!-- ko if: $root.debug -->
   Content:
   <pre data-bind='text: ko.toJSON(content, null, 2)' style="overflow: auto; height: 20%"></pre>
@@ -116,7 +96,7 @@
 
 <div id="tooltheme" class="ui-widget slidebar" data-bind="css: { hidden: $root.showTheme() === false }">
   <div class="close" data-bind="click: $root.showTheme.bind($element, false);">X</div>
-  
+
   <!-- ko withProperties: { templateMode: 'styler' } -->
     <!-- ko if: $root.showTheme -->
       <!-- ko block: $root.content().theme --><!-- /ko -->
