@@ -449,22 +449,22 @@
 .mo .tabs_horizontal:not(#tooltabs) {
   .ui-tabs-nav {
     background: @mosaico-background-color;
+
+    li {
+      margin: 0;
+      border-bottom: 0;
+
+      a {
+        padding-left: 1em;
+        padding-right: 1em;
+      }
+      &.ui-state-active a {
+        background: white;
+      }
+    }
   }
   .ui-tabs-panel {
     border: 0;
-  }
-  li {
-    margin: 0;
-    border-bottom: 0;
-
-    a {
-      padding-left: 1em;
-      padding-right: 1em;
-    }
-  }
-
-  li.ui-state-active a {
-    background: white;
   }
 }
 
@@ -490,7 +490,6 @@
     max-width: 1024px;
     position: relative;
   }
-
   .close {
     visibility: hidden;
     cursor: pointer;
@@ -512,9 +511,33 @@
       height: 24px;
     }
   }
+
+  .gallery-panel {
+    position: absolute;
+    top: @topbar-height;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: auto;
+    text-align: center;
+    padding: .5em 0;
+
+    ul,
+    li {
+      list-style: none;
+      margin: 0;
+    }
+    ul {
+      display: inline-block;
+      font-size: 0;
+    }
+    li {
+      display: inline-block;
+      padding: 0 .45em .45em;
+      font-size: initial;
+    }
+  }
 }
-
-
 
 ////////
 // COLORPICKER
@@ -608,6 +631,30 @@
 ////////
 // IMAGE GALLERY TOOLBOX
 ////////
+
+#toolimagestab {
+  padding: 0;
+  position: absolute;
+  top: @topbar-height;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+#toolimagestab .ui-tabs-panel {
+  position: absolute;
+  top: @topbar-height;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+
+  .gallery-thumbs {
+    flex-grow: 1;
+    overflow: auto;
+  }
+}
 
 @gallery-gutter: 4px;
 

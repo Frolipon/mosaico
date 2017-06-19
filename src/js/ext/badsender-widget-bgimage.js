@@ -10,6 +10,9 @@ const console     = require( 'console' )
 //   widget: bgimage;
 //   size: 200x100;
 // }
+
+// other “native” widgets are defined in converter/editor.js
+
 const parameters    = Object.freeze({
   size: `100x100`,
 })
@@ -25,8 +28,6 @@ function widget( $, ko, kojqui ) {
 }
 
 function html( propAccessor, onfocusbinding, { size } ) {
-  console.log('HTML')
-  console.log( {propAccessor, size } )
   size = isValidSize( size ) ? size : parameters.size
 
   return `

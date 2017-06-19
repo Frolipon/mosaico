@@ -324,17 +324,23 @@
       Some background-image block
     </h3>
 
+    <!--
+      It should be possible to combine background-image style et background attributes
+      But using both of them break in my case…
+      https://github.com/voidlabs/mosaico/issues/205 -
+    -->
+
     <table width="100%" cellpadding="0" border="0" cellspacing="0">
       <tr>
         <td align="center" valign="top" width="50%">
           <dl style="border: 5px solid #ebe;">
-            <dt style="background: #ebe;">Url of the FIRST background-image (using style background-image)</dt>
+            <dt style="background: #ebe;">use style background-image</dt>
             <dd style="height: 100px; background: no-repeat center center; background-image: url('http://dummyimage.com/200x100/666666/fff'); -ko-background-image: url(@[firstBgimage]);" ></dd>
           </dl>
         </td>
         <td align="center" valign="top" width="50%">
           <dl style="border: 5px solid #ebe;">
-            <dt style="background: #ebe;">Url of the SECOND background-image (using table background attribute)</dt>
+            <dt style="background: #ebe;">use table background attribute</dt>
             <dd style="height: 100px; text-align: center">
               <table width="200">
                 <tr>
