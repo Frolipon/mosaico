@@ -28,6 +28,29 @@
 
 @mosaico-selection-color: @link-color;
 
+// http://lea.verou.me/2012/04/background-attachment-local/
+.scrolling-shadow() {
+  background:
+    // Shadow covers
+    linear-gradient(white 30%, rgba(255,255,255,0)),
+    linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
+    // Shadows
+    radial-gradient(50% 0, farthest-side, rgba(0,0,0,.3), rgba(0,0,0,0)),
+    radial-gradient(50% 100%,farthest-side, rgba(0,0,0,.3), rgba(0,0,0,0)) 0 100%;
+  background:
+    // Shadow covers
+    linear-gradient(white 30%, rgba(255,255,255,0)),
+    linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
+    // Shadows
+    radial-gradient(farthest-side at 50% 0, rgba(0,0,0,.3), rgba(0,0,0,0)),
+    radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,.3), rgba(0,0,0,0)) 0 100%;
+  background-repeat: no-repeat;
+  background-color: white;
+  background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+
+  /* Opera doesn't support this in the shorthand */
+  background-attachment: local, local, scroll, scroll;
+}
 
 // --------------- PAGE ---------------
 //              |       toolbar
@@ -511,16 +534,45 @@
       height: 24px;
     }
   }
-
   .gallery-panel {
     position: absolute;
     top: @topbar-height;
     right: 0;
     bottom: 0;
     left: 0;
-    overflow: auto;
     text-align: center;
     padding: .5em 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .img-dropzone {
+    position: relative;
+    margin: 0 .5em .5em;
+    flex-grow: 0;
+    flex-shrink: 0;
+    background-color: @mosaico-background-color;
+    border-radius: 5px;
+    padding: 5px;
+
+    &.ui-state-highlight:before {
+      .makeDroppable();
+      line-height: 45px;
+      height: auto;
+      top: -10px;
+      bottom: -10px;
+    }
+    &.ui-state-draghover:before {
+      background-color: fade(@mosaico-selection-color, 80%);
+      animation: none;
+    }
+  }
+  .uploadzone {
+    font-size: 1.2em;
+  }
+  .dialog-gallery-wrapper {
+    .scrolling-shadow();
+    flex-shrink: 1;
+    overflow: auto;
 
     ul,
     li {
@@ -536,25 +588,6 @@
       display: inline-block;
       padding: .45em;
       font-size: initial;
-    }
-
-    .img-dropzone {
-      position: relative;
-    }
-    .img-dropzone.ui-state-highlight:before {
-      .makeDroppable();
-      line-height: 45px;
-      height: auto;
-      top: -10px;
-      bottom: -10px;
-    }
-    .img-dropzone.ui-state-draghover:before {
-      background-color: fade(@mosaico-selection-color, 80%);
-      animation: none;
-    }
-
-    .uploadzone {
-      font-size: 1.2em;
     }
   }
 }
@@ -600,7 +633,6 @@
   text-align: center;
 
   .uploadzone {
-    margin-bottom: 1em;
     margin-left: 0;
     margin-right: 0;
   }
@@ -671,8 +703,11 @@
   flex-direction: column;
 
   .gallery-thumbs {
+    .scrolling-shadow();
     flex-grow: 1;
     overflow: auto;
+    margin-left: -18px;
+    margin-right: -18px;
   }
 }
 
@@ -681,8 +716,9 @@
 .gallery-thumbs--badsender > div {
   display: flex;
   flex-wrap: wrap;
-  margin-left: (@gallery-gutter * -1);
-  margin-right: (@gallery-gutter * -1);
+  margin-left: 18px;
+  margin-right: 18px;
+  margin-top: 1em;
 }
 
 #main-toolbox {
