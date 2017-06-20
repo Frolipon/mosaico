@@ -22,7 +22,9 @@ module.exports = {
   'gallery-template-loading':     `Loading template gallery…`,
   'gallery-template-empty':       `The template gallery is empty`,
   'gallery-remove-image-success': `This image has been removed from the gallery`,
-  'gallery-remove-image-fail':    `An error has occured while reomving the image`,
+  'gallery-remove-image-fail':    `An error has occured while removing the image`,
+  // bgimage widget
+  'widget-bgimage-button':        `pick an image`,
   // prevent i18n console.warn
   'Fake image editor':            ``,
   '<p>Fake image editor</p>':     ``,

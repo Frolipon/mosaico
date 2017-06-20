@@ -32,7 +32,7 @@ function html( propAccessor, onfocusbinding, { size } ) {
 
   return `
     <input size="7" type="hidden" value="nothing" id="${propAccessor}" data-bind="value: ${propAccessor}, ${onfocusbinding}" />
-    <button data-bind="click: $root.openDialogGallery.bind($element, '${propAccessor}', '${size}');">pick an image</button>
+    <button data-bind="text: $root.t('widget-bgimage-button'), click: $root.openDialogGallery.bind($element, '${propAccessor}', '${size}');">pick an image</button>
   `
 }
 
