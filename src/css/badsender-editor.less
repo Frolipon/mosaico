@@ -35,21 +35,31 @@
     linear-gradient(white 30%, rgba(255,255,255,0)),
     linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
     // Shadows
-    radial-gradient(50% 0, farthest-side, rgba(0,0,0,.3), rgba(0,0,0,0)),
-    radial-gradient(50% 100%,farthest-side, rgba(0,0,0,.3), rgba(0,0,0,0)) 0 100%;
+    radial-gradient(50% 0, farthest-side, rgba(0,0,0,.35), rgba(0,0,0,0)),
+    radial-gradient(50% 100%,farthest-side, rgba(0,0,0,.35), rgba(0,0,0,0)) 0 100%;
   background:
     // Shadow covers
     linear-gradient(white 30%, rgba(255,255,255,0)),
     linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
     // Shadows
-    radial-gradient(farthest-side at 50% 0, rgba(0,0,0,.3), rgba(0,0,0,0)),
-    radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,.3), rgba(0,0,0,0)) 0 100%;
+    radial-gradient(farthest-side at 50% 0, rgba(0,0,0,.35), rgba(0,0,0,0)),
+    radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,.35), rgba(0,0,0,0)) 0 100%;
   background-repeat: no-repeat;
   background-color: white;
   background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
 
   /* Opera doesn't support this in the shorthand */
   background-attachment: local, local, scroll, scroll;
+}
+.visually-hidden() {
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  width: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
 }
 
 // --------------- PAGE ---------------
@@ -415,10 +425,72 @@
 
 }
 
+.mo {
+  .propEditor {
+    display: flex;
+    align-items: center;
+  }
+}
+
 .wintitle() {
   color: @button-text-color;
   .ui-icon {
     color: @button-text-color;
+  }
+}
+
+////////
+// GALLERY TABS & PANELS
+////////
+
+.gallery-panel {
+  text-align: center;
+
+  .uploadzone {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .mo-uploadzone {
+    position: relative;
+    padding: 2em;
+    border: 2px dotted #808080;
+  }
+  .fileupload {
+    z-index: 10;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-zie: 999px;
+    text-align: right;
+    opacity: 0;
+    outline: none;
+    cursor: inherit;
+    display: block;
+  }
+  .workzone {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+  }
+  .progress {
+    opacity: .5;
+    width: 80%;
+    margin-left: 10%;
+    position: absolute;
+    bottom: 30%;
+    height: 20px;
+    border: 2px solid black;
+  }
+  .progress-bar {
+    height: 20px;
+    background-color: black;
   }
 }
 
@@ -455,6 +527,91 @@
   p,
   input {
     flex: 1 1 auto;
+  }
+}
+
+//----- IMAGE GALLERY TOOLBOX
+
+@gallery-gutter: 4px;
+
+#toolimagestab {
+  padding: 0;
+  position: absolute;
+  top: @topbar-height;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  .ui-tabs-panel {
+    position: absolute;
+    top: @topbar-height;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+
+    .gallery-thumbs {
+      .scrolling-shadow();
+      flex-grow: 1;
+      overflow: auto;
+      margin-left: -18px;
+      margin-right: -18px;
+    }
+  }
+}
+.gallery-thumbs--badsender > div {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: 18px;
+  margin-right: 18px;
+  margin-top: 1em;
+}
+#main-toolbox {
+  .draggable-item {
+    margin-left: @gallery-gutter;
+    margin-right: @gallery-gutter;
+    // // http://stackoverflow.com/questions/28200574/make-math-happen-inside-css-calc-with-less#answer-28210969
+    width: calc(33% ~"-" (@gallery-gutter*2));
+  }
+  .draggable-item:nth-child(3) ~ .draggable-item {
+    margin-top: @gallery-gutter;
+  }
+  .draggable.image {
+    width: 111px;
+    height: 111px;
+  }
+}
+.gallery-thumbs__remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: @link-color;
+  color: white;
+  border: 0;
+  outline: 0;
+  align-items: middle;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 24px;
+  line-height: 0;
+  transform: translate( 25%, -25%);
+  z-index: 2;
+  display: none;
+}
+.draggable-item:hover .gallery-thumbs__remove {
+  display: flex;
+}
+
+//----- BACKGROUND-IMAGE WIDGET
+
+.data-bgimage {
+  button {
+    .button-style();
+    text-transform: none;
   }
 }
 
@@ -571,8 +728,9 @@
   }
   .dialog-gallery-wrapper {
     .scrolling-shadow();
-    flex-shrink: 1;
+    flex-grow: 1;
     overflow: auto;
+    padding: 0 7px;
 
     ul,
     li {
@@ -586,8 +744,18 @@
     }
     li {
       display: inline-block;
-      padding: .45em;
+      padding: 7px;
       font-size: initial;
+      margin: 4px;
+      overflow: hidden;
+      width: 125px;
+      height: 125px;
+      box-shadow: 0 0 1px @mosaico-shadow-color;
+
+      &:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px @mosaico-shadow-color;
+      }
     }
   }
 }
@@ -623,140 +791,4 @@
 
 .mce-fontsizedialogbutton {
   width: 120px !important;
-}
-
-////////
-// gallery tabs & panels
-////////
-
-.gallery-panel {
-  text-align: center;
-
-  .uploadzone {
-    margin-left: 0;
-    margin-right: 0;
-  }
-  .mo-uploadzone {
-    position: relative;
-    padding: 2em;
-    border: 2px dotted #808080;
-  }
-  .fileupload {
-    z-index: 10;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    min-width: 100%;
-    min-height: 100%;
-    font-zie: 999px;
-    text-align: right;
-    opacity: 0;
-    outline: none;
-    cursor: inherit;
-    display: block;
-  }
-  .workzone {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    overflow: hidden;
-  }
-  .progress {
-    opacity: .5;
-    width: 80%;
-    margin-left: 10%;
-    position: absolute;
-    bottom: 30%;
-    height: 20px;
-    border: 2px solid black;
-  }
-  .progress-bar {
-    height: 20px;
-    background-color: black;
-  }
-}
-
-////////
-// IMAGE GALLERY TOOLBOX
-////////
-
-#toolimagestab {
-  padding: 0;
-  position: absolute;
-  top: @topbar-height;
-  right: 0;
-  bottom: 0;
-  left: 0;
-}
-
-#toolimagestab .ui-tabs-panel {
-  position: absolute;
-  top: @topbar-height;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  display: flex;
-  flex-direction: column;
-
-  .gallery-thumbs {
-    .scrolling-shadow();
-    flex-grow: 1;
-    overflow: auto;
-    margin-left: -18px;
-    margin-right: -18px;
-  }
-}
-
-@gallery-gutter: 4px;
-
-.gallery-thumbs--badsender > div {
-  display: flex;
-  flex-wrap: wrap;
-  margin-left: 18px;
-  margin-right: 18px;
-  margin-top: 1em;
-}
-
-#main-toolbox {
-  .draggable-item {
-    margin-left: @gallery-gutter;
-    margin-right: @gallery-gutter;
-    // // http://stackoverflow.com/questions/28200574/make-math-happen-inside-css-calc-with-less#answer-28210969
-    width: calc(33% ~"-" (@gallery-gutter*2));
-  }
-  .draggable-item:nth-child(3) ~ .draggable-item {
-    margin-top: @gallery-gutter;
-  }
-  .draggable.image {
-    width: 111px;
-    height: 111px;
-  }
-}
-
-.gallery-thumbs__remove {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: @link-color;
-  color: white;
-  border: 0;
-  outline: 0;
-  align-items: middle;
-  justify-content: center;
-  margin: 0;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  border-radius: 24px;
-  line-height: 0;
-  transform: translate( 25%, -25%);
-  z-index: 2;
-  display: none;
-}
-.draggable-item:hover .gallery-thumbs__remove {
-  display: flex;
 }

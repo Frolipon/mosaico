@@ -31,7 +31,7 @@ function html( propAccessor, onfocusbinding, { size } ) {
   size = isValidSize( size ) ? size : parameters.size
 
   return `
-    <input size="7" type="text" value="nothing" id="${propAccessor}" data-bind="value: ${propAccessor}, ${onfocusbinding}" />
+    <input size="7" type="hidden" value="nothing" id="${propAccessor}" data-bind="value: ${propAccessor}, ${onfocusbinding}" />
     <button data-bind="click: $root.openDialogGallery.bind($element, '${propAccessor}', '${size}');">pick an image</button>
   `
 }
