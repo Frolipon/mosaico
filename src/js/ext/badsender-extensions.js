@@ -64,7 +64,7 @@ function templateUrlConverter(opts) {
     //    block thumbnails are based on html block ID
     //    => we need to maintain a dictionary of name -> md5 name
     //    here come the assets block
-    // we still keep the slug part for backward compatibility reason with old image name convetions
+    // we still keep the slug part for backward compatibility reason with old image name conventions
     url = slugFilename( url )
     url = assets[ url ] ? opts.imgProcessorBackend + assets[ url ] : null
     return url
