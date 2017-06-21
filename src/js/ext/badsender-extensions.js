@@ -33,7 +33,7 @@ function extendViewModel(opts, customExtensions) {
   customExtensions.push( removeImage )
   // widget should be differenciating of VM extentions by
   // template-loader.js#pluginsCall
-  customExtensions.push( widgetBgimage )
+  customExtensions.push( widgetBgimage(opts) )
 }
 
 //////

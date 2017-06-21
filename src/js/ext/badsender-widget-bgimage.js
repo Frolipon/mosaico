@@ -19,13 +19,6 @@ const parameters    = Object.freeze({
 
 const isValidSize   = size => /(\d+)x(\d+)/.test( size.trim() )
 
-function widget( $, ko, kojqui ) {
-  return {
-    widget: 'bgimage',
-    parameters,
-    html,
-  }
-}
 
 function html( propAccessor, onfocusbinding, { size } ) {
   size = isValidSize( size ) ? size : parameters.size
@@ -36,37 +29,50 @@ function html( propAccessor, onfocusbinding, { size } ) {
   `
 }
 
-function viewModel( vm ) {
-  vm.showDialogGallery  = ko.observable( false )
-  vm.currentBgimage     = ko.observable( false )
-  vm.currentBgsize      = ko.observable( false )
-  vm.setBgImage         = ( imageName, img, event ) => {
-    // vm.currentBgimage()( `url("/cover/${ vm.currentBgsize() }/${ imageName }")` )
-    vm.currentBgimage()( `/cover/${ vm.currentBgsize() }/${ imageName }` )
-    vm.closeDialogGallery()
-  }
-  vm.openDialogGallery = ( propAccessor, size, blockProperties, event ) => {
-    // console.log( blockProperties[ propAccessor ]() )
-    // to set the right property, store the concerned setter
-    vm.currentBgimage( blockProperties[ propAccessor ].bind( blockProperties ) )
-    vm.currentBgsize( size )
-    vm.showDialogGallery( true )
-  }
-  vm.closeDialogGallery = () => {
-    vm.currentBgsize( false )
-    vm.currentBgimage( false )
-    vm.showDialogGallery( false )
-  }
+module.exports = opts => {
 
-  const dialogGalleryOpen = vm.showDialogGallery.subscribe( newValue => {
-    if (newValue === true && vm.mailingGalleryStatus() === false) {
-      vm.loadMailingGallery()
-      dialogGalleryOpen.dispose()
+  const { basePath } = opts
+
+  function widget( $, ko, kojqui ) {
+    return {
+      widget: 'bgimage',
+      parameters,
+      html,
     }
-  })
-}
+  }
 
-module.exports = {
-  widget,
-  viewModel,
+  function viewModel( vm ) {
+    vm.showDialogGallery  = ko.observable( false )
+    vm.currentBgimage     = ko.observable( false )
+    vm.currentBgsize      = ko.observable( false )
+    vm.setBgImage         = ( imageName, img, event ) => {
+      // images have to be on an absolute path
+      // => ZIP download needs it that way
+      vm.currentBgimage()( `${ basePath }/cover/${ vm.currentBgsize() }/${ imageName }` )
+      vm.closeDialogGallery()
+    }
+    vm.openDialogGallery = ( propAccessor, size, blockProperties, event ) => {
+      // to set the right property, store the concerned setter
+      vm.currentBgimage( blockProperties[ propAccessor ].bind( blockProperties ) )
+      vm.currentBgsize( size )
+      vm.showDialogGallery( true )
+    }
+    vm.closeDialogGallery = () => {
+      vm.currentBgsize( false )
+      vm.currentBgimage( false )
+      vm.showDialogGallery( false )
+    }
+
+    const dialogGalleryOpen = vm.showDialogGallery.subscribe( newValue => {
+      if (newValue === true && vm.mailingGalleryStatus() === false) {
+        vm.loadMailingGallery()
+        dialogGalleryOpen.dispose()
+      }
+    })
+  }
+
+  return {
+    widget,
+    viewModel,
+  }
 }
