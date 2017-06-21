@@ -250,9 +250,9 @@ function resize(req, res, next) {
     return handleSharpStream(req, res, next, pipeline)
   }
 
-  const resizeFit     = ['--resize-fit']
-  resizeFit.push( `${ width ? width : '_' }x${ height ? height : '_' }` )
-  const gifProcessor  = new Gifsicle([...resizeFit, '--resize-colors', '64'])
+  const resize        = ['--resize']
+  resize.push( `${ width ? width : '_' }x${ height ? height : '_' }` )
+  const gifProcessor  = new Gifsicle([...resize, '--resize-colors', '64'])
 
   return handleGifStream(req, res, next, gifProcessor)
 }
