@@ -81,22 +81,45 @@ function zip(req, res, next) {
     if (!creation) return next(createError(404))
     if (!isFromCompany(user, creation._company)) return next(createError(401))
 
-    const archive = archiver('zip')
+    const archive = archiver( 'zip' )
     let { html }  = body
-    let $         = cheerio.load(html)
-    let name      = getName(creation.name)
+    // console.log( html )
+    let $         = cheerio.load( html )
+    let name      = getName( creation.name )
 
     console.log('download zip', name)
 
-    // We only take care of images in the HTML
-    // No <style> CSS parsing for now. May be implemented later
-    const $images  = $('img')
-    const imgUrls  = _.uniq( $images.map( (i, el) => $(el).attr('src') ).get() )
+    const $images     = $( 'img' )
+    const imgUrls     = _.uniq( $images.map( (i, el) => $(el).attr('src') ).get() )
+    const $background = $( '[background]' )
+    const bgUrls      = _.uniq( $background.map( (i, el) => $(el).attr('background') ).get() )
+    const $style      = $( '[style]' )
+    const styleUrls   = []
+    $style
+    .filter( (i, el) => /url\(/.test($(el).attr('style')) )
+    .each( (i, el) => {
+      const urlReg  = /url\('?([^)']*)/
+      const style   = $(el).attr('style')
+      const result  = urlReg.exec( style )
+      if ( result && result[1] && !styleUrls.includes(result[1]) ) {
+        styleUrls.push(result[1])
+      }
+    })
+
     // change path to match downloaded images
     // Don't use Cheerio because when exporting some mess are donne with ESP tags
-    imgUrls.forEach( (imgUrl) => {
-      let search  = new RegExp(`src="${imgUrl}`, 'g')
+    const esc     = _.escapeRegExp
+    imgUrls.forEach( imgUrl => {
+      let search  = new RegExp(`src="${ esc(imgUrl) }`, 'g')
       html        = html.replace(search, `src="${imagesFolder}/${getImageName(imgUrl)}`)
+    })
+    bgUrls.forEach( bgUrl => {
+      let search  = new RegExp(`background="${ esc(bgUrl) }`, 'g')
+      html        = html.replace(search, `background="${imagesFolder}/${getImageName(bgUrl)}`)
+    })
+    styleUrls.forEach( styleUrl => {
+      let search  = new RegExp( `url\\('?${ esc(styleUrl) }'?\\)`, 'g')
+      html        = html.replace(search, `url(${imagesFolder}/${getImageName(styleUrl)})`)
     })
 
     archive.on('error', next)
@@ -119,11 +142,12 @@ function zip(req, res, next) {
       prefix: `${name}/`,
     })
 
+    const allImages     = _.uniq( [...imgUrls, ...bgUrls, ...styleUrls] )
     // Pipe all images BUT don't add errored images
-    const imagesRequest = imgUrls.map( imageUrl => {
-      const dfd = defer()
-      let imageName   = getImageName(imageUrl)
-      let imgRequest  = request(imageUrl)
+    const imagesRequest = allImages.map( imageUrl => {
+      const dfd         = defer()
+      const imageName   = getImageName(imageUrl)
+      const imgRequest  = request(imageUrl)
       imgRequest.on('response', response => {
         if (response.statusCode !== 200) return
         archive.append( imgRequest, {
