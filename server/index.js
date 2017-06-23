@@ -13,9 +13,11 @@ const favicon         = require('serve-favicon')
 const cookieParser    = require('cookie-parser')
 const i18n            = require('i18n')
 const moment          = require('moment')
+const { duration }    = moment
 const util            = require('util')
 const { merge, omit } = require('lodash')
 const createError     = require('http-errors')
+const helmet          = require('helmet')
 
 module.exports = function () {
 
@@ -29,7 +31,8 @@ module.exports = function () {
 
   var app = express()
 
-  app.set('trust proxy', true)
+  app.set( 'trust proxy', true )
+  app.use( helmet() )
 
   function forcessl(req, res, next) {
     if (req.header('x-forwarded-proto') === 'https') return next()
@@ -71,23 +74,52 @@ module.exports = function () {
 
   //----- STATIC
 
-  const compiledStatic = express.static( path.join(__dirname, '../dist') )
+  const md5public             = require( './md5public.json' )
+  const maxAge                = config.isDev ? duration( 30, 'minutes') : duration( 1, 'years')
+  const staticOptions         = { maxAge: maxAge.as( 'milliseconds' ) }
+  const compiledStatic        = express.static( path.join(__dirname, '../dist'), staticOptions )
+  const compiledStaticNoCache = express.static( path.join(__dirname, '../dist') )
+
+  app.locals.md5Url    = url => {
+    // disable md5 on dev
+    // better for hot reload
+    if ( config.isDev ) return url
+    if (url in md5public) url = `/${md5public[ url ]}${url}`
+    return url
+  }
 
   function removeHash (req, res, next) {
-    req._restoreUrl = req.url
-    req.url = '/' + req.url.split('/').splice(2).join('/')
-    console.log('md5 asset – ', req._restoreUrl, req.url)
+    const { md5 }     = req.params
+    const staticPath  = req.url.replace(`/${ md5 }`, '')
+    req._restoreUrl   = req.url
+    if ( md5public[ staticPath ] === md5 ) {
+      req.url           = staticPath
+    // we don't want statics to be cached by the browser if the md5 is invalid
+    // pass it ti the next static handler which doens't set cache
+    } else {
+      // console.log('[MD5] bad hash for', staticPath, md5)
+      req._staticPath   = staticPath
+    }
     next()
   }
 
   function restoreUrl (req, res, next) {
-    req.url = req._restoreUrl
+    // - get here if static middleware fail to find the file
+    // - even if the md5 is invalid we ca guess that the file exists
+    if ( req._staticPath in md5public ) {
+      // console.log( '[MD5] RESTOREURL – found in md5Public with bad hash', req.url, req._staticPath )
+      req.url = req._staticPath
+    // - if not that mean we have an url for another ressource => restore the original url
+    } else {
+      console.log( '[MD5] should be another ressource', req._restoreUrl )
+      req.url = req._restoreUrl
+    }
     next()
   }
 
   // compiled assets
-  // app.get( '/:md5([a-zA-Z0-9]{32})*', removeHash, compiledStatic, restoreUrl )
-  app.use( compiledStatic )
+  app.get( '/:md5([a-zA-Z0-9]{32})*', removeHash, compiledStatic, restoreUrl )
+  app.use( compiledStaticNoCache )
 
   // commited assets
   app.use( express.static( path.join(__dirname, '../res') ) )
@@ -147,18 +179,11 @@ module.exports = function () {
   var creations         = require('./creations')
   var creationTransfer  = require('./creation-transfer')
   var filemanager       = require('./filemanager')
-  const md5public       = require('./md5public.json')
   var guard             = session.guard
 
   //----- EXPOSE DATAS TO VIEWS
 
   app.locals._config  = omit(config, ['_', 'configs', 'config'])
-
-  app.locals.md5Url    = function ( url ) {
-    return url
-    if (url in md5public) url = `/${md5public[ url ]}${url}`
-    return url
-  }
 
   app.locals.printJS  = function (data) {
     return JSON.stringify(data, null, '  ')
@@ -298,6 +323,7 @@ module.exports = function () {
 
   app.get('/logout',                        guard('user'), session.logout)
   app.get('/img/:imageName',                images.read)
+  app.delete('/img/:imageName',             guard('user'), images.destroy)
   app.get('/placeholder/:placeholderSize',  images.checkImageCache, images.placeholder)
   app.get('/resize/:sizes/:imageName',      images.checkImageCache, images.checkSizes, images.resize)
   app.get('/cover/:sizes/:imageName',       images.checkImageCache, images.checkSizes, images.cover)
@@ -313,7 +339,7 @@ module.exports = function () {
   app.all('/upload*',                       guard('user'))
   app.get('/upload/:mongoId',               images.listImages )
   app.post('/upload/:mongoId',              images.upload )
-  
+
   app.all('/creation*',                       guard('user'))
   // This should replace GET /editor
   // app.post('/creations',                  (req, res, next) => res.redirect('/'))
@@ -334,7 +360,7 @@ module.exports = function () {
   // everyhting that go there without an error should be treated as a 404
   app.use(function (req, res, next) {
     if (req.xhr) return  res.status(404).send('not found')
-    return res.render('error-404')
+    return res.status(404).render('error-404')
   })
 
   app.use(function (err, req, res, next) {

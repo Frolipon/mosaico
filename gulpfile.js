@@ -1,6 +1,7 @@
-'use strict';
+'use strict'
 
 const gulp            = require('gulp')
+const path            = require('path')
 const $               = require('gulp-load-plugins')()
 const browserSync     = require('browser-sync').create()
 const { reload }      = browserSync
@@ -121,6 +122,13 @@ function mosaicoLib() {
     },
   })
 
+  // Can't replace jQuery with newer version
+  // https://github.com/jquery/jquery/issues/3181#issuecomment-226964470
+  // => Uncaught TypeError: elem.getClientRects is not a function
+  // .filter( name => !/bower_components\/jquery\/dist\/jquery\.js$/.test(name)  )
+  // // replace old version of jQuery
+  // bowerfiles.unshift( path.join(__dirname, './node_modules/jquery/dist/jquery.js') )
+
   const editorLibs = gulp
   .src( bowerfiles )
   .pipe( $.filter(['*.js', '**/*.js']) )
@@ -222,7 +230,6 @@ jsEditor.description  = `Bundle mosaico app, without libraries`
 
 //----- MOSAICO'S KNOCKOUT TEMPLATES: see -> combineKOTemplates.js
 
-const path          = require('path')
 const through       = require('through2')
 const babelify      = require('babelify')
 const StringDecoder = require('string_decoder').StringDecoder
@@ -251,10 +258,16 @@ function templates() {
       base: './',
       path: 'templates.js',
       contents: new Buffer(result),
-    }));
-    return cb();
+    }))
+    return cb()
   }
-  return gulp.src('src/tmpl/*.html')
+  return gulp
+  .src([
+    'src/tmpl/*.html',
+    // replace some original templates but custome ones
+    'src/tmpl-badsender/*.html',
+    '!src/tmpl/gallery-images.tmpl.html',
+  ])
   .pipe( through.obj(passThrough, resizeFlush) )
   // templates has to be build on “build” folder
   // they will be require by editor app application
@@ -379,19 +392,31 @@ function maintenance() {
 var crypto = require('crypto')
 
 function rev() {
-  let revs = {}
+  let revs = []
+  function sortByName( a, b ) {
+    const nameA = a.name.toUpperCase()
+    const nameB = b.name.toUpperCase()
+    if (nameA < nameB) return -1
+    if (nameA > nameB) return 1
+    return 0
+  }
   function passThrough(file, enc, callback) {
     var key         = path.relative(file.base, file.path)
     var md5         = crypto.createHash('md5')
     if (!file.contents) return callback(null)
     var hash        = md5.update( file.contents.toString() ).digest( 'hex' )
-    revs['/' + key] = hash
+    revs.push({'name': '/' + key, hash})
     callback( null )
   }
   function flush( cb ) {
+    const md5Object = {}
+    // keep the json in alphabetical order
+    revs.sort(sortByName).forEach( r => {
+      md5Object[ r.name ] = r.hash
+    })
     let file = new $.util.File({
       path:     'md5public.json',
-      contents: new Buffer( JSON.stringify(revs,  null, ' ') ),
+      contents: new Buffer( JSON.stringify(md5Object,  null, ' ') ),
     })
     this.push( file )
     cb()
@@ -428,7 +453,8 @@ toc.description   = `Regenerate TOC for BADSENDER.md`
 const cleanAll    = cb => del( [ buildDir, 'build' ], cb )
 const build       = gulp.series(
   cleanAll,
-  gulp.parallel( editorLib, js, css, assets )
+  gulp.parallel( editorLib, js, css, assets ),
+  rev
 )
 build.description = `rebuild all assets`
 
@@ -473,7 +499,7 @@ function bsAndWatch() {
   gulp.watch([
     'src/css/**/*.less',
     'src/css-backend/**/*.styl'],     css )
-  gulp.watch('src/tmpl/*.html',       templates )
+  gulp.watch( ['src/tmpl/*.html', 'src/tmpl-badsender/*.html'], templates )
 }
 
 let initProd = true

@@ -3,6 +3,7 @@
 var console = require('console')
 var $       = require('jquery')
 var ko      = require('knockout')
+var _find   = require('lodash.find')
 
 function galleryLoader( opts ) {
 
@@ -10,8 +11,8 @@ function galleryLoader( opts ) {
 
   return function (viewModel) {
 
-    viewModel.mailingGallery        = ko.observableArray([]).extend({ paging: 16 })
-    viewModel.templateGallery       = ko.observableArray([]).extend({ paging: 16 })
+    viewModel.mailingGallery        = ko.observableArray([]).extend({ paging: 12 })
+    viewModel.templateGallery       = ko.observableArray([]).extend({ paging: 12 })
     viewModel.mailingGalleryStatus  = ko.observable(false)
     viewModel.templateGalleryStatus = ko.observable(false)
 
@@ -33,10 +34,25 @@ function galleryLoader( opts ) {
       }
     }
 
+    // this is used as a paramater in fileupload binding
+    // see toolbox.tmpl.html `#toolimagesgallery fileupload`
+    // fileupload binding will iterate on every uploaded file and call this callback
+    // fileupload.js => e.type == 'fileuploaddone' for more details
     function loadImage( type ) {
       var gallery  = viewModel[ type + 'Gallery' ]
       var status   = viewModel[ type + 'GalleryStatus' ]
       return function ( img ) {
+        var imageName         = img.name
+        // call gallery(), because it is a knockout observable and not a real array
+        // Don't show twice the same image
+        var isAlreadyUploaded = _find( gallery(), function( file ) {
+          return file.name === imageName
+        })
+        if ( isAlreadyUploaded ) return
+        // Don't update the gallery until it has been opened once
+        // This was leading to preventing the whole gallery to be fetched…
+        // … if we had uploaded an image in the editor
+        if ( status() === false ) return
         gallery.unshift( img )
         status( gallery().length )
       }
@@ -48,7 +64,7 @@ function galleryLoader( opts ) {
     viewModel.loadTemplateImage     = loadImage( 'template' )
 
     var galleryOpen = viewModel.showGallery.subscribe( function( newValue ) {
-      if (newValue === true && viewModel.mailingGalleryStatus() === false) { 
+      if (newValue === true && viewModel.mailingGalleryStatus() === false) {
         viewModel.loadMailingGallery()
         galleryOpen.dispose()
       }

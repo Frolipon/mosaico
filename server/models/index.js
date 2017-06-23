@@ -12,7 +12,15 @@ const WireframeSchema   = require('./schema-wireframe')
 const CreationSchema    = require('./schema-creation')
 const CompanySchema     = require('./schema-company')
 const CacheimageSchema  = require('./schema-cache-image')
-const { UserModel, WireframeModel, CreationModel, CompanyModel, CacheimageModel } = require('./names')
+const GallerySchema     = require('./schema-gallery')
+const {
+  UserModel,
+  WireframeModel,
+  CreationModel,
+  CompanyModel,
+  CacheimageModel,
+  GalleryModel,
+} = require('./names')
 
 mongoose.connection.on('error', console.error.bind(console, chalk.red('[DB] connection error:')))
 mongoose.connection.once('open', e =>  {
@@ -97,6 +105,7 @@ const Wireframes  = mongoose.model( WireframeModel, WireframeSchema )
 const Creations   = mongoose.model( CreationModel, CreationSchema )
 const Companies   = mongoose.model( CompanyModel, CompanySchema )
 const Cacheimages = mongoose.model( CacheimageModel, CacheimageSchema )
+const Galleries   = mongoose.model( GalleryModel, GallerySchema )
 
 module.exports    = {
   connection:       mongoose.connection,
@@ -111,4 +120,5 @@ module.exports    = {
   Creations,
   Companies,
   Cacheimages,
+  Galleries,
 }

@@ -99,7 +99,7 @@ function getMarkup(req, res, next) {
 }
 
 function update(req, res, next) {
-  var wireId    = req.params.wireId
+  const { wireId } = req.params
 
   filemanager
   .parseMultipart(req, {

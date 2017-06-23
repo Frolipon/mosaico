@@ -1,27 +1,25 @@
-'use strict';
+'use strict'
 
-const fs              = require('fs')
-const url             = require('url')
-const path            = require('path')
-const gm              = require('gm').subClass({imageMagick: true})
-const sharp           = require('sharp')
-const createError     = require('http-errors')
-const util            = require('util')
-const stream          = require('stream')
-const probe           = require('probe-image-size')
-const { duration }    = require('moment')
-const { 
-  green, 
-  red, 
-  bgGreen, }          =  require('chalk')
+const sharp           = require( 'sharp' )
+const createError     = require( 'http-errors' )
+const { inspect }     = require( 'util' )
+const stream          = require( 'stream' )
+const probe           = require( 'probe-image-size' )
+const Gifsicle        = require( 'gifsicle-stream' )
+const mime            = require( 'mime-types' )
+const { duration }    = require( 'moment' )
+const {
+  green,
+  red,
+  bgGreen, }          = require( 'chalk' )
 
 const config          = require('./config')
 const {
   streamImage,
-  writeStream,
+  writeStreamFromStream,
   list,
-  parseMultipart, }   = require('./filemanager')
-const { Cacheimages } = require('./models')
+  parseMultipart, }   = require( './filemanager' )
+const { Cacheimages, Galleries } = require( './models' )
 
 console.log('[IMAGES] config.images.cache', config.images.cache)
 
@@ -52,9 +50,6 @@ function handleOldImageUrl(req, res, next) {
 let cacheControl  = config.isDev ? duration( 30, 'minutes') : duration( 1, 'years')
 cacheControl      = cacheControl.asSeconds()
 
-// TODO better handling of Cache-Control
-// => what happend when somebody reupload an image with the same name?
-// https://devcenter.heroku.com/articles/increasing-application-performance-with-http-cache-headers#http-cache-headers
 function addCacheControl(res) {
   if (!config.images.cache) return
   res.set('Cache-Control', `public, max-age=${ cacheControl }`)
@@ -97,57 +92,34 @@ const onWriteResizeEnd = datas => () => {
   .then( ci => console.log( green('cache image infos saved in DB', path )) )
   .catch( e => {
     console.log( red(`[IMAGE] can't save cache image infos in DB`), path )
-    console.log( util.inspect( e ) )
+    console.log( inspect( e ) )
   })
 
 }
 
+// transform /cover/100x100/filename.jpg => cover_100x100_filename.jpg
+const getResizedImageName = path => {
+  return path.replace( /^\// , '' ).replace( /\//g , '_' )
+}
+
 const onWriteResizeError = path => e => {
   console.log(`[IMAGE] can't upload resize/placeholder result`, path)
-  console.log( util.inspect( e ) )
+  console.log( inspect( e ) )
 }
 
-// Those 2 functions handle both streaming a reized image and saving in cache
-// any reading error is handled beforehand by `checksize`
-function streamToResponseAndCacheImage(req, res, next) {
-
-  return function streamToResponse(err, stdout, stderr) {
-    if (err) return next(err)
-    const { path }      = req
-    const { imageName } = req.params
-    console.log( '[IMAGE] after resize – ', path)
-    // “clone” stream
-    // https://github.com/nodejs/readable-stream/issues/202
-    const streamToResponse  = stdout.pipe( new stream.PassThrough() )
-
-    // STREAM ASSET TO RESPONSE
-    streamToResponse.pipe( res )
-
-    // SAVE ASSET FOR FURTHER USE
-    if (!config.images.cache) return
-
-    // stream to S3/folder
-    const streamToS3    = stdout.pipe( new stream.PassThrough() )
-    const name          = path.replace(/^\//, '').replace(/\//g, '_')
-
-    writeStream( streamToS3, name )
-    .then( onWriteResizeEnd({ path, name, imageName, }) )
-    .catch( onWriteResizeError(path) )
-  }
-}
-
+// sharp's pipeline are different from usual streams
 function handleSharpStream(req, res, next, pipeline) {
   const { path }      = req
   const { imageName } = req.params
-  // transform /cover/100x100/filename.jpg => cover_100x100_filename.jpg
-  const name          = req.path.replace(/^\//, '').replace(/\//g, '_')
 
   // prepare sending to response
   pipeline.clone().pipe( res )
 
   // prepare sending to cache
   if (config.images.cache) {
-    writeStream( pipeline.clone(), name )
+    const name          = getResizedImageName( req.path )
+
+    writeStreamFromStream( pipeline.clone(), name )
     .then( onWriteResizeEnd({ path, name, imageName, }) )
     .catch( onWriteResizeError(path) )
   }
@@ -156,8 +128,31 @@ function handleSharpStream(req, res, next, pipeline) {
   streamImage( imageName ).pipe( pipeline )
 }
 
-const bareStreamToResponse = (req, res, next) => imageName => {
+// unlike sharp, no .clone() method
+// do it in a “standard” way
+const handleGifStream = (req, res, next, gifProcessor) => {
+  const { path }      = req
+  const { imageName } = req.params
+
+  const resizedStream     = streamImage( imageName ).pipe( gifProcessor )
+  const streamForResponse = resizedStream.pipe( new stream.PassThrough() )
+
+  streamForResponse.pipe( res )
+
+  if (!config.images.cache) return
+
+  const streamForSave     = resizedStream.pipe( new stream.PassThrough() )
+  const name              = getResizedImageName( path )
+
+  writeStreamFromStream( streamForSave, name )
+  .then( onWriteResizeEnd({path, name, imageName}) )
+  .catch( onWriteResizeError(path) )
+
+}
+
+const streamImageToResponse = (req, res, next, imageName) => {
   const imageStream = streamImage( imageName )
+  const contentType = mime.lookup( imageName )
   imageStream.on('error', handleFileStreamError(next) )
   // We have to end stream manually on res stream error (can happen if user close connection before end)
   // If not done, we will have a memory leaks
@@ -165,6 +160,12 @@ const bareStreamToResponse = (req, res, next) => imageName => {
   // https://groups.google.com/forum/#!topic/nodejs/A8wbaaPmmBQ
   imageStream.once('readable', e => {
     addCacheControl( res )
+    // try to guess content-type from filename
+    // we should do a better thing like a fs-stat
+    // http://stackoverflow.com/questions/13485933/createreadstream-send-file-http#answer-13486341
+    // but we want the response to be as quick as possible
+    if ( contentType ) res.set( 'Content-Type', contentType )
+
     imageStream
     .pipe( res )
     // response doens't have a 'close' event but a finish one
@@ -176,7 +177,7 @@ const bareStreamToResponse = (req, res, next) => imageName => {
 }
 
 //////
-// IMAGE HANDLING
+// IMAGE CHECKS
 //////
 
 // TODO gif can be optimized by using image-min
@@ -196,14 +197,14 @@ function checkImageCache(req, res, next) {
   .then( onCacheimage )
   .catch( e => {
     console.log('[CHECKSIZES] error in image cache check')
-    console.log( util.inspect(e) )
+    console.log( inspect(e) )
     next()
   } )
 
   function onCacheimage( cacheInformations ) {
     if (cacheInformations === null) return next()
-    console.log( bgGreen.black(path), 'already in cache' )
-    bareStreamToResponse(req, res, next)( cacheInformations.name )
+    // console.log( bgGreen.black(path), 'already in cache' )
+    streamImageToResponse(req, res, next, cacheInformations.name)
   }
 
 }
@@ -220,7 +221,7 @@ function checkSizes(req, res, next) {
     // https://github.com/nodeca/probe-image-size/blob/master/README.md#example
     imgStream.destroy()
     if ( !needResize( imageDatas, width, height ) ) {
-      return bareStreamToResponse( req, res, next )( imageName )
+      return streamImageToResponse( req, res, next, imageName )
     }
 
     req.imageDatas  = imageDatas
@@ -231,34 +232,29 @@ function checkSizes(req, res, next) {
   .catch( handleFileStreamError( next ) )
 }
 
-function read(req, res, next) {
-  const { imageName }   = req.params
-  bareStreamToResponse(req, res, next)( imageName )
-}
-
-// about resizing GIF
-// only speek about scaling & not cropping…
-// http://stackoverflow.com/questions/6098441/resizing-animated-gif-using-graphicsmagick
-// http://www.imagemagick.org/Usage/anim_opt/#frame_opt
-// http://www.graphicsmagick.org/Magick++/Image.html
+//////
+// IMAGE GENERATION
+//////
 
 function resize(req, res, next) {
   const { imageDatas }    = req
+  const { path }          = req
   const { imageName }     = req.params
   const [ width, height ] = getTargetDimensions( req.params.sizes )
 
   addCacheControl( res )
 
-  if ( imageDatas.type === 'gif' ) {
-    return gm( streamImage( imageName ) )
-    .autoOrient()
-    .coalesce()
-    .resize( width, height )
-    .stream( streamToResponseAndCacheImage(req, res, next) )
+  // Sharp can't handle animated gif
+  if ( imageDatas.type !== 'gif' ) {
+    const pipeline = sharp().resize( width, height )
+    return handleSharpStream(req, res, next, pipeline)
   }
 
-  const pipeline = sharp().resize( width, height )
-  handleSharpStream(req, res, next, pipeline)
+  const resizeFit     = ['--resize-fit']
+  resizeFit.push( `${ width ? width : '_' }x${ height ? height : '_' }` )
+  const gifProcessor  = new Gifsicle([...resizeFit, '--resize-colors', '64'])
+
+  return handleGifStream(req, res, next, gifProcessor)
 }
 
 function cover(req, res, next) {
@@ -268,67 +264,220 @@ function cover(req, res, next) {
 
   addCacheControl( res )
 
-  if ( imageDatas.type === 'gif' ) {
-    return gm( streamImage( imageName ) )
-    .autoOrient()
-    .coalesce()
-    // Append a ^ to the geometry so that the image aspect ratio is maintained when the image is resized,
-    // but the resulting width or height are treated as minimum values rather than maximum values.
-    .resize( width, height + '^' )
-    .gravity( 'Center')
-    // Use > to change the dimensions of the image only if its width or height exceeds the geometry specification.
-    // < resizes the image only if both of its dimensions are less than the geometry specification.
-    // For example, if you specify '640x480>' and the image size is 256x256, the image size does not change.
-    // However, if the image is 512x512 or 1024x1024, it is resized to 480x480.
-    .extent( width, height + '>' )
-    .stream( streamToResponseAndCacheImage(req, res, next) )
+  // Sharp can't handle animated gif
+  if ( imageDatas.type !== 'gif' ) {
+    const pipeline = sharp().resize( width, height )
+    return handleSharpStream(req, res, next, pipeline)
   }
 
-  const pipeline = sharp().resize( width, height )
-  handleSharpStream(req, res, next, pipeline)
+  // there is no build-in cover method with gifsicle
+  // http://www.lcdf.org/gifsicle/man.html
+  const originalWidth       = imageDatas.width
+  const originalHeight      = imageDatas.height
+  const widthRatio          = originalWidth / width
+  const heightRatio         = originalHeight / height
+  let newWidth              = originalWidth
+  let newHeight             = originalHeight
+  const crop                = [ '--crop' ]
 
+  // Trim the image to have the same ratio as the target
+  // This operation is done before everything else by gifsicle
+  if ( widthRatio < heightRatio ) {
+    newHeight   = (originalHeight / heightRatio) * widthRatio
+    newHeight   = Math.round( newHeight )
+    // diff is for centering the crop
+    const diff  = Math.round( (originalHeight - newHeight) / 2 )
+    crop.push( `0,${ diff }+0x${ diff * -1 }` )
+  } else {
+    newWidth    = (originalWidth / widthRatio) * heightRatio
+    newWidth    = Math.round( newWidth )
+    const diff  = Math.round( (originalWidth - newWidth) / 2 )
+    crop.push( `${ diff },0+${ diff * -1 }x0` )
+  }
+
+  // Scale to the same size as the target
+  const scale   = [ '--scale', `${ height / newHeight }` ]
+
+  // Resize to be sure that the sizes are equals
+  // as we have done some rounding before, there may be some slighty differences in sizes
+  // --resize will no preserve aspect-ratio…
+  // …but it should be unoticable as we are mostly speaking of 1 or 2 pixels
+  const resize  = [ '--resize', `${ width }x${ height }`, '--resize-colors', '64' ]
+
+  const gifProcessor = new Gifsicle([...crop, ...scale, ...resize])
+
+  return handleGifStream(req, res, next, gifProcessor)
+}
+
+const stripeSize  = 55
+const lightStripe = `#808080`
+const darkStripe  = `#707070`
+const textColor   = `#B0B0B0`
+function generatePlaceholderSVG(width, height) {
+  // centering text in SVG
+  // http://stackoverflow.com/questions/5546346/how-to-place-and-center-text-in-an-svg-rectangle#answer-31522006
+  return `<svg width="${ width }" height="${ height }">
+    <defs>
+    <pattern id="pattern" width="${ stripeSize }" height="1" patternUnits="userSpaceOnUse" patternTransform="rotate(-45 0 0)">
+      <line stroke="${ lightStripe }" stroke-width="${ stripeSize }px" y2="10"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="0" width="${ width }" height="${ height }" fill="${ darkStripe }" />
+  <rect x="0" y="0" width="${ width }" height="${ height }" fill="url(#pattern)" />
+  <text x="50%" y="50%" alignment-baseline="middle" text-anchor="middle" fill="${ textColor }" font-family="Verdana" font-size="20">
+    ${ width } x ${ height }
+  </text>
+</svg>`
 }
 
 function placeholder(req, res, next) {
-  var sizes               = /(\d+)x(\d+)\.png/.exec(req.params.placeholderSize)
-  var width               = ~~sizes[1]
-  var height              = ~~sizes[2]
-  const streamPlaceholder = streamToResponseAndCacheImage( req, res, next )
-  var out                 = gm(width, height, '#707070')
-  res.set('Content-Type', 'image/png')
-  var x = 0, y = 0
-  var size = 40
-  // stripes
-  while (y < height) {
-    out = out
-    .fill('#808080')
-    .drawPolygon([x, y], [x + size, y], [x + size*2, y + size], [x + size*2, y + size*2])
-    .drawPolygon([x, y + size], [x + size, y + size*2], [x, y + size*2])
-    x = x + size * 2
-    if (x > width) { x = 0; y = y + size*2 }
-  }
-  // text
-  out = out.fill('#B0B0B0').fontSize(20).drawText(0, 0, `${width} x ${height}`, 'center')
-  streamPlaceholder( null, out.stream('png'), null)
+  const { path }            = req
+  const { placeholderSize } = req.params
+  const sizes     = /(\d+)x(\d+)\.png/.exec( placeholderSize )
+  const width     = ~~sizes[1]
+  const height    = ~~sizes[2]
+  const svgBuffer = new Buffer( generatePlaceholderSVG( width, height ) )
+  const pipeline  = sharp( svgBuffer ).png()
+
+  addCacheControl( res )
+  res.set( 'Content-Type', 'image/png' )
+
+  // don't use handleSharpStream()
+  // we don't read a file but feed a buffer
+  // prepare sending to response
+  pipeline.clone().pipe( res )
+
+  // prepare sending to cache
+  if (!config.images.cache) return
+  const name      = getResizedImageName( req.path )
+
+  writeStreamFromStream( pipeline.clone(), name )
+  .then( onWriteResizeEnd({ path, name, imageName: placeholderSize }) )
+  .catch( onWriteResizeError(path) )
 }
+
+//////
+// OTHER THINGS
+//////
+
+function read(req, res, next) {
+  const { imageName }   = req.params
+  streamImageToResponse(req, res, next, imageName)
+}
+
+//////
+// EDITOR SPECIFIC
+//////
+
+function createGallery( mongoId ) {
+  // create the gallery in DB
+  return list( mongoId )
+  .then( files => {
+    return new Galleries({
+      creationOrWireframeId: mongoId,
+      files,
+    })
+    .save()
+  })
+}
+
+// Those functions are accessible only from the editor
+// wireframes assets (preview & template fixed assets)…
+// …are handled separatly in wireframes.js#update
 
 function listImages( req, res, next ) {
-  list( req.params.mongoId )
-  .then( files => res.json({ files }) )
+  if (!req.xhr) return next( createError(501) ) // Not Implemented
+
+  const { mongoId } = req.params
+
+  Galleries
+  .findOne({
+    creationOrWireframeId: mongoId,
+  }, 'files' )
+  .lean()
+  .then( gallery => {
+    if ( gallery ) return Promise.resolve( gallery )
+    return createGallery( mongoId )
+  })
+  .then( gallery => {
+    res.json( gallery )
+  })
   .catch( next )
 }
 
+// upload & update gallery
 function upload( req, res, next ) {
-  parseMultipart( req, {
-    prefix:     req.params.mongoId,
+  if (!req.xhr) return next( createError(501) ) // Not Implemented
+  const { mongoId }       = req.params
+  const multipartOptions  = {
+    prefix:     mongoId,
     formatter:  'editor',
-  } )
-  .then( onParse )
-  .catch( next )
-
-  function onParse( datas4fileupload ) {
-    res.send( JSON.stringify(datas4fileupload) )
   }
+
+  Promise.all([
+    parseMultipart( req,  multipartOptions),
+    Galleries.findOne({ creationOrWireframeId: mongoId }),
+  ])
+  .then( ([uploads, gallery]) => {
+    if ( gallery ) return Promise.all( [uploads, gallery] )
+    // gallery could not be created at this point
+    // without opening galleries panel in the editor no automatic DB gallery creation :(
+    return Promise.all( [uploads, createGallery( mongoId ) ])
+  })
+  .then( ([uploads, gallery]) => {
+
+    uploads.files.forEach( upload => {
+      const imageName   = upload.name
+      const { files }   = gallery
+      const imageIndex  = files.findIndex( file =>  file.name === imageName )
+      if ( imageIndex < 0 ) files.push( upload )
+    })
+
+    gallery.markModified( 'files' )
+
+    return Promise.all([uploads, gallery.save()])
+
+  })
+  .then( ([uploads, gallery]) => {
+    // send only the new uploads
+    // front-application will iterate over them to update the gallery previews
+    res.send( JSON.stringify(uploads) )
+  })
+  .catch( next )
+}
+
+// destroy an image is not a real deletion…
+// …because those images can be still used inside creations:
+//  - cache can be inactive
+//  - if active: we are not sure that cropped images are cached
+//  - even thougt every cropped images are cached
+//    an image can be used at it's original size (no cropped image cache)
+// so:
+//  - we just flag this image in the gallery table as not visible
+function destroy(req, res, next) {
+  if (!req.xhr) return next( createError(501) ) // Not Implemented
+  const { imageName }   = req.params
+  let mongoId = /^([a-f\d]{24})-/.exec( imageName )
+  if ( !mongoId ) return next( createError(422) ) // UnprocessableEntity
+  mongoId     = mongoId[ 1 ]
+
+  Galleries
+  .findOne({
+    creationOrWireframeId: mongoId,
+  })
+  .then( gallery => {
+    // TODO handle non existing gallery
+    // mongoID could be incorrect
+    const { files }   = gallery
+    const imageIndex  = files.findIndex( file =>  file.name === imageName )
+    files.splice(imageIndex, 1)
+    gallery.markModified( 'files' )
+    return gallery.save()
+  })
+  .then( gallery => {
+    res.send( {files: gallery.files} )
+  })
+  .catch( next )
 }
 
 module.exports = {
@@ -339,6 +488,7 @@ module.exports = {
   checkImageCache,
   checkSizes,
   read,
+  destroy,
   listImages,
   upload,
 }

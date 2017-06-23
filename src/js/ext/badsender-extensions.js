@@ -14,6 +14,7 @@ var serverStorage = require('./badsender-server-storage')
 var editTitle     = require('./badsender-edit-title')
 var textEditor    = require('./badsender-text-editor')
 var gallery       = require('./badsender-gallery')
+var removeImage   = require('./badsender-remove-gallery-image')
 
 function setEditorIcon(viewModel) {
   viewModel.logoPath  = '/media/editor-icon.png'
@@ -26,6 +27,7 @@ function extendViewModel(opts, customExtensions) {
   customExtensions.push( setEditorIcon )
   customExtensions.push( editTitle )
   customExtensions.push( gallery(opts) )
+  customExtensions.push( removeImage )
 }
 
 //////
@@ -69,6 +71,9 @@ function templateUrlConverter(opts) {
 
 // this equivalent to the original app.js#applyBindingOptions
 function extendKnockout(opts) {
+
+  //----- TINYMCE
+
   // Change tinyMCE full editor options
   if (opts.lang === 'fr') {
     textEditor.language_url = '/tinymce-langs/fr_FR.js'
@@ -84,8 +89,21 @@ function extendKnockout(opts) {
       'no decimals': 'pas de décimales',
     } )
   }
-  textEditor = $.extend( {}, textEditor, opts.tinymce )
+  //- https://www.tinymce.com/docs/configure/url-handling/#convert_urls
+  textEditor = $.extend( {convert_urls: false}, textEditor, opts.tinymce )
   ko.bindingHandlers.wysiwyg.fullOptions = textEditor
+
+  // mirror options to the small version of tinymce
+  ko.bindingHandlers.wysiwyg.standardOptions = {
+    convert_urls: false,
+    external_plugins: {
+      paste: textEditor.external_plugins.paste,
+    },
+    theme_url:  textEditor.theme_url,
+    skin_url:   textEditor.skin_url,
+  }
+
+  //----- URLS HANDLING
 
   // This is not used by knockout per se.
   // Store this function in KO global object so it can be accessed by template-loader.js#templateLoader
@@ -95,7 +113,7 @@ function extendKnockout(opts) {
   ko.bindingHandlers.wysiwygSrc.templateUrlConverter = templateUrlConverter(opts)
 
   // options have been set in the editor template
-  var imgProcessorBackend = url.parse(opts.imgProcessorBackend)
+  var imgProcessorBackend = url.parse( opts.imgProcessorBackend )
 
   // send the non-resized image url
   ko.bindingHandlers.fileupload.remoteFilePreprocessor = function (file) {

@@ -499,45 +499,98 @@
     margin-right: 0;
   }
   .mo-uploadzone {
-    position: relative; 
-    padding: 2em; 
+    position: relative;
+    padding: 2em;
     border: 2px dotted #808080;
   }
   .fileupload {
-    z-index: 10; 
-    position: absolute; 
-    top: 0; 
-    left: 0; 
-    right: 0; 
-    bottom: 0; 
-    min-width: 100%; 
-    min-height: 100%; 
-    font-zie: 999px; 
-    text-align: right; 
-    opacity: 0; 
-    outline: none; 
-    cursor: inherit; 
+    z-index: 10;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    min-width: 100%;
+    min-height: 100%;
+    font-zie: 999px;
+    text-align: right;
+    opacity: 0;
+    outline: none;
+    cursor: inherit;
     display: block;
   }
   .workzone {
-    position: absolute; 
-    top: 0; 
-    left: 0; 
-    right: 0; 
-    bottom: 0; 
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     overflow: hidden;
   }
   .progress {
-    opacity: .5; 
-    width: 80%; 
-    margin-left: 10%; 
-    position: absolute; 
-    bottom: 30%; 
-    height: 20px; 
+    opacity: .5;
+    width: 80%;
+    margin-left: 10%;
+    position: absolute;
+    bottom: 30%;
+    height: 20px;
     border: 2px solid black;
   }
   .progress-bar {
-    height: 20px; 
+    height: 20px;
     background-color: black;
   }
+}
+
+////////
+// IMAGE GALLERY
+////////
+
+@gallery-gutter: 4px;
+
+.gallery-thumbs--badsender > div {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: (@gallery-gutter * -1);
+  margin-right: (@gallery-gutter * -1);
+}
+
+#main-toolbox {
+  .draggable-item {
+    margin-left: @gallery-gutter;
+    margin-right: @gallery-gutter;
+    // // http://stackoverflow.com/questions/28200574/make-math-happen-inside-css-calc-with-less#answer-28210969
+    width: calc(33% ~"-" (@gallery-gutter*2));
+  }
+  .draggable-item:nth-child(3) ~ .draggable-item {
+    margin-top: @gallery-gutter;
+  }
+  .draggable.image {
+    width: 111px;
+    height: 111px;
+  }
+}
+
+.gallery-thumbs__remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: @link-color;
+  color: white;
+  border: 0;
+  outline: 0;
+  align-items: middle;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 24px;
+  line-height: 0;
+  transform: translate( 25%, -25%);
+  z-index: 2;
+  display: none;
+}
+.draggable-item:hover .gallery-thumbs__remove {
+  display: flex;
 }

@@ -122,7 +122,7 @@ CreationSchema.methods.duplicate = function duplicate(_user) {
     this.markModified('data')
   }
 
-  return this.save()
+  return this
 }
 
 module.exports = CreationSchema
