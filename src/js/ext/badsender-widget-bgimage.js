@@ -25,6 +25,7 @@ function html( propAccessor, onfocusbinding, parameters ) {
   return `
     <input size="7" type="hidden" value="nothing" id="${propAccessor}" data-bind="value: ${propAccessor}, ${onfocusbinding}" />
     <button data-bind="text: $root.t('widget-bgimage-button'), click: $root.openDialogGallery.bind($element, '${propAccessor}', '${parameters}');">pick an image</button>
+    <button data-bind="click: $root.resetBgimage.bind($element, '${propAccessor}', '${parameters}'), button: {icons: {primary: 'fa fa-eraser'}, text: false, label: $root.t('widget-bgimage-reset') }"></button>
   `
 }
 
@@ -45,12 +46,16 @@ module.exports = opts => {
     vm.currentBgimage     = ko.observable( false )
     vm.setBgImage         = ( imageName, img, event ) => {
       // images have to be on an absolute path
+      // => Testing by email needs it that way
       // => ZIP download needs it that way
       // vm.currentBgimage()( `${ basePath }/cover/${ vm.currentBgsize() }/${ imageName }` )
       vm.currentBgimage()( `${ basePath }/img/${ imageName }` )
       vm.closeDialogGallery()
     }
-    vm.openDialogGallery = ( propAccessor, parameters, blockProperties, event ) => {
+    vm.resetBgimage       = ( propAccessor, parameters, blockProperties, event ) => {
+      blockProperties[ propAccessor ]( transparentGif )
+    }
+    vm.openDialogGallery  = ( propAccessor, parameters, blockProperties, event ) => {
       // to set the right property, store the concerned setter
       vm.currentBgimage( blockProperties[ propAccessor ].bind( blockProperties ) )
       vm.showDialogGallery( true )

@@ -25,6 +25,7 @@ module.exports = {
   'gallery-remove-image-fail':    `Une erreur est survenue lors de la suppression de l'image`,
   // bgimage widget
   'widget-bgimage-button':        `choisissez une image`,
+  'widget-bgimage-reset':         `enlever l'image`,
   // prevent i18n console.warn
   'Fake image editor':            ``,
   '<p>Fake image editor</p>':     ``,
