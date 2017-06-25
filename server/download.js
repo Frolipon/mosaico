@@ -17,6 +17,10 @@ const { Creations, isFromCompany, } = require('./models')
 
 //----- UTILS
 
+function isHttpUrl( uri ) {
+  return /^http/.test( uri )
+}
+
 function secureHtml(html) {
   // replace all tabs by spaces so `he` don't replace them by `&#x9;`
   html      = html.replace(/\t/g, ' ')
@@ -83,31 +87,35 @@ function zip(req, res, next) {
 
     const archive = archiver( 'zip' )
     let { html }  = body
-    // console.log( html )
     let $         = cheerio.load( html )
     let name      = getName( creation.name )
 
     console.log('download zip', name)
 
+    // keep a track of every images for latter download
+    // be carefull to avoid data uri
+    // relatives path are not handled:
+    //  - the mailing should work also by email test
+    //  - SO no need to handle them
     const $images     = $( 'img' )
-    const imgUrls     = _.uniq( $images.map( (i, el) => $(el).attr('src') ).get() )
+    const imgUrls     = _.uniq( $images.map( (i, el) => $(el).attr('src') ).get().filter( isHttpUrl ) )
     const $background = $( '[background]' )
-    const bgUrls      = _.uniq( $background.map( (i, el) => $(el).attr('background') ).get() )
+    const bgUrls      = _.uniq( $background.map( (i, el) => $(el).attr('background') ).get().filter( isHttpUrl ) )
     const $style      = $( '[style]' )
     const styleUrls   = []
     $style
     .filter( (i, el) => /url\(/.test($(el).attr('style')) )
     .each( (i, el) => {
-      const urlReg  = /url\('?([^)']*)/
-      const style   = $(el).attr('style')
-      const result  = urlReg.exec( style )
-      if ( result && result[1] && !styleUrls.includes(result[1]) ) {
+      const urlReg    = /url\('?([^)']*)/
+      const style     = $(el).attr('style')
+      const result    = urlReg.exec( style )
+      if ( result && result[1] && isHttpUrl( result[1] ) && !styleUrls.includes(result[1]) ) {
         styleUrls.push(result[1])
       }
     })
 
     // change path to match downloaded images
-    // Don't use Cheerio because when exporting some mess are donne with ESP tags
+    // Don't use Cheerio because when exporting it's messing with ESP tags
     const esc     = _.escapeRegExp
     imgUrls.forEach( imgUrl => {
       let search  = new RegExp(`src="${ esc(imgUrl) }`, 'g')
@@ -191,7 +199,7 @@ function getName(name) {
 
 function getImageName(imageUrl) {
   return url
-  .parse(imageUrl)
+  .parse( imageUrl )
   .pathname
   .replace(/\//g, ' ')
   .trim()

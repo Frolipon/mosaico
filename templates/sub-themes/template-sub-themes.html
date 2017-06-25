@@ -65,7 +65,6 @@
       bgimage {
         label: Background Image;
         widget: bgimage;
-        size: 200x100;
       }
       weight {
         label: Graisse;
@@ -90,6 +89,7 @@
 
       /* duplicate some widget to change a label */
       surtitreColor {     label: Surtitre Color; extend: color; }
+      bgcolor {           label: Background pattern color fallback; extend: color; }
       overrideColor {     label: Override Color; extend: color; }
       buttonUrl {         label: Lien bouton; extend: url; }
       imageUrl {          label: Lien image;  extend: url; }
@@ -115,6 +115,10 @@
       clickableimage {
         label: Clickable image;
         properties: src imageUrl alt imageWidth;
+      }
+      bgpattern {
+        label: background pattern;
+        properties: bgimage bgcolor;
       }
 
       titleStyle size {       label: Taille du titre; extend: size; }
@@ -239,8 +243,8 @@
       bgimageBlock {
         label: a block with 2 differents images;
       }
-      bgimageBlock firstBgimage {   label: left image; }
-      bgimageBlock secondBgimage {  label: right image; }
+      bgimageBlock firstBgpattern {   label: left image; }
+      bgimageBlock secondBgpattern {  label: right image; }
 
     }
   </style>
@@ -335,16 +339,44 @@
         <td align="center" valign="top" width="50%">
           <dl style="border: 5px solid #ebe;">
             <dt style="background: #ebe;">use style background-image</dt>
-            <dd style="height: 100px; background: no-repeat center center; background-image: url('http://dummyimage.com/200x100/666666/fff'); -ko-background-image: url(@[firstBgimage]);" ></dd>
+            <dd style="height: 100px; margin: 0;
+              background: repeat center center;
+              background-image: url('data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==');
+              -ko-background-image: url(@[firstBgpattern.bgimage]);
+              background-color: none;
+              -ko-background-color: @firstBgpattern.bgcolor;
+              " >
+              <!--
+                IMPORTANT
+                don't put default values in the IE9 hack
+                => It will break mosaico
+              -->
+              <!--[if gte mso 9]>
+                <v:background xmlns:v="urn:schemas-microsoft-com:vml" fill="t">
+                  <v:fill type="tile"
+                    style="-ko-attr-src: @firstBgpattern.bgimage; -ko-attr-color: @firstBgpattern.bgcolor;"
+                />
+                </v:background>
+              <![endif]-->
+            </dd>
           </dl>
         </td>
         <td align="center" valign="top" width="50%">
           <dl style="border: 5px solid #ebe;">
             <dt style="background: #ebe;">use table background attribute</dt>
-            <dd style="height: 100px; text-align: center">
-              <table width="200">
+            <dd style="height: 100px; text-align: center; margin: 0">
+              <table width="100%" bgcolor="#FFF" style="-ko-attr-bgcolor: @secondBgpattern.bgcolor;">
                 <tr>
-                  <td background="http://dummyimage.com/200x100/666666/fff" style="height:100px; -ko-attr-background: @secondBgimage;"></td>
+                  <td background="https://upload.wikimedia.org/wikipedia/commons/c/ca/1x1.png"
+                  style="-ko-attr-background: @secondBgpattern.bgimage; height:100px;"
+                  >
+                    <!--[if gte mso 9]>
+                      <v:background xmlns:v="urn:schemas-microsoft-com:vml" fill="t">
+                        <v:fill type="tile"
+                          style="-ko-attr-src: @secondBgpattern.bgimage;" />
+                      </v:background>
+                    <![endif]-->
+                  </td>
                 </tr>
               </table>
             </dd>

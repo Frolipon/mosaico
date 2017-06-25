@@ -8,24 +8,23 @@ const console     = require( 'console' )
 // bgimage {
 //   label: Background Image;
 //   widget: bgimage;
-//   size: 200x100;
+//   size: 200x100; // <= not used anymore
 // }
 
 // other “native” widgets are defined in converter/editor.js
-
-const parameters    = Object.freeze({
-  size: `100x100`,
+// size is deactivate for now: background-images are used for repeating patterns
+const defaultParameters = Object.freeze({
+  // size: `100x100`,
 })
+const transparentGif    = `data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==`
 
 const isValidSize   = size => /(\d+)x(\d+)/.test( size.trim() )
 
 
-function html( propAccessor, onfocusbinding, { size } ) {
-  size = isValidSize( size ) ? size : parameters.size
-
+function html( propAccessor, onfocusbinding, parameters ) {
   return `
     <input size="7" type="hidden" value="nothing" id="${propAccessor}" data-bind="value: ${propAccessor}, ${onfocusbinding}" />
-    <button data-bind="text: $root.t('widget-bgimage-button'), click: $root.openDialogGallery.bind($element, '${propAccessor}', '${size}');">pick an image</button>
+    <button data-bind="text: $root.t('widget-bgimage-button'), click: $root.openDialogGallery.bind($element, '${propAccessor}', '${parameters}');">pick an image</button>
   `
 }
 
@@ -36,7 +35,7 @@ module.exports = opts => {
   function widget( $, ko, kojqui ) {
     return {
       widget: 'bgimage',
-      parameters,
+      defaultParameters,
       html,
     }
   }
@@ -44,21 +43,19 @@ module.exports = opts => {
   function viewModel( vm ) {
     vm.showDialogGallery  = ko.observable( false )
     vm.currentBgimage     = ko.observable( false )
-    vm.currentBgsize      = ko.observable( false )
     vm.setBgImage         = ( imageName, img, event ) => {
       // images have to be on an absolute path
       // => ZIP download needs it that way
-      vm.currentBgimage()( `${ basePath }/cover/${ vm.currentBgsize() }/${ imageName }` )
+      // vm.currentBgimage()( `${ basePath }/cover/${ vm.currentBgsize() }/${ imageName }` )
+      vm.currentBgimage()( `${ basePath }/img/${ imageName }` )
       vm.closeDialogGallery()
     }
-    vm.openDialogGallery = ( propAccessor, size, blockProperties, event ) => {
+    vm.openDialogGallery = ( propAccessor, parameters, blockProperties, event ) => {
       // to set the right property, store the concerned setter
       vm.currentBgimage( blockProperties[ propAccessor ].bind( blockProperties ) )
-      vm.currentBgsize( size )
       vm.showDialogGallery( true )
     }
     vm.closeDialogGallery = () => {
-      vm.currentBgsize( false )
       vm.currentBgimage( false )
       vm.showDialogGallery( false )
     }
