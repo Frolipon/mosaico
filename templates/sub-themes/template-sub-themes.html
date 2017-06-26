@@ -248,7 +248,6 @@
 
     }
   </style>
-
 </head>
 
 <body >
@@ -339,7 +338,7 @@
         <td align="center" valign="top" width="50%">
           <dl style="border: 5px solid #ebe;">
             <dt style="background: #ebe;">use style background-image</dt>
-            <dd style="height: 100px; margin: 0;
+            <dd style="height: 100px; margin: 0; display: flex; align-items: center; justify-content: center;
               background: repeat center center;
               background-image: url('data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==');
               -ko-background-image: url(@[firstBgpattern.bgimage]);
@@ -358,6 +357,7 @@
                 />
                 </v:background>
               <![endif]-->
+              <span style="background: rgba(255, 255, 255, .85); padding: 10px 20px;">first column</span>
             </dd>
           </dl>
         </td>
@@ -368,7 +368,7 @@
               <table width="100%" bgcolor="#FFF" style="-ko-attr-bgcolor: @secondBgpattern.bgcolor;" cellpadding="0" border="0" cellspacing="0">
                 <tr>
                   <td background="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
-                  style="-ko-attr-background: @secondBgpattern.bgimage; height:100px;"
+                  style="-ko-attr-background: @secondBgpattern.bgimage; height:100px;" align="center" valign="center"
                   >
                     <!--[if gte mso 9]>
                       <v:background xmlns:v="urn:schemas-microsoft-com:vml" fill="t">
@@ -376,6 +376,7 @@
                           style="-ko-attr-src: @secondBgpattern.bgimage;" />
                       </v:background>
                     <![endif]-->
+                    <span style="background: rgba(255, 255, 255, .85); padding: 10px 20px;">second column</span>
                   </td>
                 </tr>
               </table>
