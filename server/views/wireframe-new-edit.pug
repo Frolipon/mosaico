@@ -32,8 +32,10 @@ block content
         li.mdl-list__item: a.mdl-list__item-primary-content.js-delete-wireframe(data-name=wireframe.name href=deleteUrl )
           .material-icons.mdl-list__item-icon delete_forever
           | delete
-        li.mdl-list__item: a.mdl-list__item-primary-content(href=`/wireframes/${wireframe._id}/generatePreviews` )
-          | generate preview
+        if wireframe.hasMarkup
+          li.mdl-list__item: a.mdl-list__item-primary-content(href=`/wireframes/${wireframe._id}/generatePreviews` )
+            .material-icons.mdl-list__item-icon camera_alt
+            | generate previews
         if wireframe.url.imgCover
           li.mdl-list__item: span.mdl-list__item-primary-content Preview:
       if wireframe.url.imgCover

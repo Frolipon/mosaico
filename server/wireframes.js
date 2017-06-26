@@ -7,6 +7,7 @@ const Nightmare             = require('nightmare')
 const fs                    = require('fs-extra')
 const crypto                = require('crypto')
 const path                  = require('path')
+const sharp                 = require('sharp')
 
 const config                = require('./config')
 const filemanager           = require('./filemanager')
@@ -189,6 +190,7 @@ function generatePreviews(req, res, next) {
     if (!_wireframe.markup) return next( createError(404) )
     wireframe = _wireframe
     nightmare = Nightmare().viewport(680, 780)
+
     return nightmare
     .goto( `${protocol}${config.host}/admin/login` )
     .insert('#password-field', config.admin.password )
@@ -304,7 +306,10 @@ function generatePreviews(req, res, next) {
 
   function uploadScreenshots([files]) {
     const uploads = files.map( file => {
-      return filemanager.writeStreamFromPath( file )
+      // images are captured at 680 but displayed at half the size
+      const pipeline = sharp().resize( 340, null )
+      fs.createReadStream( file.path ).pipe( pipeline )
+      return filemanager.writeStreamFromStream( pipeline, file.name )
     })
     return Promise.all( uploads )
   }
