@@ -128,27 +128,27 @@ function parseMultipart(req, options) {
 // EXPOSE
 //////
 
-function write(file) {
-  // console.log('write', config.isAws ? 'S3' : 'local', chalk.green(file.name))
-  const deferred      = defer()
-  const uploadStream  = writeStreamFromPath(file)
+// function write(file) {
+//   // console.log('write', config.isAws ? 'S3' : 'local', chalk.green(file.name))
+//   const deferred      = defer()
+//   const uploadStream  = writeStreamFromPath(file)
 
-  uploadStream.on('close', deferred.resolve)
-  // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3/ManagedUpload.html
-  uploadStream.on('httpUploadProgress', progress => {
-    if (progress.loaded >= progress.total) deferred.resolve()
-  })
-  uploadStream.on('error', deferred.reject)
+//   uploadStream.on('close', deferred.resolve)
+//   // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3/ManagedUpload.html
+//   uploadStream.on('httpUploadProgress', progress => {
+//     if (progress.loaded >= progress.total) deferred.resolve()
+//   })
+//   uploadStream.on('error', deferred.reject)
 
-  return deferred
-}
-// we want those methods to be as closed as possible
+//   return deferred
+// }
 
 module.exports = {
   streamImage,
-  write,
+  // write,
   list: listImages,
   parseMultipart,
   copyImages,
+  writeStreamFromPath,
   writeStreamFromStream,
 }

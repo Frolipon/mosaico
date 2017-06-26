@@ -4,6 +4,9 @@ const _                     = require('lodash')
 const chalk                 = require('chalk')
 const createError           = require('http-errors')
 const Nightmare             = require('nightmare')
+const fs                    = require('fs-extra')
+const crypto                = require('crypto')
+const path                  = require('path')
 
 const config                = require('./config')
 const filemanager           = require('./filemanager')
@@ -11,6 +14,10 @@ const slugFilename          = require('../shared/slug-filename.js')
 const { handleValidatorsErrors,
   isFromCompany, Companies,
   Wireframes, Creations }   = require('./models')
+
+function _getWireframeImagePrefix( wireframeId ) {
+  return `wireframe-${ wireframeId }`
+}
 
 function list(req, res, next) {
   Wireframes
@@ -105,7 +112,7 @@ function update(req, res, next) {
   filemanager
   .parseMultipart(req, {
     // add a `wireframe` prefix to differ from user uploaded template assets
-    prefix:     `wireframe-${wireId}`,
+    prefix:     _getWireframeImagePrefix( wireId ),
     formatter:  'wireframes',
   })
   .then(onParse)
@@ -122,7 +129,9 @@ function update(req, res, next) {
       const nameChange  = body.name !== wireframe.name
       // custom update function
       wireframe         = _.assignIn(wireframe, _.omit(body, ['images', 'assets']))
+      // TODO check if there is any assets to update
       wireframe.assets  = _.assign( {}, wireframe.assets || {}, body.assets )
+      wireframe.markModified( 'assets' )
 
       // copy wireframe name in creation
       if (wireId && nameChange) {
@@ -149,35 +158,55 @@ function update(req, res, next) {
 }
 
 // used by nightmareJS to have an empty page
-function nightmareBlankPage(req, res, next) {
-  res.send('')
+function nightmareMarkup(req, res, next) {
+  const { wireId }    = req.params
+
+  Wireframes
+  .findById( wireId )
+  .then( wireframe => {
+    if (!wireframe) return next( createError(404) )
+    if (!wireframe.markup) return next( createError(404) )
+    return res.send( wireframe.markup )
+  })
+  .catch( next )
 }
 
 function generatePreviews(req, res, next) {
-  const wireframeId     = req.params.wireId
-  const blocksName      = []
+  const { wireId }    = req.params
+  const blocksName    = []
+  const assets        = {}
+  const protocol      = `http${ config.forcessl ? 's' : '' }://`
   let nightmare
+  let wireframe
 
   Wireframes
-  .findById( wireframeId )
+  .findById( wireId )
   .then( generate )
   .catch( next )
 
-  function generate( wireframe ) {
-    if (!wireframe) return next( createError(404) )
+  function generate( _wireframe ) {
+    if (!_wireframe) return next( createError(404) )
+    if (!_wireframe.markup) return next( createError(404) )
+    wireframe = _wireframe
     nightmare = Nightmare().viewport(680, 780)
     return nightmare
-    .goto( `http://${config.host}/wireframes/nightmare` )
-    // to avoid admin connection, just grab an empty page and fill it with the markup
-    .evaluate( _markup => {
-      document.write( _markup )
-    }, wireframe.markup)
+    .goto( `${protocol}${config.host}/admin/login` )
+    .insert('#password-field', config.admin.password )
+    .click('form[action*="/login"] [type=submit]')
+    .wait('.js-admin-home')
+    .goto( `${protocol}${config.host}/wireframes/${wireId}/nightmare` )
+    // wait for `did-finish-load` event
+    // https://github.com/segmentio/nightmare/issues/297#issuecomment-150601269
+    .evaluate( () => false )
     .then( getWireframeSize )
     .then( resizeViewport )
     .then( gatherBlocks )
     .then( takeScreenshots )
+    .then( saveScreenshotsToTmp )
+    .then( uploadScreenshots )
+    .then( updateWireframeAssets )
     .then( () => {
-      res.redirect( `/wireframes/${ wireframeId }` )
+      res.redirect( `/wireframes/${ wireId }` )
     })
   }
 
@@ -203,7 +232,7 @@ function generatePreviews(req, res, next) {
   function resizeViewport( {width, height} ) {
     return nightmare
     .viewport(width, height)
-    .evaluate( () => true )
+    .evaluate( () => false )
   }
 
   function gatherBlocks() {
@@ -212,7 +241,8 @@ function generatePreviews(req, res, next) {
       // get position of every blocks
       const nodes   = [ ...document.querySelectorAll('[data-ko-container] [data-ko-block]') ]
       const blocks  = nodes.map( node => {
-        const name  = `${node.getAttribute('data-ko-block')}.png`
+        // use dataset to preserve case
+        const name  = `${node.dataset.koBlock}.png`
         const rect  = node.getBoundingClientRect()
         return {
           name,
@@ -241,19 +271,48 @@ function generatePreviews(req, res, next) {
   }
 
   function takeScreenshots( {blocks} ) {
+    console.log( blocks )
     blocks.forEach( ({name}) => blocksName.push( name ) )
-    console.log( blocksName )
     const screens = blocks.map( ({name, clip}) => {
       return nightmare
-      // need those scrolls to trigger a new render ¬_¬'
-      .scrollTo(1, 1)
-      .scrollTo(0, 0)
-      // wait for `did-finish-load` event
-      // https://github.com/segmentio/nightmare/issues/297#issuecomment-150601269
       .evaluate( () => false )
-      .screenshot( `${ config.images.tmpDir }/${name}`, clip )
+      .screenshot( clip )
+      .then( buffer => Promise.resolve(buffer) )
     })
     return Promise.all( screens )
+  }
+
+  function saveScreenshotsToTmp( imagesBuffer ) {
+    // console.log( imagesBuffer )
+    const files   = []
+    const images  = imagesBuffer.map( (imageBuffer, index) => {
+      // slug to be coherent with upload
+      const originalName  = slugFilename( blocksName[ index ] )
+      const hash          = crypto.createHash('md5').update( imageBuffer ).digest('hex')
+      const name          = `${ _getWireframeImagePrefix(wireId) }-${ hash }.png`
+      const filePath      = path.join( config.images.tmpDir, `/${name}` )
+      files.push({
+        path: filePath,
+        name,
+      })
+      // this will be used to update `assets` field in DB
+      assets[ originalName ] = name
+      return fs.writeFile( filePath, imageBuffer )
+    })
+    return Promise.all( [files, Promise.all(images)] )
+  }
+
+  function uploadScreenshots([files]) {
+    const uploads = files.map( file => {
+      return filemanager.writeStreamFromPath( file )
+    })
+    return Promise.all( uploads )
+  }
+
+  function updateWireframeAssets() {
+    wireframe.assets  = assets
+    wireframe.markModified( 'assets' )
+    return wireframe.save()
   }
 
 }
@@ -274,12 +333,12 @@ function remove(req, res, next) {
 }
 
 module.exports = {
-  list:         list,
-  customerList: customerList,
-  show:         show,
-  update:       update,
-  remove:       remove,
-  getMarkup:    getMarkup,
-  generatePreviews:     generatePreviews,
-  nightmareBlankPage: nightmareBlankPage,
+  list:             list,
+  customerList:     customerList,
+  show:             show,
+  update:           update,
+  remove:           remove,
+  getMarkup:        getMarkup,
+  generatePreviews: generatePreviews,
+  nightmareMarkup:  nightmareMarkup,
 }

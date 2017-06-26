@@ -300,11 +300,12 @@ module.exports = function () {
 
   app.get('/wireframes/:wireId/delete',           guard('admin'), wireframes.remove)
   app.get('/wireframes/:wireId/markup',           guard('user'),  wireframes.getMarkup)
+  app.get('/wireframes/:wireId/nightmare',        guard('admin'), wireframes.nightmareMarkup )
   app.get('/wireframes/:wireId/generatePreviews', guard('admin'), wireframes.generatePreviews)
   app.get('/wireframes/:wireId',                  guard('admin'), wireframes.show)
   app.post('/wireframes/:wireId?',                guard('admin'), wireframes.update)
   app.get('/wireframes',                          guard('admin'), wireframes.list)
-  app.get('/wireframes/nightmare',                wireframes.nightmareBlankPage )
+
 
   app.all('/transfer/:creationId',                guard('admin'))
   app.get('/transfer/:creationId',                creationTransfer.get)

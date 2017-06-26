@@ -13,6 +13,7 @@ function streamImage(imageName) {
   return fs.createReadStream( imagePath )
 }
 function writeStreamFromPath(file) {
+  // every files are uploaded to the uploadDir
   var filePath  = path.join( config.images.uploadDir, file.name )
   var source    = fs.createReadStream( file.path )
   var dest      = fs.createWriteStream( filePath )
