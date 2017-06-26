@@ -18,7 +18,7 @@ const formatName    = require( './helpers/format-filename-for-jqueryfileupload.j
 const slugFilename  = require( '../shared/slug-filename.js' )
 
 const { readFile }  = fs
-// we want those methods to be as closed as possible
+// we want those methods to be as close as possible
 const {
   streamImage,
   writeStreamFromPath,
