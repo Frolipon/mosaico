@@ -318,7 +318,7 @@ function generatePreviews(req, res, next) {
   }
 
   function updateWireframeAssets() {
-    wireframe.assets  = assets
+    wireframe.assets  = Object.assign( {}, wireframe.assets || {},  assets )
     wireframe.markModified( 'assets' )
     return wireframe.save()
   }
