@@ -1,1 +1,1 @@
-web: node server/workers.js
+web: xvfb-run --auto-servernum --server-args="-screen 0 1024x768x24" node server/workers.js
