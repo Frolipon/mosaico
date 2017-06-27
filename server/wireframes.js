@@ -158,7 +158,7 @@ function update(req, res, next) {
   }
 }
 
-// used by nightmareJS to have an empty page
+// used by nightmareJS to have the right html
 function nightmareMarkup(req, res, next) {
   const { wireId }    = req.params
 
@@ -172,6 +172,9 @@ function nightmareMarkup(req, res, next) {
   .catch( next )
 }
 
+// those are 2 links for installing nightmarejs on heroku
+// https://github.com/oscarmorrison/nightmare-heroku
+// https://github.com/benschwarz/heroku-electron-buildpack
 function generatePreviews(req, res, next) {
   const { wireId }    = req.params
   const blocksName    = []
