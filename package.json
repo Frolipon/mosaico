@@ -61,6 +61,7 @@
     "moment": "^2.18.0",
     "mongoose": "^4.9.9",
     "morgan": "^1.8.1",
+    "nightmare": "^2.10.0",
     "nodemailer": "^4.0.1",
     "nodemailer-wellknown": "^0.2.3",
     "passport": "^0.3.2",
@@ -194,6 +195,6 @@
     "toc": "gulp toc"
   },
   "engines": {
-    "node": "6.10.3"
+    "node": "6.11.0"
   }
 }
