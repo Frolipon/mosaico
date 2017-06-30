@@ -25,7 +25,7 @@ function list(req, res, next) {
   .find({})
   .populate('_user')
   .populate('_company')
-  .then( (wireframes) => {
+  .then( wireframes => {
     res.render('wireframe-list', {
       data: { wireframes: wireframes, }
     })

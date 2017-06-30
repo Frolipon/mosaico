@@ -12,23 +12,29 @@ function streamImage(imageName) {
   var imagePath = path.join( config.images.uploadDir, imageName )
   return fs.createReadStream( imagePath )
 }
+
 function writeStreamFromPath(file) {
+  const deferred  = defer()
   // every files are uploaded to the uploadDir
-  var filePath  = path.join( config.images.uploadDir, file.name )
-  var source    = fs.createReadStream( file.path )
-  var dest      = fs.createWriteStream( filePath )
-  return source.pipe( dest )
+  const destPath  = path.join( config.images.uploadDir, file.name )
+  const source    = fs.createReadStream( file.path )
+  const dest      = fs.createWriteStream( destPath )
+  source
+  .pipe( dest )
+  .on('error', deferred.reject)
+  .on('close', deferred.resolve)
+  return deferred
 }
+
 function writeStreamFromStream(source, name) {
-  // console.log('writeStreamFromStream', name)
-  var filePath  = path.join( config.images.uploadDir, name )
-  var dest      = fs.createWriteStream( filePath )
-  return new Promise( (resolve, reject) => {
-    source
-    .pipe(dest)
-    .on('error', reject)
-    .on('close', resolve)
-  })
+  const deferred  = defer()
+  const destPath  = path.join( config.images.uploadDir, name )
+  const dest      = fs.createWriteStream( destPath )
+  source
+  .pipe( dest )
+  .on('error', deferred.reject)
+  .on('close', deferred.resolve)
+  return deferred
 }
 
 function listImages(prefix) {
