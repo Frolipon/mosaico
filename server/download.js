@@ -23,6 +23,7 @@ function isHttpUrl( uri ) {
 
 function secureHtml(html) {
   // replace all tabs by spaces so `he` don't replace them by `&#x9;`
+  // `he` is an HTML entity encoder/decoder
   html      = html.replace(/\t/g, ' ')
   html      = htmlEntities.encode(html, {
     useNamedReferences: true,
@@ -113,21 +114,18 @@ function zip(req, res, next) {
         styleUrls.push(result[1])
       }
     })
+    const allImages   = _.uniq( [...imgUrls, ...bgUrls, ...styleUrls] )
 
     // change path to match downloaded images
-    // Don't use Cheerio because when exporting it's messing with ESP tags
+    // Don't use Cheerio because:
+    // - when exporting it's messing with ESP tags
+    // - Cheerio won't handle IE comments
     const esc     = _.escapeRegExp
-    imgUrls.forEach( imgUrl => {
-      let search  = new RegExp(`src="${ esc(imgUrl) }`, 'g')
-      html        = html.replace(search, `src="${imagesFolder}/${getImageName(imgUrl)}`)
-    })
-    bgUrls.forEach( bgUrl => {
-      let search  = new RegExp(`background="${ esc(bgUrl) }`, 'g')
-      html        = html.replace(search, `background="${imagesFolder}/${getImageName(bgUrl)}`)
-    })
-    styleUrls.forEach( styleUrl => {
-      let search  = new RegExp( `url\\('?${ esc(styleUrl) }'?\\)`, 'g')
-      html        = html.replace(search, `url(${imagesFolder}/${getImageName(styleUrl)})`)
+    allImages.forEach( imgUrl => {
+      const escImgUrl   = esc( imgUrl )
+      const relativeUrl = `${ imagesFolder }/${ getImageName(imgUrl) }`
+      const search      = new RegExp( escImgUrl, 'g' )
+      html              = html.replace( search, relativeUrl )
     })
 
     archive.on('error', next)
@@ -150,7 +148,6 @@ function zip(req, res, next) {
       prefix: `${name}/`,
     })
 
-    const allImages     = _.uniq( [...imgUrls, ...bgUrls, ...styleUrls] )
     // Pipe all images BUT don't add errored images
     const imagesRequest = allImages.map( imageUrl => {
       const dfd         = defer()
