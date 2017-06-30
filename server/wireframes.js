@@ -177,6 +177,7 @@ function nightmareMarkup(req, res, next) {
 // https://github.com/benschwarz/heroku-electron-buildpack
 function generatePreviews(req, res, next) {
   const { wireId }    = req.params
+  const start         = Date.now()
   const blocksName    = []
   const assets        = {}
   const protocol      = `http${ config.forcessl ? 's' : '' }://`
@@ -188,7 +189,12 @@ function generatePreviews(req, res, next) {
   .then( generate )
   .catch( next )
 
+  function getDuration() {
+    return `${ (Date.now() - start) / 1000}s`
+  }
+
   function generate( _wireframe ) {
+    console.log(`[PREVIEWS] get wireframe – ${ getDuration() }`)
     if (!_wireframe) return next( createError(404) )
     if (!_wireframe.markup) return next( createError(404) )
     wireframe = _wireframe
@@ -216,6 +222,7 @@ function generatePreviews(req, res, next) {
   }
 
   function getWireframeSize() {
+    console.log(`[PREVIEWS] get wireframe size – ${ getDuration() }`)
     return nightmare
     .evaluate( () => {
       // `preview` class is added to have more controls over previews
@@ -235,12 +242,14 @@ function generatePreviews(req, res, next) {
   // resize the viewport so it takes the whole template
   // needed for screenshots to be done correctly
   function resizeViewport( {width, height} ) {
+    console.log(`[PREVIEWS] resize viewport – ${ getDuration() }`)
     return nightmare
     .viewport(width, height)
     .evaluate( () => false )
   }
 
   function gatherBlocks() {
+    console.log(`[PREVIEWS] gather blocks – ${ getDuration() }`)
     return nightmare
     .evaluate( () => {
       // get position of every blocks
@@ -276,6 +285,7 @@ function generatePreviews(req, res, next) {
   }
 
   function takeScreenshots( {blocks} ) {
+    console.log(`[PREVIEWS] take screenshots – ${ getDuration() }`)
     console.log( blocks )
     blocks.forEach( ({name}) => blocksName.push( name ) )
     const screens = blocks.map( ({name, clip}) => {
@@ -288,9 +298,10 @@ function generatePreviews(req, res, next) {
   }
 
   function saveScreenshotsToTmp( imagesBuffer ) {
-    // console.log( imagesBuffer )
+    console.log(`[PREVIEWS] save screenshots to tmp – ${ getDuration() }`)
     const files   = []
     const images  = imagesBuffer.map( (imageBuffer, index) => {
+      console.log(`[PREVIEWS] img ${blocksName[ index ]}`)
       // slug to be coherent with upload
       const originalName  = slugFilename( blocksName[ index ] )
       const hash          = crypto.createHash('md5').update( imageBuffer ).digest('hex')
@@ -308,7 +319,9 @@ function generatePreviews(req, res, next) {
   }
 
   function uploadScreenshots([files]) {
+    console.log(`[PREVIEWS] upload screenshots – ${ getDuration() }`)
     const uploads = files.map( file => {
+      console.log(`[PREVIEWS] upload ${file.name}`)
       // images are captured at 680 but displayed at half the size
       const pipeline = sharp().resize( 340, null )
       fs.createReadStream( file.path ).pipe( pipeline )
@@ -318,6 +331,7 @@ function generatePreviews(req, res, next) {
   }
 
   function updateWireframeAssets() {
+    console.log(`[PREVIEWS] update wireframe assets in DB – ${ getDuration() }`)
     wireframe.assets  = Object.assign( {}, wireframe.assets || {},  assets )
     wireframe.markModified( 'assets' )
     return wireframe.save()

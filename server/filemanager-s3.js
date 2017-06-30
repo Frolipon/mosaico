@@ -41,6 +41,7 @@ function writeStreamFromPath( file ) {
     // console.log(err, data)
   })
   .on('httpUploadProgress', progress => {
+    console.log(`writeStreamFromPath – ${ name }`, (progress.loaded / progress.total) * 100 )
     if (progress.loaded >= progress.total) deferred.resolve()
   })
   .on( 'error', deferred.reject )
@@ -62,7 +63,7 @@ function writeStreamFromStream( source, name ) {
     // resolve( data )
   })
   .on('httpUploadProgress', progress => {
-    console.log('httpUploadProgress', progress.loaded, progress.total)
+    console.log(`writeStreamFromStream – ${ name }`, (progress.loaded / progress.total) * 100 )
     if (progress.loaded >= progress.total) deferred.resolve()
   })
   .on('error', deferred.reject)

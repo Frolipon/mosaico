@@ -44,6 +44,8 @@ In order for the image resize & the templates' preview generation to work you wi
 
 Copy and paste those urls in the `Buildpacks` section of `Settings`
 
+This has to be done BEFORE any deploy
+
 ### configuring environments variables
 
 - go in the settings of your application
