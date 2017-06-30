@@ -33,7 +33,7 @@ block content
           .material-icons.mdl-list__item-icon delete_forever
           | delete
         if wireframe.hasMarkup
-          li.mdl-list__item: a.mdl-list__item-primary-content(href=`/wireframes/${wireframe._id}/generatePreviews` )
+          li.mdl-list__item: a.js-generate-wireframe-previews.mdl-list__item-primary-content(href=`/wireframes/${wireframe._id}/generatePreviews` )
             .material-icons.mdl-list__item-icon camera_alt
             | generate previews
         if wireframe.url.imgCover
