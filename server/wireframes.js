@@ -163,7 +163,7 @@ function nightmareMarkup(req, res, next) {
   const { wireId }    = req.params
 
   Wireframes
-  .findById( wireId )
+  .findById( wireId, 'markup' )
   .then( wireframe => {
     if (!wireframe) return next( createError(404) )
     if (!wireframe.markup) return next( createError(404) )
@@ -175,13 +175,26 @@ function nightmareMarkup(req, res, next) {
 // those are 2 links for installing nightmarejs on heroku
 // https://github.com/oscarmorrison/nightmare-heroku
 // https://github.com/benschwarz/heroku-electron-buildpack
+// We make sure that nightmare is connected as admin
+const protocol  = `http${ config.forcessl ? 's' : '' }://`
+const nightmare = Nightmare()
+.viewport(680, 780)
+.goto( `${protocol}${config.host}/admin/login` )
+.insert( '#password-field', config.admin.password )
+.click( 'form[action*="/login"] [type=submit]' )
+
+const connected = nightmare
+.evaluate( () => false )
+.then( () => {
+  return Promise.resolve()
+})
+//
 function generatePreviews(req, res, next) {
   const { wireId }    = req.params
   const start         = Date.now()
   const blocksName    = []
   const assets        = {}
   const protocol      = `http${ config.forcessl ? 's' : '' }://`
-  let nightmare
   let wireframe
 
   Wireframes
@@ -198,17 +211,16 @@ function generatePreviews(req, res, next) {
     if (!_wireframe) return next( createError(404) )
     if (!_wireframe.markup) return next( createError(404) )
     wireframe = _wireframe
-    nightmare = Nightmare().viewport(680, 780)
 
-    return nightmare
-    .goto( `${protocol}${config.host}/admin/login` )
-    .insert('#password-field', config.admin.password )
-    .click('form[action*="/login"] [type=submit]')
-    .wait('.js-admin-home')
-    .goto( `${protocol}${config.host}/wireframes/${wireId}/nightmare` )
-    // wait for `did-finish-load` event
-    // https://github.com/segmentio/nightmare/issues/297#issuecomment-150601269
-    .evaluate( () => false )
+    return connected
+    .then( () => {
+      console.log(`[PREVIEWS] get wireframe markup – ${ getDuration() }`)
+      return nightmare
+      // wait for `did-finish-load` event
+      // https://github.com/segmentio/nightmare/issues/297#issuecomment-150601269
+      .goto( `${protocol}${config.host}/wireframes/${wireId}/nightmare` )
+      .evaluate( () => false )
+    })
     .then( getWireframeSize )
     .then( resizeViewport )
     .then( gatherBlocks )
