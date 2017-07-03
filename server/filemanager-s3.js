@@ -29,13 +29,14 @@ function streamImage( imageName ) {
 
 // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#upload-property
 function writeStreamFromPath( file ) {
-  const deferred  = defer()
-  const source    = fs.createReadStream( file.path )
+  const deferred        = defer()
+  const { name, path }  = file
+  const source          = fs.createReadStream( path )
 
   s3
   .upload({
     Bucket: config.storage.aws.bucketName,
-    Key:    file.name,
+    Key:    name,
     Body:   source,
   }, function(err, data) {
     // console.log(err, data)

@@ -116,7 +116,7 @@ function update(req, res, next) {
     prefix:     _getWireframeImagePrefix( wireId ),
     formatter:  'wireframes',
   })
-  .then(onParse)
+  .then( onParse )
   .catch(next)
 
   function onParse( body ) {
