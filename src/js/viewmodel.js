@@ -121,12 +121,8 @@ var strings = {
 function initializeEditor(content, blockDefs, thumbPathConverter, galleryUrl) {
 
   var viewModel = {
-    galleryRecent: ko.observableArray([]).extend({
-      paging: 16
-    }),
-    galleryRemote: ko.observableArray([]).extend({
-      paging: 16
-    }),
+    galleryRecent: ko.observableArray([]),
+    galleryRemote: ko.observableArray([]),
     selectedBlock: ko.observable(null),
     selectedItem: ko.observable(null),
     selectedTool: ko.observable(0),

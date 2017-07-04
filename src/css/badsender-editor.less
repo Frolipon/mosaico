@@ -28,6 +28,39 @@
 
 @mosaico-selection-color: @link-color;
 
+// http://lea.verou.me/2012/04/background-attachment-local/
+.scrolling-shadow() {
+  background:
+    // Shadow covers
+    linear-gradient(white 30%, rgba(255,255,255,0)),
+    linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
+    // Shadows
+    radial-gradient(50% 0, farthest-side, rgba(0,0,0,.35), rgba(0,0,0,0)),
+    radial-gradient(50% 100%,farthest-side, rgba(0,0,0,.35), rgba(0,0,0,0)) 0 100%;
+  background:
+    // Shadow covers
+    linear-gradient(white 30%, rgba(255,255,255,0)),
+    linear-gradient(rgba(255,255,255,0), white 70%) 0 100%,
+    // Shadows
+    radial-gradient(farthest-side at 50% 0, rgba(0,0,0,.35), rgba(0,0,0,0)),
+    radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,.35), rgba(0,0,0,0)) 0 100%;
+  background-repeat: no-repeat;
+  background-color: white;
+  background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+
+  /* Opera doesn't support this in the shorthand */
+  background-attachment: local, local, scroll, scroll;
+}
+.visually-hidden() {
+  position: absolute;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  width: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+}
 
 // --------------- PAGE ---------------
 //              |       toolbar
@@ -157,7 +190,9 @@
     &.ui-state-active {
       border-top: 0;
     }
-    &.ui-button-disabled, &.ui-button-disabled .ui-icon, &.ui-button-disabled .ui-button-text {
+    &.ui-button-disabled,
+    &.ui-button-disabled .ui-icon,
+    &.ui-button-disabled .ui-button-text {
       color: mix(@mosaico-ui-background-color, @tab-text-color);
     }
   }
@@ -390,6 +425,13 @@
 
 }
 
+.mo {
+  .propEditor {
+    display: flex;
+    align-items: center;
+  }
+}
+
 .wintitle() {
   color: @button-text-color;
   .ui-icon {
@@ -398,103 +440,13 @@
 }
 
 ////////
-// TOOLBAR
-////////
-
-#toolbar {
-  padding: 1px 5px;
-  display: flex;
-}
-
-.creation-name {
-  flex: 1 1 auto;
-  display: flex;
-  margin-right: 7px;
-  border: solid rgba(255, 255, 255, 0.3);
-  border-width: 0 1px;
-
-  .ui-button {
-    margin-right: 0;
-    text-align: left;
-  }
-
-  input {
-    font: inherit;
-    color: @tab-text-color;
-    background: none;
-    padding-left: 7px;
-    border: 0;
-    outline: 0;
-  }
-
-  p,
-  input {
-    flex: 1 1 auto;
-  }
-}
-
-////////
-// GALLERY
-////////
-
-#toolimagestab {
-  .ui-tabs-panel {
-    border: 0;
-  }
-  li {
-    margin: 0;
-    border-bottom: 0;
-
-    a {
-      padding-left: 1em;
-      padding-right: 1em;
-    }
-  }
-}
-
-
-////////
-// COLORPICKER
-////////
-
-// As a reminder
-// .mo .propInput .evo-pointer {
-//   z-index: 5;
-// }
-
-.evo-pop {
-  z-index: 10;
-
-  .evo-palette {
-    td {
-      height: 24px;
-    }
-    th {
-      background: white;
-    }
-  }
-}
-
-////////
-// tinyMCE custom style
-////////
-
-// add a class to fix button width for toolbar to compute size
-// see badsender-text-editor.js for more details
-
-.mce-fontsizedialogbutton {
-  width: 120px !important;
-}
-
-////////
-// gallery tabs & panels
+// GALLERY TABS & PANELS
 ////////
 
 .gallery-panel {
   text-align: center;
 
   .uploadzone {
-    margin-bottom: 1em;
     margin-left: 0;
     margin-right: 0;
   }
@@ -543,18 +495,78 @@
 }
 
 ////////
-// IMAGE GALLERY
+// TOOLBAR
 ////////
+
+#toolbar {
+  padding: 1px 5px;
+  display: flex;
+}
+
+.creation-name {
+  flex: 1 1 auto;
+  display: flex;
+  margin-right: 7px;
+  border: solid rgba(255, 255, 255, 0.3);
+  border-width: 0 1px;
+
+  .ui-button {
+    margin-right: 0;
+    text-align: left;
+  }
+
+  input {
+    font: inherit;
+    color: @tab-text-color;
+    background: none;
+    padding-left: 7px;
+    border: 0;
+    outline: 0;
+  }
+
+  p,
+  input {
+    flex: 1 1 auto;
+  }
+}
+
+//----- IMAGE GALLERY TOOLBOX
 
 @gallery-gutter: 4px;
 
+#toolimagestab {
+  padding: 0;
+  position: absolute;
+  top: @topbar-height;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  .ui-tabs-panel {
+    position: absolute;
+    top: @topbar-height;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+
+    .gallery-thumbs {
+      .scrolling-shadow();
+      flex-grow: 1;
+      overflow: auto;
+      margin-left: -18px;
+      margin-right: -18px;
+    }
+  }
+}
 .gallery-thumbs--badsender > div {
   display: flex;
   flex-wrap: wrap;
-  margin-left: (@gallery-gutter * -1);
-  margin-right: (@gallery-gutter * -1);
+  margin-left: 18px;
+  margin-right: 18px;
+  margin-top: 1em;
 }
-
 #main-toolbox {
   .draggable-item {
     margin-left: @gallery-gutter;
@@ -570,7 +582,6 @@
     height: 111px;
   }
 }
-
 .gallery-thumbs__remove {
   position: absolute;
   top: 0;
@@ -593,4 +604,191 @@
 }
 .draggable-item:hover .gallery-thumbs__remove {
   display: flex;
+}
+
+//----- BACKGROUND-IMAGE WIDGET
+
+.data-bgimage {
+  button {
+    .button-style();
+    text-transform: none;
+  }
+}
+
+////////
+// GALLERY TABS
+////////
+
+// `slidebar` is the wrapper of the gallery
+// originaly it's 3px less than the left bar
+.slidebar {
+  width: @leftsidebar-width;
+}
+
+// .mo seems to be the wrapper for not interfering with mailing HTML
+.mo .tabs_horizontal:not(#tooltabs) {
+  .ui-tabs-nav {
+    background: @mosaico-background-color;
+
+    li {
+      margin: 0;
+      border-bottom: 0;
+
+      a {
+        padding-left: 1em;
+        padding-right: 1em;
+      }
+      &.ui-state-active a {
+        background: white;
+      }
+    }
+  }
+  .ui-tabs-panel {
+    border: 0;
+  }
+}
+
+//----- IMAGE GALLERY DIALOG
+
+@dialog-margin: 32px;
+
+#dialogGallery {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, .8);
+  padding: @dialog-margin;
+  display: flex;
+  justify-content: center;
+
+  .tabs_horizontal {
+    background: white;
+    width: 100%;
+    max-width: 1024px;
+    position: relative;
+  }
+  .close {
+    visibility: hidden;
+    cursor: pointer;
+    width: 24px;
+    display: block;
+    position: absolute;
+    top: 6px;
+    right: 6px;
+
+    &:before {
+      visibility: visible;
+      font-size: 24px;
+      font-family: FontAwesome;
+      content: '\f00d';
+      position: relative;
+      top: 0px;
+      right: 0px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+  .gallery-panel {
+    position: absolute;
+    top: @topbar-height;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    text-align: center;
+    padding: .5em 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .img-dropzone {
+    position: relative;
+    margin: 0 .5em .5em;
+    flex-grow: 0;
+    flex-shrink: 0;
+    background-color: @mosaico-background-color;
+    border-radius: 5px;
+    padding: 5px;
+
+    &.ui-state-highlight:before {
+      .makeDroppable();
+      line-height: 45px;
+      height: auto;
+      top: -10px;
+      bottom: -10px;
+    }
+    &.ui-state-draghover:before {
+      background-color: fade(@mosaico-selection-color, 80%);
+      animation: none;
+    }
+  }
+  .uploadzone {
+    font-size: 1.2em;
+  }
+  .dialog-gallery-wrapper {
+    .scrolling-shadow();
+    flex-grow: 1;
+    overflow: auto;
+    padding: 0 7px;
+
+    ul,
+    li {
+      list-style: none;
+      margin: 0;
+    }
+    ul {
+      display: inline-block;
+      font-size: 0;
+      line-height: 0;
+    }
+    li {
+      display: inline-block;
+      padding: 7px;
+      font-size: initial;
+      margin: 4px;
+      overflow: hidden;
+      width: 125px;
+      height: 125px;
+      box-shadow: 0 0 1px @mosaico-shadow-color;
+
+      &:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px @mosaico-shadow-color;
+      }
+    }
+  }
+}
+
+////////
+// COLORPICKER
+////////
+
+// As a reminder
+// .mo .propInput .evo-pointer {
+//   z-index: 5;
+// }
+
+.evo-pop {
+  z-index: 10;
+
+  .evo-palette {
+    td {
+      height: 24px;
+    }
+    th {
+      background: white;
+    }
+  }
+}
+
+////////
+// tinyMCE custom style
+////////
+
+// add a class to fix button width for toolbar to compute size
+// see badsender-text-editor.js for more details
+
+.mce-fontsizedialogbutton {
+  width: 120px !important;
 }

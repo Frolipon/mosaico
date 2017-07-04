@@ -15,7 +15,7 @@ const i18n            = require('i18n')
 const moment          = require('moment')
 const { duration }    = moment
 const util            = require('util')
-const { merge, omit } = require('lodash')
+const { merge, omit, floor } = require('lodash')
 const createError     = require('http-errors')
 const helmet          = require('helmet')
 
@@ -95,7 +95,7 @@ module.exports = function () {
     if ( md5public[ staticPath ] === md5 ) {
       req.url           = staticPath
     // we don't want statics to be cached by the browser if the md5 is invalid
-    // pass it ti the next static handler which doens't set cache
+    // pass it to the next static handler which doens't set cache
     } else {
       // console.log('[MD5] bad hash for', staticPath, md5)
       req._staticPath   = staticPath
@@ -156,12 +156,13 @@ module.exports = function () {
     ips             = ips ? chalk.grey(`- ${ips} -`) : ''
     var url         = chalk.grey(tokens.url(req, res))
     var status      = tokens.status(req, res)
+    var time        = floor( tokens['response-time'](req, res) / 1000, 2 )
     var statusColor = status >= 500
       ? 'red' : status >= 400
       ? 'yellow' : status >= 300
       ? 'cyan' : 'green';
     if (/\/img\//.test(req.path) && status < 400) return
-    return `${method} ${ips} ${url} ${chalk[statusColor](status)}`
+    return `${method} ${ips} ${url} ${chalk[statusColor](status)} ${time}s`
   }
   app.use(morgan(logRequest, {immediate: true}))
   app.use(morgan(logResponse))
@@ -300,9 +301,12 @@ module.exports = function () {
 
   app.get('/wireframes/:wireId/delete',           guard('admin'), wireframes.remove)
   app.get('/wireframes/:wireId/markup',           guard('user'),  wireframes.getMarkup)
+  app.get('/wireframes/:wireId/nightmare',        guard('admin'), wireframes.nightmareMarkup )
+  app.get('/wireframes/:wireId/generatePreviews', guard('admin'), wireframes.generatePreviews)
   app.get('/wireframes/:wireId',                  guard('admin'), wireframes.show)
   app.post('/wireframes/:wireId?',                guard('admin'), wireframes.update)
   app.get('/wireframes',                          guard('admin'), wireframes.list)
+
 
   app.all('/transfer/:creationId',                guard('admin'))
   app.get('/transfer/:creationId',                creationTransfer.get)

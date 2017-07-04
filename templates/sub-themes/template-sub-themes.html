@@ -62,6 +62,10 @@
         label: Image;
         widget: src ;
       }
+      bgimage {
+        label: Background Image;
+        widget: bgimage;
+      }
       weight {
         label: Graisse;
         widget: select;
@@ -85,6 +89,7 @@
 
       /* duplicate some widget to change a label */
       surtitreColor {     label: Surtitre Color; extend: color; }
+      bgcolor {           label: Background pattern color fallback; extend: color; }
       overrideColor {     label: Override Color; extend: color; }
       buttonUrl {         label: Lien bouton; extend: url; }
       imageUrl {          label: Lien image;  extend: url; }
@@ -110,6 +115,10 @@
       clickableimage {
         label: Clickable image;
         properties: src imageUrl alt imageWidth;
+      }
+      bgpattern {
+        label: background pattern;
+        properties: bgimage bgcolor;
       }
 
       titleStyle size {       label: Taille du titre; extend: size; }
@@ -149,13 +158,13 @@
       b1 {
         label: Red leader;
         /*
-          Var prefix is mandatory for good inheritance
+          Var postfix is mandatory for good inheritance
           see var widget above
         */
         properties: coloraccentVar=#FF0000 colorprimaryVar=#330000;
         /*
           Because making those groups is making a new widget
-          And because we still don't  want to show then on the right panels
+          And because we still don't want to show then on the right panels
           => hide them also
         */
         category: hidden;
@@ -227,9 +236,18 @@
         theme: contentTheme;
       }
 
+      /*
+      // BACKGROUND IMAGE BLOCK
+      */
+
+      bgimageBlock {
+        label: a block with 2 differents images;
+      }
+      bgimageBlock firstBgpattern {   label: left image; }
+      bgimageBlock secondBgpattern {  label: right image; }
+
     }
   </style>
-
 </head>
 
 <body >
@@ -298,6 +316,76 @@
       <br>
       <br>
     </p>
+  </div>
+
+  <!--
+  //// BACKGROUND IMAGE TEST
+  -->
+
+  <div data-ko-block="bgimageBlock">
+    <h3>
+      Some background-image block
+    </h3>
+
+    <!--
+      It should be possible to combine background-image style et background attributes
+      But using both of them break in my case…
+      https://github.com/voidlabs/mosaico/issues/205 -
+    -->
+
+    <table width="100%" cellpadding="0" border="0" cellspacing="0">
+      <tr>
+        <td align="center" valign="top" width="50%">
+          <dl style="border: 5px solid #ebe;">
+            <dt style="background: #ebe;">use style background-image</dt>
+            <dd style="height: 100px; margin: 0; display: flex; align-items: center; justify-content: center;
+              background: repeat center center;
+              background-image: url('data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==');
+              -ko-background-image: url(@[firstBgpattern.bgimage]);
+              background-color: none;
+              -ko-background-color: @firstBgpattern.bgcolor;
+              " >
+              <!--
+                IMPORTANT
+                don't put default values in the IE9 hack
+                => It will break mosaico
+              -->
+              <!--[if gte mso 9]>
+                <v:background xmlns:v="urn:schemas-microsoft-com:vml" fill="t">
+                  <v:fill type="tile"
+                    style="-ko-attr-src: @firstBgpattern.bgimage; -ko-attr-color: @firstBgpattern.bgcolor;"
+                />
+                </v:background>
+              <![endif]-->
+              <span style="background: rgba(255, 255, 255, .85); padding: 10px 20px;">first column</span>
+            </dd>
+          </dl>
+        </td>
+        <td align="center" valign="top" width="50%">
+          <dl style="border: 5px solid #ebe;">
+            <dt style="background: #ebe;">use table background attribute</dt>
+            <dd style="height: 100px; text-align: center; margin: 0">
+              <table width="100%" bgcolor="#FFF" style="-ko-attr-bgcolor: @secondBgpattern.bgcolor;" cellpadding="0" border="0" cellspacing="0">
+                <tr>
+                  <td background="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
+                  style="-ko-attr-background: @secondBgpattern.bgimage; height:100px;" align="center" valign="center"
+                  >
+                    <!--[if gte mso 9]>
+                      <v:background xmlns:v="urn:schemas-microsoft-com:vml" fill="t">
+                        <v:fill type="tile"
+                          style="-ko-attr-src: @secondBgpattern.bgimage;" />
+                      </v:background>
+                    <![endif]-->
+                    <span style="background: rgba(255, 255, 255, .85); padding: 10px 20px;">second column</span>
+                  </td>
+                </tr>
+              </table>
+            </dd>
+          </dl>
+        </td>
+      </tr>
+    </table>
+
   </div>
 
   <!--

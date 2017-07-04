@@ -63,15 +63,17 @@ function cleanCss(cb) {
 function cssEditor() {
   return gulp
   .src('src/css/badsender-editor.less')
-  .pipe($.less())
-  .pipe($.postcss([
+  .pipe( $.if(isDev, $.plumber(onError)) )
+  .pipe( $.if(isDev, $.sourcemaps.init()) )
+  .pipe( $.less() )
+  .pipe( $.postcss([
     autoprefixer({ browsers: ['ie 10', 'last 2 versions'], }),
-  ]))
-  .pipe(cssProd())
-  .pipe($.rename('badsender-editor.css'))
-  .pipe($.if(!isDev, $.cleanCss()))
-  .pipe(gulp.dest(buildDir))
-  .pipe($.if(isDev, reload({stream: true})))
+  ]) )
+  .pipe( $.if(isDev, cssDev(), cssProd()) )
+  .pipe( $.rename('badsender-editor.css') )
+  .pipe( $.if(!isDev, $.cleanCss()) )
+  .pipe( gulp.dest(buildDir) )
+  .pipe( $.if(isDev, reload({stream: true})) )
 }
 
 function cssApp() {
@@ -167,7 +169,6 @@ function mosaicoLib() {
 const editorLib       = gulp.series( cleanLib, mosaicoLib)
 editorLib.description = `build JS for the mosaico editor and the app`
 
-
 //----- MOSAICO APPLICATION
 
 const browserify  = require('browserify')
@@ -176,6 +177,7 @@ const vinylBuffer = require('vinyl-buffer')
 const aliasify    = require('aliasify')
 const shim        = require('browserify-shim')
 const debowerify  = require('debowerify')
+const babelify    = require('babelify')
 const envify      = require('envify/custom')
 const watchify    = require('watchify')
 
@@ -195,8 +197,17 @@ function jsMosaico() {
       "knockoutjs-reactor": "knockoutjs-reactor/src/knockout.reactor.js"
     }
   })
-  b.transform(shim)
-  b.transform(debowerify)
+  b.transform( shim )
+  b.transform( debowerify )
+  // b.transform(babelify, {
+  //   presets:      ['es2015'],
+  // })
+  b.transform( babelify.configure({
+    presets:    ['es2015'],
+    // Optional only regex - if any filenames **don't** match this regex
+    // then they aren't compiled
+    only:       /badsender-/,
+  }) )
   b.transform(envify({
     _:          'purge',
     NODE_ENV:   env,
@@ -231,7 +242,6 @@ jsEditor.description  = `Bundle mosaico app, without libraries`
 //----- MOSAICO'S KNOCKOUT TEMPLATES: see -> combineKOTemplates.js
 
 const through       = require('through2')
-const babelify      = require('babelify')
 const StringDecoder = require('string_decoder').StringDecoder
 const decoder       = new StringDecoder('utf8')
 
@@ -248,7 +258,7 @@ function templates() {
     templates.push(content)
     return cb(null)
   }
-  function resizeFlush(cb) {
+  function flush(cb) {
     var result  = "var templateSystem = require('../src/js/bindings/choose-template.js');\n";
     result      = result + "document.addEventListener('DOMContentLoaded', function(event) {\n";
     result      = result + templates.join('\n') + '\n';
@@ -268,7 +278,7 @@ function templates() {
     'src/tmpl-badsender/*.html',
     '!src/tmpl/gallery-images.tmpl.html',
   ])
-  .pipe( through.obj(passThrough, resizeFlush) )
+  .pipe( through.obj(passThrough, flush) )
   // templates has to be build on “build” folder
   // they will be require by editor app application
   .pipe(gulp.dest('build'))

@@ -18,7 +18,7 @@ const formatName    = require( './helpers/format-filename-for-jqueryfileupload.j
 const slugFilename  = require( '../shared/slug-filename.js' )
 
 const { readFile }  = fs
-// we want those methods to be as closed as possible
+// we want those methods to be as close as possible
 const {
   streamImage,
   writeStreamFromPath,
@@ -107,7 +107,7 @@ function parseMultipart(req, options) {
     file.name         = `${ options.prefix }-${ file.hash }.${ ext }`
     // original name is needed for templates assets (preview/other images…)
     file.originalName = `${ fileName }.${ ext }`
-    uploads.push( write(file) )
+    uploads.push( writeStreamFromPath(file) )
   }
 
   function onEnd(err, fields, files) {
@@ -123,32 +123,15 @@ function parseMultipart(req, options) {
   return deferred
 }
 
-
 //////
 // EXPOSE
 //////
 
-function write(file) {
-  // console.log('write', config.isAws ? 'S3' : 'local', chalk.green(file.name))
-  const deferred      = defer()
-  const uploadStream  = writeStreamFromPath(file)
-
-  uploadStream.on('close', deferred.resolve)
-  // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3/ManagedUpload.html
-  uploadStream.on('httpUploadProgress', progress => {
-    if (progress.loaded >= progress.total) deferred.resolve()
-  })
-  uploadStream.on('error', deferred.reject)
-
-  return deferred
-}
-// we want those methods to be as closed as possible
-
 module.exports = {
   streamImage,
-  write,
   list: listImages,
   parseMultipart,
   copyImages,
+  writeStreamFromPath,
   writeStreamFromStream,
 }

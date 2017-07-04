@@ -29,15 +29,25 @@ function streamImage( imageName ) {
 
 // http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#upload-property
 function writeStreamFromPath( file ) {
-  var source  = fs.createReadStream( file.path )
-  return s3
+  const deferred        = defer()
+  const { name, path }  = file
+  const source          = fs.createReadStream( path )
+
+  s3
   .upload({
     Bucket: config.storage.aws.bucketName,
-    Key:    file.name,
+    Key:    name,
     Body:   source,
   }, function(err, data) {
     // console.log(err, data)
   })
+  .on('httpUploadProgress', progress => {
+    console.log(`writeStreamFromPath – ${ name }`, (progress.loaded / progress.total) * 100 )
+    if (progress.loaded >= progress.total) deferred.resolve()
+  })
+  .on( 'error', deferred.reject )
+
+  return deferred
 }
 
 function writeStreamFromStream( source, name ) {
@@ -54,7 +64,7 @@ function writeStreamFromStream( source, name ) {
     // resolve( data )
   })
   .on('httpUploadProgress', progress => {
-    console.log('httpUploadProgress', progress.loaded, progress.total)
+    console.log(`writeStreamFromStream – ${ name }`, (progress.loaded / progress.total) * 100 )
     if (progress.loaded >= progress.total) deferred.resolve()
   })
   .on('error', deferred.reject)

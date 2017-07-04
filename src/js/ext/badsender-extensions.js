@@ -15,6 +15,9 @@ var editTitle     = require('./badsender-edit-title')
 var textEditor    = require('./badsender-text-editor')
 var gallery       = require('./badsender-gallery')
 var removeImage   = require('./badsender-remove-gallery-image')
+// widgets
+// https://github.com/voidlabs/mosaico/wiki/Mosaico-Plugins#widget-plugins
+var widgetBgimage = require('./badsender-widget-bgimage')
 
 function setEditorIcon(viewModel) {
   viewModel.logoPath  = '/media/editor-icon.png'
@@ -28,6 +31,9 @@ function extendViewModel(opts, customExtensions) {
   customExtensions.push( editTitle )
   customExtensions.push( gallery(opts) )
   customExtensions.push( removeImage )
+  // widget should be differenciating of VM extentions by
+  // template-loader.js#pluginsCall
+  customExtensions.push( widgetBgimage(opts) )
 }
 
 //////
@@ -53,13 +59,12 @@ function templateUrlConverter(opts) {
     //   *|UNSUB|*
     //   #pouic
     if (!extentionRegexp.test(url)) return null
-    console.info('badsenderTemplateUrlConverter')
-    console.log(url)
+    // console.log('badsenderTemplateUrlConverter', url)
     // All images at uploaded are renamed with md5
     //    block thumbnails are based on html block ID
     //    => we need to maintain a dictionary of name -> md5 name
     //    here come the assets block
-    // we still keep the slug part for backward compatibility reason with old image name convetions
+    // we still keep the slug part for backward compatibility reason with old image name conventions
     url = slugFilename( url )
     url = assets[ url ] ? opts.imgProcessorBackend + assets[ url ] : null
     return url

@@ -34,11 +34,17 @@
 
 ### buildpack
 
-In order for the image resize to work you will need this build pack:
+In order for the image resize & the templates' preview generation to work you will need those build packs IN THAT ORDER:
 
-[https://github.com/alex88/heroku-buildpack-vips](https://github.com/alex88/heroku-buildpack-vips)
+- https://github.com/alex88/heroku-buildpack-vips.git
+- https://github.com/heroku/heroku-buildpack-apt
+- https://github.com/captain401/heroku-buildpack-xvfb.git
+- https://github.com/benschwarz/heroku-electron-buildpack.git
+- heroku/nodejs
 
-Copy and paste this url in the `Buildpacks` section of `Settings`
+Copy and paste those urls in the `Buildpacks` section of `Settings`
+
+This has to be done BEFORE any deploy
 
 ### configuring environments variables
 

@@ -17,8 +17,13 @@ const { Creations, isFromCompany, } = require('./models')
 
 //----- UTILS
 
+function isHttpUrl( uri ) {
+  return /^http/.test( uri )
+}
+
 function secureHtml(html) {
   // replace all tabs by spaces so `he` don't replace them by `&#x9;`
+  // `he` is an HTML entity encoder/decoder
   html      = html.replace(/\t/g, ' ')
   html      = htmlEntities.encode(html, {
     useNamedReferences: true,
@@ -81,22 +86,46 @@ function zip(req, res, next) {
     if (!creation) return next(createError(404))
     if (!isFromCompany(user, creation._company)) return next(createError(401))
 
-    const archive = archiver('zip')
+    const archive = archiver( 'zip' )
     let { html }  = body
-    let $         = cheerio.load(html)
-    let name      = getName(creation.name)
+    let $         = cheerio.load( html )
+    let name      = getName( creation.name )
 
     console.log('download zip', name)
 
-    // We only take care of images in the HTML
-    // No <style> CSS parsing for now. May be implemented later
-    const $images  = $('img')
-    const imgUrls  = _.uniq( $images.map( (i, el) => $(el).attr('src') ).get() )
+    // keep a track of every images for latter download
+    // be carefull to avoid data uri
+    // relatives path are not handled:
+    //  - the mailing should work also by email test
+    //  - SO no need to handle them
+    const $images     = $( 'img' )
+    const imgUrls     = _.uniq( $images.map( (i, el) => $(el).attr('src') ).get().filter( isHttpUrl ) )
+    const $background = $( '[background]' )
+    const bgUrls      = _.uniq( $background.map( (i, el) => $(el).attr('background') ).get().filter( isHttpUrl ) )
+    const $style      = $( '[style]' )
+    const styleUrls   = []
+    $style
+    .filter( (i, el) => /url\(/.test($(el).attr('style')) )
+    .each( (i, el) => {
+      const urlReg    = /url\('?([^)']*)/
+      const style     = $(el).attr('style')
+      const result    = urlReg.exec( style )
+      if ( result && result[1] && isHttpUrl( result[1] ) && !styleUrls.includes(result[1]) ) {
+        styleUrls.push(result[1])
+      }
+    })
+    const allImages   = _.uniq( [...imgUrls, ...bgUrls, ...styleUrls] )
+
     // change path to match downloaded images
-    // Don't use Cheerio because when exporting some mess are donne with ESP tags
-    imgUrls.forEach( (imgUrl) => {
-      let search  = new RegExp(`src="${imgUrl}`, 'g')
-      html        = html.replace(search, `src="${imagesFolder}/${getImageName(imgUrl)}`)
+    // Don't use Cheerio because:
+    // - when exporting it's messing with ESP tags
+    // - Cheerio won't handle IE comments
+    const esc     = _.escapeRegExp
+    allImages.forEach( imgUrl => {
+      const escImgUrl   = esc( imgUrl )
+      const relativeUrl = `${ imagesFolder }/${ getImageName(imgUrl) }`
+      const search      = new RegExp( escImgUrl, 'g' )
+      html              = html.replace( search, relativeUrl )
     })
 
     archive.on('error', next)
@@ -120,10 +149,10 @@ function zip(req, res, next) {
     })
 
     // Pipe all images BUT don't add errored images
-    const imagesRequest = imgUrls.map( imageUrl => {
-      const dfd = defer()
-      let imageName   = getImageName(imageUrl)
-      let imgRequest  = request(imageUrl)
+    const imagesRequest = allImages.map( imageUrl => {
+      const dfd         = defer()
+      const imageName   = getImageName(imageUrl)
+      const imgRequest  = request(imageUrl)
       imgRequest.on('response', response => {
         if (response.statusCode !== 200) return
         archive.append( imgRequest, {
@@ -167,7 +196,7 @@ function getName(name) {
 
 function getImageName(imageUrl) {
   return url
-  .parse(imageUrl)
+  .parse( imageUrl )
   .pathname
   .replace(/\//g, ' ')
   .trim()

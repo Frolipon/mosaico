@@ -23,6 +23,9 @@ module.exports = {
   'gallery-template-empty':       `La galerie du template est vide`,
   'gallery-remove-image-success': `L'image a bien été enlevée de la galerie`,
   'gallery-remove-image-fail':    `Une erreur est survenue lors de la suppression de l'image`,
+  // bgimage widget
+  'widget-bgimage-button':        `choisissez une image`,
+  'widget-bgimage-reset':         `enlever l'image`,
   // prevent i18n console.warn
   'Fake image editor':            ``,
   '<p>Fake image editor</p>':     ``,

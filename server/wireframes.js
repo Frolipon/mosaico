@@ -3,6 +3,11 @@
 const _                     = require('lodash')
 const chalk                 = require('chalk')
 const createError           = require('http-errors')
+const Nightmare             = require('nightmare')
+const fs                    = require('fs-extra')
+const crypto                = require('crypto')
+const path                  = require('path')
+const sharp                 = require('sharp')
 
 const config                = require('./config')
 const filemanager           = require('./filemanager')
@@ -11,12 +16,16 @@ const { handleValidatorsErrors,
   isFromCompany, Companies,
   Wireframes, Creations }   = require('./models')
 
+function _getWireframeImagePrefix( wireframeId ) {
+  return `wireframe-${ wireframeId }`
+}
+
 function list(req, res, next) {
   Wireframes
   .find({})
   .populate('_user')
   .populate('_company')
-  .then( (wireframes) => {
+  .then( wireframes => {
     res.render('wireframe-list', {
       data: { wireframes: wireframes, }
     })
@@ -104,10 +113,10 @@ function update(req, res, next) {
   filemanager
   .parseMultipart(req, {
     // add a `wireframe` prefix to differ from user uploaded template assets
-    prefix:     `wireframe-${wireId}`,
+    prefix:     _getWireframeImagePrefix( wireId ),
     formatter:  'wireframes',
   })
-  .then(onParse)
+  .then( onParse )
   .catch(next)
 
   function onParse( body ) {
@@ -121,7 +130,9 @@ function update(req, res, next) {
       const nameChange  = body.name !== wireframe.name
       // custom update function
       wireframe         = _.assignIn(wireframe, _.omit(body, ['images', 'assets']))
+      // TODO check if there is any assets to update
       wireframe.assets  = _.assign( {}, wireframe.assets || {}, body.assets )
+      wireframe.markModified( 'assets' )
 
       // copy wireframe name in creation
       if (wireId && nameChange) {
@@ -147,6 +158,199 @@ function update(req, res, next) {
   }
 }
 
+// used by nightmareJS to have the right html
+function nightmareMarkup(req, res, next) {
+  const { wireId }    = req.params
+
+  Wireframes
+  .findById( wireId, 'markup' )
+  .then( wireframe => {
+    if (!wireframe) return next( createError(404) )
+    if (!wireframe.markup) return next( createError(404) )
+    return res.send( wireframe.markup )
+  })
+  .catch( next )
+}
+
+// those are 2 links for installing nightmarejs on heroku
+// https://github.com/oscarmorrison/nightmare-heroku
+// https://github.com/benschwarz/heroku-electron-buildpack
+// We make sure that nightmare is connected as admin
+const protocol  = `http${ config.forcessl ? 's' : '' }://`
+const nightmare = Nightmare()
+.viewport(680, 780)
+.goto( `${protocol}${config.host}/admin/login` )
+.insert( '#password-field', config.admin.password )
+.click( 'form[action*="/login"] [type=submit]' )
+
+const connected = nightmare
+.evaluate( () => false )
+.then( () => {
+  return Promise.resolve()
+})
+//
+function generatePreviews(req, res, next) {
+  const { wireId }    = req.params
+  const start         = Date.now()
+  const blocksName    = []
+  const assets        = {}
+  const protocol      = `http${ config.forcessl ? 's' : '' }://`
+  let wireframe
+
+  Wireframes
+  .findById( wireId )
+  .then( generate )
+  .catch( next )
+
+  function getDuration() {
+    return `${ (Date.now() - start) / 1000}s`
+  }
+
+  function generate( _wireframe ) {
+    console.log(`[PREVIEWS] get wireframe – ${ getDuration() }`)
+    if (!_wireframe) return next( createError(404) )
+    if (!_wireframe.markup) return next( createError(404) )
+    wireframe = _wireframe
+
+    return connected
+    .then( () => {
+      console.log(`[PREVIEWS] get wireframe markup – ${ getDuration() }`)
+      return nightmare
+      // wait for `did-finish-load` event
+      // https://github.com/segmentio/nightmare/issues/297#issuecomment-150601269
+      .goto( `${protocol}${config.host}/wireframes/${wireId}/nightmare` )
+      .evaluate( () => false )
+    })
+    .then( getWireframeSize )
+    .then( resizeViewport )
+    .then( gatherBlocks )
+    .then( takeScreenshots )
+    .then( saveScreenshotsToTmp )
+    .then( uploadScreenshots )
+    .then( updateWireframeAssets )
+    .then( () => {
+      res.redirect( `/wireframes/${ wireId }` )
+    })
+  }
+
+  function getWireframeSize() {
+    console.log(`[PREVIEWS] get wireframe size – ${ getDuration() }`)
+    return nightmare
+    .evaluate( () => {
+      // `preview` class is added to have more controls over previews
+      // https://github.com/voidlabs/mosaico/issues/246#issuecomment-265979320
+      document.body.classList.add( 'preview' )
+      // this is to hide scrollars for screenshots (in case of)
+      // https://github.com/segmentio/nightmare/issues/726#issuecomment-232851174
+      const s = document.styleSheets[0]
+      s.insertRule('::-webkit-scrollbar { display:none; }')
+      return {
+        width:  Math.round( document.body.scrollWidth ),
+        height: Math.round( document.body.scrollHeight ),
+      }
+    })
+  }
+
+  // resize the viewport so it takes the whole template
+  // needed for screenshots to be done correctly
+  function resizeViewport( {width, height} ) {
+    console.log(`[PREVIEWS] resize viewport – ${ getDuration() }`)
+    return nightmare
+    .viewport(width, height)
+    .evaluate( () => false )
+  }
+
+  function gatherBlocks() {
+    console.log(`[PREVIEWS] gather blocks – ${ getDuration() }`)
+    return nightmare
+    .evaluate( () => {
+      // get position of every blocks
+      const nodes   = [ ...document.querySelectorAll('[data-ko-container] [data-ko-block]') ]
+      const blocks  = nodes.map( node => {
+        // use dataset to preserve case
+        const name  = `${node.dataset.koBlock}.png`
+        const rect  = node.getBoundingClientRect()
+        return {
+          name,
+          // electron only support integers
+          // https://github.com/electron/electron/blob/master/docs/api/structures/rectangle.md
+          clip: {
+            x:      Math.round( rect.left ),
+            y:      Math.round( rect.top ),
+            width:  Math.round( rect.width ),
+            height: Math.round( rect.height ),
+          }
+        }
+      })
+      // add the global view
+      blocks.push({
+        name: '_full.png',
+        clip: {
+          x:      0,
+          y:      0,
+          width:  Math.round( document.body.scrollWidth ),
+          height: Math.round( document.body.scrollHeight ),
+        }
+      })
+      return { blocks }
+    })
+  }
+
+  function takeScreenshots( {blocks} ) {
+    console.log(`[PREVIEWS] take screenshots – ${ getDuration() }`)
+    console.log( blocks )
+    blocks.forEach( ({name}) => blocksName.push( name ) )
+    const screens = blocks.map( ({name, clip}) => {
+      return nightmare
+      .evaluate( () => false )
+      .screenshot( clip )
+      .then( buffer => Promise.resolve(buffer) )
+    })
+    return Promise.all( screens )
+  }
+
+  function saveScreenshotsToTmp( imagesBuffer ) {
+    console.log(`[PREVIEWS] save screenshots to tmp – ${ getDuration() }`)
+    const files   = []
+    const images  = imagesBuffer.map( (imageBuffer, index) => {
+      console.log(`[PREVIEWS] img ${blocksName[ index ]}`)
+      // slug to be coherent with upload
+      const originalName  = slugFilename( blocksName[ index ] )
+      const hash          = crypto.createHash('md5').update( imageBuffer ).digest('hex')
+      const name          = `${ _getWireframeImagePrefix(wireId) }-${ hash }.png`
+      const filePath      = path.join( config.images.tmpDir, `/${name}` )
+      files.push({
+        path: filePath,
+        name,
+      })
+      // this will be used to update `assets` field in DB
+      assets[ originalName ] = name
+      return fs.writeFile( filePath, imageBuffer )
+    })
+    return Promise.all( [files, Promise.all(images)] )
+  }
+
+  function uploadScreenshots([files]) {
+    console.log(`[PREVIEWS] upload screenshots – ${ getDuration() }`)
+    const uploads = files.map( file => {
+      console.log(`[PREVIEWS] upload ${file.name}`)
+      // images are captured at 680 but displayed at half the size
+      const pipeline = sharp().resize( 340, null )
+      fs.createReadStream( file.path ).pipe( pipeline )
+      return filemanager.writeStreamFromStream( pipeline, file.name )
+    })
+    return Promise.all( uploads )
+  }
+
+  function updateWireframeAssets() {
+    console.log(`[PREVIEWS] update wireframe assets in DB – ${ getDuration() }`)
+    wireframe.assets  = Object.assign( {}, wireframe.assets || {},  assets )
+    wireframe.markModified( 'assets' )
+    return wireframe.save()
+  }
+
+}
+
 function remove(req, res, next) {
   var wireframeId = req.params.wireId
   console.log('REMOVE WIREFRAME', wireframeId)
@@ -163,10 +367,12 @@ function remove(req, res, next) {
 }
 
 module.exports = {
-  list:         list,
-  customerList: customerList,
-  show:         show,
-  update:       update,
-  remove:       remove,
-  getMarkup:    getMarkup,
+  list:             list,
+  customerList:     customerList,
+  show:             show,
+  update:           update,
+  remove:           remove,
+  getMarkup:        getMarkup,
+  generatePreviews: generatePreviews,
+  nightmareMarkup:  nightmareMarkup,
 }
