@@ -188,6 +188,11 @@ const connected = nightmare
 .then( () => {
   return Promise.resolve()
 })
+.catch( err => {
+  console.log( chalk.red(`[PREVIEWS] cannot connect to the server`) )
+  console.log( err )
+  throw err
+})
 //
 function generatePreviews(req, res, next) {
   const { wireId }    = req.params
