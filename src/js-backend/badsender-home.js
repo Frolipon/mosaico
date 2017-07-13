@@ -107,7 +107,7 @@ $paginationSelect.on('change', e => {
 
 // https://select2.github.io/options.html
 
-$('select[multiple').each( (index, el) => {
+$('select[multiple]').each( (index, el) => {
   const $select   = $(el)
   const $wrapper  = $select.parent()
   const wrapper   = $wrapper[0]
