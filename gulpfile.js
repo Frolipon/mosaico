@@ -11,6 +11,10 @@ const merge           = require('merge-stream')
 const args            = require('yargs').argv
 const mainBowerFiles  = require('main-bower-files')
 const _               = require('lodash')
+const beeper          = require('beeper')
+const log             = require('fancy-log')
+const colors          = require('ansi-colors')
+const Vinyl           = require('vinyl')
 
 const isWatch         = args.watch  === true
 const isDev           = args.prod   !== true
@@ -19,16 +23,16 @@ const { cyan }        = require('chalk')
 const buildDir        = 'dist'
 
 function onError(err) {
-  $.util.beep()
-  if (err.annotated)      { $.util.log(err.annotated) }
-  else if (err.message)   { $.util.log(err.message) }
-  else                    { $.util.log(err) }
+  beeper()
+  if (err.annotated)      { log(err.annotated) }
+  else if (err.message)   { log(err.message) }
+  else                    { log(err) }
   return this.emit('end')
 }
 
-$.util.log(
-  'environment is', $.util.colors.magenta(env),
-  'watch is', isWatch ? $.util.colors.magenta('enable') : 'disable'
+log(
+  'environment is', colors.magenta(env),
+  'watch is', isWatch ? colors.magenta('enable') : 'disable'
 )
 
 function bump() {
@@ -203,7 +207,7 @@ function jsMosaico() {
   //   presets:      ['es2015'],
   // })
   b.transform( babelify.configure({
-    presets:    ['es2015'],
+    presets:    ['env'],
     // Optional only regex - if any filenames **don't** match this regex
     // then they aren't compiled
     only:       /badsender-/,
@@ -218,7 +222,7 @@ function jsMosaico() {
   if (isWatch) {
     b = watchify( b )
     b.on('update', function () {
-      $.util.log('bundle front app')
+      log('bundle front app')
       bundleShare( b )
     })
   }
@@ -263,7 +267,7 @@ function templates() {
     result      = result + "document.addEventListener('DOMContentLoaded', function(event) {\n";
     result      = result + templates.join('\n') + '\n';
     result      = result + "});\n";
-    this.push(new $.util.File({
+    this.push(new Vinyl({
       cwd: './',
       base: './',
       path: 'templates.js',
@@ -311,7 +315,7 @@ function jsHome() {
   if (isWatch) {
     b = watchify(b)
     b.on('update', function () {
-      $.util.log('bundle home app')
+      log('bundle home app')
       bundleHome(b)
     })
   }
@@ -349,7 +353,7 @@ function jsAdmin() {
   if (isWatch) {
     b = watchify(b)
     b.on('update', function () {
-      $.util.log('bundle admin app')
+      log('bundle admin app')
       bundleAdmin(b)
     })
   }
@@ -424,7 +428,7 @@ function rev() {
     revs.sort(sortByName).forEach( r => {
       md5Object[ r.name ] = r.hash
     })
-    let file = new $.util.File({
+    let file = new Vinyl({
       path:     'md5public.json',
       contents: new Buffer( JSON.stringify(md5Object,  null, ' ') ),
     })
