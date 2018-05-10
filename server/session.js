@@ -8,8 +8,7 @@ const MongoStore    = require('connect-mongo')(session)
 const createError   = require('http-errors')
 
 const config        = require('./config')
-const { connection,
-  Users }           = require('./models')
+const { mongoose, Users } = require('./models')
 
 var adminUser = {
   isAdmin:  true,
@@ -67,7 +66,7 @@ function init(app) {
     secret:             'keyboard cat',
     resave:             false,
     saveUninitialized:  false,
-    store:              new MongoStore({ mongooseConnection: connection }),
+    store:              new MongoStore({ mongooseConnection: mongoose.connection }),
   }))
   app.use( flash() )
   app.use( passport.initialize() )
@@ -79,11 +78,11 @@ function guard(role) {
   var isAdminRoute = role === 'admin'
   return function guardRoute(req, res, next) {
     var user = req.user
-    // connected user shouldn't acces those pages
+    // connected user shouldn't access those pages
     if (role === 'no-session') {
       if (user) return user.isAdmin ? res.redirect('/admin') : res.redirect('/')
     } else {
-      // non connected user shouldn't acces those pages
+      // non connected user shouldn't access those pages
       if (!user) {
         return isAdminRoute ? res.redirect('/admin/login') : res.redirect('/login')
       }

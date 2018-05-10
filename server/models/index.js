@@ -5,7 +5,6 @@ const chalk     = require('chalk')
 const mongoose  = require('mongoose')
 
 mongoose.Promise    = global.Promise // Use native promises
-let connection
 
 const UserSchema        = require('./schema-user')
 const WireframeSchema   = require('./schema-wireframe')
@@ -21,11 +20,6 @@ const {
   CacheimageModel,
   GalleryModel,
 } = require('./names')
-
-mongoose.connection.on('error', console.error.bind(console, chalk.red('[DB] connection error:')))
-mongoose.connection.once('open', e =>  {
-  console.log(chalk.green('[DB] connection OK'))
-})
 
 //////
 // ERRORS HANDLING
@@ -61,11 +55,6 @@ function formatErrors(err, req, res, next) {
     res.redirect(req.path)
   })
   .catch(next)
-}
-
-function connectDB(dbConfig) {
-  connection    = mongoose.connect(dbConfig)
-  return connection
 }
 
 //////
@@ -108,8 +97,7 @@ const Cacheimages = mongoose.model( CacheimageModel, CacheimageSchema )
 const Galleries   = mongoose.model( GalleryModel, GallerySchema )
 
 module.exports    = {
-  connection:       mongoose.connection,
-  connectDB,
+  mongoose,
   formatErrors,
   isFromCompany,
   addCompanyFilter,

@@ -21,9 +21,9 @@ const helmet          = require('helmet')
 
 module.exports = function () {
 
-  var config        = require('./config')
-  var session       = require('./session')
-  require('./models').connectDB(config.database)
+  const config   = require('./config' )
+  const session  = require('./session' )
+  const services = require('./services-initialization' )
 
   //////
   // SERVER CONFIG
@@ -56,7 +56,7 @@ module.exports = function () {
 
   //----- SESSION & I18N
 
-  session.init(app)
+  session.init( app )
   i18n.configure({
     locales:        ['fr', 'en',],
     defaultLocale:  'fr',
@@ -388,7 +388,12 @@ module.exports = function () {
   // LAUNCHING
   //////
 
-  config.setup.then(function endSetup() {
+  services
+  .areReady
+  .then( serviceStatus => {
+    if ( !serviceStatus ) {
+      return console.log( chalk.red(`[APP] impossible to launch server`) )
+    }
     var server = app.listen(config.PORT, function endInit() {
       console.log(
         chalk.green('Server is listening on port'), chalk.cyan(server.address().port),

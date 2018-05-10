@@ -10,11 +10,44 @@ const path                  = require('path')
 const sharp                 = require('sharp')
 
 const config                = require('./config')
+const services              = require('./services-initialization' )
 const filemanager           = require('./filemanager')
 const slugFilename          = require('../shared/slug-filename.js')
 const { handleValidatorsErrors,
   isFromCompany, Companies,
   Wireframes, Creations }   = require('./models')
+
+// those are 2 links for installing nightmarejs on heroku
+// https://github.com/oscarmorrison/nightmare-heroku
+// https://github.com/benschwarz/heroku-electron-buildpack
+// We make sure that nightmare is connected as admin
+const protocol  = `http${ config.forcessl ? 's' : '' }://`
+const nightmare = services
+.areReady
+.then( serviceStatus => {
+  if ( !serviceStatus ) {
+    return console.log(chalk.red(`[PREVIEWS] abort nightmare initialization`) )
+    return false
+  }
+  return Promise.resolve(
+    Nightmare()
+    .viewport(680, 780)
+    .goto( `${protocol}${config.host}/admin/login` )
+    .insert( '#password-field', config.admin.password )
+    .click( 'form[action*="/login"] [type=submit]' )
+  )
+})
+
+const connected = nightmare
+  .then( nightmareRunning => {
+    if ( !nightmareRunning ) return new Error(`no nightmare running`)
+    nightmare.evaluate( () => false )
+  })
+  .catch( nightmareError => {
+    console.log( chalk.red(`[PREVIEWS] Nightmare can't connect to the server`) )
+    console.log( nightmareError )
+  })
+
 
 function _getWireframeImagePrefix( wireframeId ) {
   return `wireframe-${ wireframeId }`
@@ -172,27 +205,6 @@ function nightmareMarkup(req, res, next) {
   .catch( next )
 }
 
-// those are 2 links for installing nightmarejs on heroku
-// https://github.com/oscarmorrison/nightmare-heroku
-// https://github.com/benschwarz/heroku-electron-buildpack
-// We make sure that nightmare is connected as admin
-const protocol  = `http${ config.forcessl ? 's' : '' }://`
-const nightmare = Nightmare()
-.viewport(680, 780)
-.goto( `${protocol}${config.host}/admin/login` )
-.insert( '#password-field', config.admin.password )
-.click( 'form[action*="/login"] [type=submit]' )
-
-const connected = nightmare
-.evaluate( () => false )
-.then( () => {
-  return Promise.resolve()
-})
-.catch( err => {
-  console.log( chalk.red(`[PREVIEWS] cannot connect to the server`) )
-  console.log( err )
-  throw err
-})
 //
 function generatePreviews(req, res, next) {
   const { wireId }    = req.params
