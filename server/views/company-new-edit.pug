@@ -41,12 +41,19 @@ block content
             input(type="hidden" name="id" value=company._id)
           .mdl-card__title
             .mdl-card__title-text informations
-          fieldset.mdl-card__supporting-text
-            .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label(class= errors.name ? 'is-invalid' : '')
-              input.mdl-textfield__input#name-field(type="text" name="name" value=company.name)
-              label.mdl-textfield__label(for="name-field") name
-              if errors.name
-                span.mdl-textfield__error= errors.name.message
+          fieldset.mdl-card__supporting-text: .mdl-grid
+            .mdl-cell.mdl-cell--9-col
+              .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label(class= errors.name ? 'is-invalid' : '')
+                input.mdl-textfield__input#name-field(type="text" name="name" value=company.name)
+                label.mdl-textfield__label(for="name-field") name
+                if errors.name
+                  span.mdl-textfield__error= errors.name.message
+            .mdl-cell.mdl-cell--3-col
+              .mdl-textfield.mdl-js-textfield.mdl-textfield--floating-label
+                select.mdl-textfield__input#lang-field(name="downloadMailingWithoutEnclosingFolder")
+                  option(value="false" selected=!company.downloadMailingWithoutEnclosingFolder) with a wrapper folder
+                  option(value="true" selected=company.downloadMailingWithoutEnclosingFolder) everything at root level
+                label.mdl-textfield__label.mdl-textfield__label--fixed(for="lang-field") Downloaded mailing zip format
           .mdl-card__actions.mdl-card--border
             button(type="submit").mdl-button.mdl-button--accent.mdl-js-button.mdl-js-ripple-effect save
 

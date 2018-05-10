@@ -361,7 +361,7 @@ module.exports = function () {
   // ERROR HANDLING
   //////
 
-  // everyhting that go there without an error should be treated as a 404
+  // everything that go there without an error should be treated as a 404
   app.use(function (req, res, next) {
     if (req.xhr) return  res.status(404).send('not found')
     return res.status(404).render('error-404')

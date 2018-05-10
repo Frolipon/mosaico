@@ -14,6 +14,10 @@ const CompanySchema = Schema({
     unique:   true,
     set:      normalizeString,
   },
+  downloadMailingWithoutEnclosingFolder: {
+    type:     Boolean,
+    default:  false,
+  },
 }, { timestamps: true })
 
 CompanySchema.virtual('url').get(function () {

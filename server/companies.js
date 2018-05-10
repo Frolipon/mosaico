@@ -1,7 +1,8 @@
 'use strict'
 
-const chalk                 = require('chalk')
-const createError           = require('http-errors')
+const chalk        = require('chalk')
+const createError  = require('http-errors')
+const asyncHandler = require('express-async-handler')
 
 const config                = require('./config')
 const { handleValidatorsErrors,
@@ -50,19 +51,22 @@ function show(req, res, next) {
   .catch(next)
 }
 
-function update(req, res, next) {
-  var companyId = req.params.companyId
-  var dbRequest = companyId ?
+async function update(req, res, next) {
+  const { companyId } = req.params
+  const dbRequest     = companyId ?
     Companies.findByIdAndUpdate(companyId, req.body, {runValidators: true})
     : new Companies(req.body).save()
 
-  dbRequest
-  .then( company => res.redirect(`/companies/${company._id}`) )
-  .catch(err => handleValidatorsErrors(err, req, res, next) )
+  try {
+    const company = await dbRequest
+    res.redirect(`/companies/${company._id}`)
+  } catch( dbError ) {
+    handleValidatorsErrors(dbError, req, res, next)
+  }
 }
 
 module.exports = {
   list:       list,
   show:       show,
-  update:     update,
+  update:     asyncHandler( update ),
 }
