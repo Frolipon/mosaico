@@ -171,13 +171,13 @@ module.exports = function () {
   // ROUTING
   //////
 
-  var download          = require('./download')
   var images            = require('./images')
   var render            = require('./render')
   var users             = require('./users')
   var companies         = require('./companies')
   var wireframes        = require('./wireframes')
   var creations         = require('./creations')
+  var creationDownload  = require('./creation-download')
   var creationTransfer  = require('./creation-transfer')
   var filemanager       = require('./filemanager')
   var guard             = session.guard
@@ -348,8 +348,8 @@ module.exports = function () {
   // This should replace GET /editor
   // app.post('/creations',                  (req, res, next) => res.redirect('/'))
   app.get('/creations/:creationId/duplicate', creations.duplicate)
-  app.post('/creations/:creationId/send',     download.send)
-  app.post('/creations/:creationId/zip',      download.zip)
+  app.post('/creations/:creationId/send',     creationDownload.send)
+  app.post('/creations/:creationId/zip',      creationDownload.zip)
   app.delete('/creations',                    creations.bulkRemove)
   app.patch('/creations',                     creations.updateLabels)
   app.get('/creations',                       (req, res, next) => res.redirect('/') )

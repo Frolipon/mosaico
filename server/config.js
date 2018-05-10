@@ -31,9 +31,10 @@ var config  = rc('badsender', {
     cache:        false,
   },
   admin: {
-    id:           '576b90a441ceadc005124896',
-    username:     'badsender-admin',
-    password:     'admin',
+    id:                                   '576b90a441ceadc005124896',
+    username:                             'badsender-admin',
+    password:                             'admin',
+    downloadMailingWithoutEnclosingFolder: false,
   },
   // this is really optional.
   // It's just to be able to backup/restore DB with scripts

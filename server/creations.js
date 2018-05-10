@@ -133,7 +133,7 @@ function customerList(req, res, next) {
   const tagsList = Creations
   .aggregate( [
     { $match: {
-       _company,
+      _company,
       tags:     { $exists: true },
     } },
     { $unwind: '$tags' },
