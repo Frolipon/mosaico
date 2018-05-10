@@ -8,7 +8,6 @@ const mime        = require('mime-types')
 const AWS         = require('aws-sdk')
 const chalk       = require('chalk')
 const formidable  = require('formidable')
-const denodeify   = require('denodeify')
 const createError = require('http-errors')
 const util        = require('util')
 

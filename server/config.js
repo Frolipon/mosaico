@@ -1,12 +1,11 @@
 'use strict';
 
-var os          = require('os')
-var path        = require('path')
-var rc          = require('rc')
-var _           = require('lodash')
-var denodeify   = require('denodeify')
-var { inspect } = require('util')
-var mkdirp      = denodeify( require('fs-extra').mkdirs )
+const os          = require('os')
+const path        = require('path')
+const rc          = require('rc')
+const _           = require('lodash')
+const { inspect } = require('util')
+const { mkdirp }  = require('fs-extra')
 
 // default config is made for an easy use on local dev
 var config  = rc('badsender', {
