@@ -9,16 +9,14 @@ const { handleValidatorsErrors,
   Companies, Users,
   Wireframes, Creations }   = require('./models')
 
-function list(req, res, next) {
-  Companies
-  .find({})
-  .sort({ createdAt: -1 })
-  .then(function onCompany(companies) {
-    return res.render('company-list', {
-      data: { companies: companies, }
-    })
+async function list(req, res, next) {
+  const companies = await Companies
+    .find({})
+    .sort({ createdAt: -1 })
+
+  res.render('company-list', {
+    data: { companies }
   })
-  .catch(next)
 }
 
 function show(req, res, next) {
@@ -66,7 +64,7 @@ async function update(req, res, next) {
 }
 
 module.exports = {
-  list:       list,
+  list:       asyncHandler( list ),
   show:       show,
   update:     asyncHandler( update ),
 }
