@@ -4,6 +4,7 @@ const gulp            = require('gulp')
 const path            = require('path')
 const $               = require('gulp-load-plugins')()
 const browserSync     = require('browser-sync').create()
+const nodemon         = require('nodemon')
 const { reload }      = browserSync
 const lazypipe        = require('lazypipe')
 const del             = require('del')
@@ -203,9 +204,6 @@ function jsMosaico() {
   })
   b.transform( shim )
   b.transform( debowerify )
-  // b.transform(babelify, {
-  //   presets:      ['es2015'],
-  // })
   b.transform( babelify.configure({
     presets:    ['env'],
     // Optional only regex - if any filenames **don't** match this regex
@@ -300,7 +298,7 @@ function jsHome() {
     entries:      ['./src/js-backend/badsender-home.js']
   })
   .transform(babelify, {
-    presets:      ['es2015'],
+    presets:      ['env'],
   })
   .transform(pugify.pug({
     pretty:       isDev,
@@ -342,7 +340,7 @@ function jsAdmin() {
     entries:      ['./src/js-admin-backend/badsender-admin.js']
   })
   .transform(babelify, {
-    presets:      ['es2015'],
+    presets:      ['env'],
   })
   .transform(envify({
     _:            'purge',
@@ -485,8 +483,8 @@ const nodemonOptions = {
 }
 
 let init = true
-function nodemon(cb) {
-  return $.nodemon(_.merge({
+function nodemonDev(cb) {
+  return nodemon(_.merge({
     env: {
       'NODE_ENV':     'development',
       'VIPS_WARNING': false,
@@ -519,7 +517,7 @@ function bsAndWatch() {
 let initProd = true
 
 function nodemonProd(cb) {
-  return $.nodemon(_.merge({env: { 'NODE_ENV': 'production' }}, nodemonOptions))
+  return nodemon(_.merge({env: { 'NODE_ENV': 'production' }}, nodemonOptions))
   .on('start', () => {
     if (initProd) {
       initProd = false
@@ -540,7 +538,7 @@ gulp.task( 'templates',  templates )
 gulp.task( 'build', build )
 gulp.task( 'maintenance', gulp.series( cleanMaintenance, maintenance) )
 gulp.task( 'dev', gulp.series(
-  gulp.parallel( build, nodemon ),
+  gulp.parallel( build, nodemonDev ),
   bsAndWatch
 ) )
 gulp.task( 'prod',

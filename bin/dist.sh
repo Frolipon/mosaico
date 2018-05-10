@@ -50,9 +50,9 @@ cd $copydir
 
 # build and clean directory
 if [ $env = "dev" ]; then
-  npm run build-release-dev -- --pkg=$version
+  npm run build:release:dev -- --pkg=$version
 else
-  npm run build-release -- --pkg=$version
+  npm run build:release -- --pkg=$version
 fi
 
 rm .gitignore
