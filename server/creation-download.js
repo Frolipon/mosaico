@@ -74,7 +74,7 @@ function send(req, res, next) {
 // DOWNLOAD
 //////
 
-const imagesFolder = 'images'
+const IMAGES_FOLDER = 'images'
 // for doc see:
 // https://github.com/archiverjs/node-archiver/blob/master/examples/express.js
 
@@ -131,7 +131,7 @@ async function zip(req, res, next) {
   // - Cheerio won't handle IE comments
   allImages.forEach( imgUrl => {
     const escImgUrl   = _.escapeRegExp( imgUrl )
-    const relativeUrl = `${ imagesFolder }/${ getImageName(imgUrl) }`
+    const relativeUrl = `${ IMAGES_FOLDER }/${ getImageName(imgUrl) }`
     const search      = new RegExp( escImgUrl, 'g' )
     html              = html.replace( search, relativeUrl )
   })
@@ -165,7 +165,7 @@ async function zip(req, res, next) {
       // only happen images with a code of 200
       if (response.statusCode === 200) {
         archive.append( imgRequest, {
-          prefix: `${prefix}${imagesFolder}/`,
+          prefix: `${prefix}${IMAGES_FOLDER}/`,
           name:   imageName,
         })
       }
