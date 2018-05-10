@@ -1,7 +1,7 @@
 'use strict'
 
-if (!/^6\./.test(process.versions.node)) {
-  throw new Error('wrong node version. Should run on nodejs 6. See package.json#engines')
+if (!/^8\./.test(process.versions.node)) {
+  throw new Error('wrong node version. Should run on nodejs 8. See package.json#engines')
 }
 
 // https://devcenter.heroku.com/articles/node-concurrency

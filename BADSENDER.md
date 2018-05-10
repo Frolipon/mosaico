@@ -8,7 +8,7 @@
   - [buildpack](#buildpack)
   - [configuring environments variables](#configuring-environments-variables)
   - [Mail sending](#mail-sending)
-  - [from email adress](#from-email-adress)
+  - [from email address](#from-email-address)
   - [MongoDB database](#mongodb-database)
   - [Admin password](#admin-password)
   - [Hostname](#hostname)
@@ -27,6 +27,10 @@
     - [backup-db](#backup-db)
     - [local-db](#local-db)
   - [Tests](#tests)
+  - [S3 notes](#s3-notes)
+    - [requirements](#requirements)
+    - [backing up to a local folder](#backing-up-to-a-local-folder)
+    - [syncing a bucket from a local folder](#syncing-a-bucket-from-a-local-folder)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -76,8 +80,7 @@ badsender_emailTransport__auth__pass      your password (or Secret Key)
 badsender_emailTransport__service is for [nodemailer-wellknown](https://www.npmjs.com/package/nodemailer-wellknown) configuration  
 
 
-### from email adress
-
+### from email address
 
 ```
 badsender_emailOptions__from              Badsender Builder <emailbuilder@badsender.com>
@@ -169,7 +172,7 @@ images: {
 
 ## Dev prerequisite
 
-- [NodeJS 6](https://nodejs.org/en/)
+- [NodeJS 8](https://nodejs.org/en/)
 - [MongoDB v3.2.7](https://www.mongodb.com/) (if installed locally `mongod` to start) (`brew install mongod` on mac)
 - a SMTP server. [mailcatcher can help for local dev ](https://mailcatcher.me/) (`mailcatcher` to start) (`brew install ruby && gem install mailcatcher` on mac)
 - [sharp](http://sharp.dimens.io/en/stable/) should work out the box most of the time. In case of troubles see [sharp installation instructions](http://sharp.dimens.io/en/stable/install/). MacOs will need XCode in order to compile.
@@ -185,7 +188,7 @@ You need to have:
 It should have a default config for dev already setup.  
 If you want to change some, create `.badsenderc` at the root of the project then fill with the values you want to overrride as described in the `.badsenderrc-example`
 
-those are the main developper commands:
+those are the main developer commands:
 
 ### Build the project for *production*
 
@@ -276,7 +279,7 @@ Run a specific test:
 ### S3 notes
 
 This is some script to backup a bucket or sync a bucket from a backup.  
-This is mostly use for developement purpose.
+This is mostly use for development purpose.
 
 #### requirements
 
