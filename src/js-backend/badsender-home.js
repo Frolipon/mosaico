@@ -107,6 +107,9 @@ $paginationSelect.on('change', e => {
 
 // https://select2.github.io/options.html
 
+// Don't know why but need to attach it to our instance of jQuery
+select2( window, $ )
+
 $('select[multiple]').each( (index, el) => {
   const $select   = $(el)
   const $wrapper  = $select.parent()
